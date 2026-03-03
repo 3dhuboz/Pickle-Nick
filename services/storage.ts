@@ -447,6 +447,16 @@ export const StorageService = {
     }
   },
 
+  deleteMessage: async (id: string) => {
+    if (db) {
+        await withTimeout(deleteDoc(doc(db, 'messages', id)));
+    } else {
+        const msgs = await StorageService.getMessages();
+        const filtered = msgs.filter((m: ContactMessage) => m.id !== id);
+        safeSetItem(LS_KEYS.MESSAGES, JSON.stringify(filtered));
+    }
+  },
+
   // --- AUTH & TOOLS ---
   signInGoogle: async () => {
     if (!auth) throw new Error("Google Login requires Firebase configuration.");

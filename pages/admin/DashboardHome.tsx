@@ -68,16 +68,26 @@ const DashboardHome = () => {
       });
   }, [settings]);
   
-  // Mock data for chart
-  const data = [
-    { name: 'Mon', sales: 400 },
-    { name: 'Tue', sales: 300 },
-    { name: 'Wed', sales: 600 },
-    { name: 'Thu', sales: 200 },
-    { name: 'Fri', sales: 900 },
-    { name: 'Sat', sales: 1200 },
-    { name: 'Sun', sales: 800 },
-  ];
+  // Build chart data from real orders (last 7 days)
+  const data = (() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const now = new Date();
+    const result: { name: string; sales: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      const dayEnd = dayStart + 86400000;
+      const dayTotal = orders
+        .filter(o => {
+          const t = new Date(o.createdAt).getTime();
+          return t >= dayStart && t < dayEnd;
+        })
+        .reduce((sum, o) => sum + o.total, 0);
+      result.push({ name: days[d.getDay()], sales: Math.round(dayTotal * 100) / 100 });
+    }
+    return result;
+  })();
 
   const getFirebaseMessage = () => {
       if (systemStatus.firebase) return "Synced";

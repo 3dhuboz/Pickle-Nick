@@ -200,7 +200,7 @@ const Orders = () => {
       return [
         order.id, dateString, escape(order.customerName), escape(order.customerEmail), order.status,
         (order.subtotal || order.total).toFixed(2), (order.tax || 0).toFixed(2), order.total.toFixed(2),
-        escape(itemsString), escape(order.shippingAddress), escape(order.trackingNumber)
+        escape(itemsString), escape(order.shippingAddress), escape(order.trackingNumber || '')
       ].join(',');
     });
     const csvContent = [headers.join(','), ...rows].join('\n');

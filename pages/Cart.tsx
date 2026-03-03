@@ -97,7 +97,7 @@ const Cart = () => {
             createdAt: new Date().toISOString()
           };
           
-          placeOrder(newOrder);
+          await placeOrder(newOrder);
 
           // 3. Send Email Confirmation
           import('../services/emailService').then(({ EmailService }) => {

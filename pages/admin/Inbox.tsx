@@ -10,7 +10,7 @@ const HelpTip = ({ text }: { text: string }) => (
 );
 
 const Inbox = () => {
-  const { messages } = useStore();
+  const { messages, deleteMessage } = useStore();
 
   return (
     <div>
@@ -41,8 +41,11 @@ const Inbox = () => {
                  {msg.message}
                </p>
                
-               {/* Just visual for now since we don't have delete message in context yet, but UI is ready */}
-               <button className="absolute top-4 right-4 text-native-black/20 hover:text-native-clay transition-colors opacity-0 group-hover:opacity-100">
+               <button onClick={() => {
+                 if (window.confirm('Are you sure you want to delete this message?')) {
+                   deleteMessage(msg.id);
+                 }
+               }} title="Delete message" className="absolute top-4 right-4 text-native-black/20 hover:text-native-clay transition-colors opacity-0 group-hover:opacity-100">
                   <Trash2 size={18} />
                </button>
             </div>

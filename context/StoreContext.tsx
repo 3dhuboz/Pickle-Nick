@@ -36,6 +36,7 @@ interface StoreContextType {
   updateSettings: (s: AppSettings) => void;
   updateSiteContent: (c: SiteContent) => Promise<void>;
   sendMessage: (msg: ContactMessage) => void;
+  deleteMessage: (id: string) => Promise<void>;
   refreshData: () => void;
   updateUser: (u: User) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
@@ -186,7 +187,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Users
   const updateUser = async (u: User) => {
     await StorageService.saveUser(u);
-    setUsers(prev => prev.map(user => user.id === u.id ? u : user));
+    setUsers(prev => {
+      const index = prev.findIndex(user => user.id === u.id);
+      if (index > -1) {
+        return prev.map(user => user.id === u.id ? u : user);
+      }
+      return [...prev, u];
+    });
   };
 
   const deleteUser = async (id: string) => {
@@ -252,6 +259,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
+  const deleteMessage = async (id: string) => {
+    await StorageService.deleteMessage(id);
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
   // Settings & Content
   const updateSettings = (s: AppSettings) => {
     setSettings(s);
@@ -295,7 +307,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       products, categories, orders, users, posts, cart, isAdmin, settings, siteContent, messages, currentUser, installPrompt,
       addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, placeOrder, updateOrderStatus, updateOrder,
       addToCart, removeFromCart, clearCart, loginAdmin, logoutAdmin, loginCustomer, logoutCustomer, 
-      addPost, updateSettings, updateSiteContent, sendMessage, refreshData, updateUser, deleteUser, resetStore, reseedStore, triggerInstall
+      addPost, updateSettings, updateSiteContent, sendMessage, deleteMessage, refreshData, updateUser, deleteUser, resetStore, reseedStore, triggerInstall
     }}>
       {children}
     </StoreContext.Provider>

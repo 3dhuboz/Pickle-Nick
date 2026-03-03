@@ -156,7 +156,7 @@ const Users = () => {
              )}
 
              {users.length > 0 ? users.map(u => (
-               <tr key={u.id} className="hover:bg-native-sand/30 transition-colors">
+               <tr key={u.id} className="hover:bg-native-sand/30 transition-colors group">
                  <td className="p-5 font-display text-xl text-native-black">
                     {editingId === u.id ? (
                         <input 
