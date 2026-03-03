@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/jpeg" href="/logo.jpg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#212121" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Pickle Nick" />
+    <title>Pickle Nick | Spirit of the Brine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Mate+SC&family=Roboto+Slab:wght@300;400;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['"Rye"', 'serif'],
+              tribal: ['"Mate SC"', 'serif'],
+              sans: ['"Roboto Slab"', 'serif'],
+            },
+            colors: {
+              native: {
+                black: '#1a1a1a',     /* Ink Black */
+                sand: '#f5f0e6',      /* Parchment/Sand */
+                clay: '#bc4b35',      /* Canyon Red */
+                turquoise: '#26a69a', /* Aged Turquoise */
+                teal: '#00695c',      /* Deep Teal */
+                leather: '#8d6e63',   /* Rawhide */
+                silver: '#cfd8dc',    /* Silver Jewelry */
+                earth: '#4e342e'      /* Dark Earth */
+              }
+            },
+            borderRadius: {
+              'none': '0',
+              'sm': '0.5rem',
+              'DEFAULT': '1rem',
+              'md': '1.5rem',
+              'lg': '2rem',
+              'xl': '2.5rem',
+              '2xl': '3rem',
+              '3xl': '4rem',
+              'full': '9999px',
+            },
+            boxShadow: {
+              'wampum': '0 20px 25px -5px rgba(188, 75, 53, 0.3), 0 8px 10px -6px rgba(188, 75, 53, 0.1)',
+              'wampum-hover': '0 25px 50px -12px rgba(188, 75, 53, 0.5)',
+              'card': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              'ink': '0 4px 6px -1px rgba(26, 26, 26, 0.2), 0 2px 4px -1px rgba(26, 26, 26, 0.1)',
+            },
+            backgroundImage: {
+              'leather-texture': "url('https://www.transparenttextures.com/patterns/leather.png')",
+              'fabric-texture': "url('https://www.transparenttextures.com/patterns/natural-paper.png')",
+            },
+            animation: {
+              'drift': 'drift 30s linear infinite',
+            },
+            keyframes: {
+              drift: {
+                '0%': { backgroundPosition: '0% 0%' },
+                '100%': { backgroundPosition: '100% 100%' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #f5f0e6;
+        color: #212121;
+        background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+      }
+      
+      /* Tribal Zig Zag Pattern Generator */
+      .bg-tribal {
+        background-color: #f5f0e6;
+        background-image: 
+          linear-gradient(135deg, #bc4b35 25%, transparent 25%),
+          linear-gradient(225deg, #bc4b35 25%, transparent 25%),
+          linear-gradient(45deg, #bc4b35 25%, transparent 25%),
+          linear-gradient(315deg, #bc4b35 25%, transparent 25%);
+        background-position: 10px 0, 10px 0, 0 0, 0 0;
+        background-size: 20px 20px;
+        background-repeat: repeat-x;
+        height: 20px;
+        opacity: 0.8;
+      }
+      
+      .bg-tribal-dark {
+        background-color: #212121;
+        background-image: 
+          linear-gradient(135deg, #26a69a 25%, transparent 25%),
+          linear-gradient(225deg, #26a69a 25%, transparent 25%),
+          linear-gradient(45deg, #26a69a 25%, transparent 25%),
+          linear-gradient(315deg, #26a69a 25%, transparent 25%);
+        background-position: 10px 0, 10px 0, 0 0, 0 0;
+        background-size: 20px 20px;
+        background-repeat: repeat-x;
+        height: 20px;
+      }
+
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 12px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f5f0e6;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #26a69a;
+        border: 2px solid #f5f0e6;
+        border-radius: 6px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #00695c;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.42.0",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "recharts": "https://esm.sh/recharts@^3.7.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.574.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
+    "react-markdown": "https://esm.sh/react-markdown@^10.1.0",
+    "firebase/app": "https://esm.sh/firebase@10.8.1/app",
+    "firebase/firestore": "https://esm.sh/firebase@10.8.1/firestore",
+    "firebase/auth": "https://esm.sh/firebase@10.8.1/auth",
+    "firebase/": "https://esm.sh/firebase@^12.9.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="antialiased min-h-screen">
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

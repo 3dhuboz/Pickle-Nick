@@ -1,0 +1,9 @@
+{
+  "name": "Pickle Nick",
+  "description": "Sophisticated yet whimsical artisan pickle shop with AI-powered social media management.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

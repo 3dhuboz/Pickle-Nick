@@ -1,0 +1,22 @@
+
+{
+  "name": "Pickle Nick Provisions",
+  "short_name": "Pickle Nick",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f0e6",
+  "theme_color": "#212121",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
