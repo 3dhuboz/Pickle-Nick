@@ -36,7 +36,7 @@ const DEFAULT_PROFILE: BusinessProfile = {
 const SocialAIDashboard = () => {
   const { posts, addPost, deletePost } = useStore();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<'create' | 'calendar' | 'smart' | 'insights' | 'settings'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'calendar' | 'smart' | 'insights' | 'settings'>('smart');
 
   // Profile & Stats
   const [profile, setProfile] = useState<BusinessProfile>(() => {
@@ -187,9 +187,9 @@ const SocialAIDashboard = () => {
 
   // ── Tab Config ──
   const tabs = [
-    { id: 'create' as const, label: 'Create', icon: Wand2 },
+    { id: 'smart' as const, label: 'AI Autopilot', icon: Zap },
+    { id: 'create' as const, label: 'Create Post', icon: Wand2 },
     { id: 'calendar' as const, label: 'Calendar', icon: Calendar },
-    { id: 'smart' as const, label: 'Smart AI', icon: Brain },
     { id: 'insights' as const, label: 'Insights', icon: BarChart3 },
     { id: 'settings' as const, label: 'Settings', icon: Settings }
   ];
@@ -310,59 +310,106 @@ const SocialAIDashboard = () => {
       {/* ═══ CALENDAR TAB ═══ */}
       {activeTab === 'calendar' && <CalendarView posts={posts} onDelete={handleDeletePost} onCreateClick={() => setActiveTab('create')} />}
 
-      {/* ═══ SMART AI TAB ═══ */}
+      {/* ═══ SMART AI TAB (HERO) ═══ */}
       {activeTab === 'smart' && (
         <div className="space-y-6">
-          <h2 className="text-2xl font-display font-semibold flex items-center gap-2"><Brain className="text-amber-500" size={22} /> Smart AI Scheduler</h2>
-          <p className="text-gray-500">Let AI plan your entire content calendar for the next 2 weeks — optimized for engagement, timing, and variety.</p>
-
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-            <div className="flex flex-wrap gap-4 items-end">
-              <div>
-                <label className="text-xs text-gray-500 block mb-1">Posts to Generate</label>
-                <select value={smartCount} onChange={e => setSmartCount(Number(e.target.value))} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-900 text-sm outline-none focus:border-native-black" title="Post count">
-                  <option value={5}>5 posts</option>
-                  <option value={7}>7 posts</option>
-                  <option value={10}>10 posts</option>
-                  <option value={14}>14 posts</option>
-                </select>
+          {/* Hero Banner */}
+          <div className="bg-gradient-to-br from-native-black via-gray-900 to-native-black rounded-2xl p-8 md:p-10 text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(245,158,11,0.15),transparent_60%)]" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+                  <Zap size={20} className="text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-display font-bold">AI Autopilot</h2>
+                  <p className="text-white/50 text-xs">Powered by Gemini</p>
+                </div>
               </div>
-              <button onClick={handleSmartSchedule} disabled={isSmartGenerating} className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold px-6 py-2.5 rounded-xl transition flex items-center gap-2 text-sm shadow-md">
-                {isSmartGenerating ? <Loader2 className="animate-spin" size={16} /> : <Zap size={16} />}
-                Generate Schedule
-              </button>
+              <p className="text-white/70 text-sm max-w-lg mb-6 leading-relaxed">
+                One click. Your entire content calendar — written, scheduled, and optimized for maximum engagement. AI handles the strategy, topics, timing, hashtags, and platform selection.
+              </p>
+              <div className="flex flex-wrap gap-4 items-end">
+                <div>
+                  <label className="text-xs text-white/40 block mb-1.5">How many posts?</label>
+                  <select value={smartCount} onChange={e => setSmartCount(Number(e.target.value))} className="bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-amber-400 backdrop-blur-sm" title="Post count">
+                    <option value={5} className="text-gray-900">5 posts (1 week)</option>
+                    <option value={7} className="text-gray-900">7 posts (1 week)</option>
+                    <option value={10} className="text-gray-900">10 posts (2 weeks)</option>
+                    <option value={14} className="text-gray-900">14 posts (2 weeks)</option>
+                  </select>
+                </div>
+                <button onClick={handleSmartSchedule} disabled={isSmartGenerating} className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold px-8 py-3 rounded-xl transition flex items-center gap-2 text-sm shadow-lg shadow-amber-500/25 disabled:opacity-60">
+                  {isSmartGenerating ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
+                  {isSmartGenerating ? 'Generating...' : 'Generate My Schedule'}
+                </button>
+              </div>
+              {!hasApiKey && (
+                <div className="mt-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-2.5 text-yellow-300 text-xs flex items-center gap-2">
+                  <Sparkles size={14} /> Set your Gemini API key in the <button onClick={() => setActiveTab('settings')} className="underline hover:text-yellow-200">Settings tab</button> to activate AI.
+                </div>
+              )}
             </div>
-
-            {smartStrategy && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <h4 className="font-bold text-amber-800 text-sm mb-1">Strategy</h4>
-                <p className="text-sm text-gray-700">{smartStrategy}</p>
-              </div>
-            )}
           </div>
 
+          {/* How it works */}
+          {smartPosts.length === 0 && !smartStrategy && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { icon: Brain, title: 'Smart Strategy', desc: 'AI analyzes your brand, audience, and goals to create a tailored content strategy.' },
+                { icon: Calendar, title: 'Perfect Timing', desc: 'Posts are scheduled at optimal times based on your audience\'s activity patterns.' },
+                { icon: Sparkles, title: 'Ready to Post', desc: 'Complete captions, hashtags, and image prompts — accept them all in one click.' },
+              ].map((item, i) => (
+                <div key={i} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                  <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center mb-3">
+                    <item.icon size={18} className="text-amber-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 text-sm mb-1">{item.title}</h4>
+                  <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Strategy Result */}
+          {smartStrategy && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+              <h4 className="font-bold text-amber-800 text-sm mb-1 flex items-center gap-2"><Brain size={16} /> AI Strategy</h4>
+              <p className="text-sm text-gray-700 leading-relaxed">{smartStrategy}</p>
+            </div>
+          )}
+
+          {/* Generated Posts */}
           {smartPosts.length > 0 && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-display font-semibold text-gray-900">{smartPosts.length} Posts Generated</h3>
-                <button onClick={handleAcceptSmartPosts} className="bg-green-600 hover:bg-green-700 text-white font-bold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm shadow-md transition">
+                <h3 className="font-display font-semibold text-gray-900 text-lg">{smartPosts.length} Posts Ready</h3>
+                <button onClick={handleAcceptSmartPosts} className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm shadow-md transition">
+                  <CheckCircle size={16} /> Accept All & Schedule
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {smartPosts.map((sp, i) => (
+                  <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-2 mb-2.5 flex-wrap">
+                      <span className="text-xs font-bold text-gray-900">#{i + 1}</span>
+                      {sp.platform === 'instagram' ? <Instagram size={14} className="text-pink-500" /> : <Facebook size={14} className="text-blue-500" />}
+                      <span className="text-xs text-gray-400">{new Date(sp.scheduledFor).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} at {new Date(sp.scheduledFor).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      {sp.pillar && <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200 font-semibold">{sp.pillar}</span>}
+                    </div>
+                    <p className="text-sm text-gray-700 mb-2 leading-relaxed">{sp.content}</p>
+                    <div className="flex flex-wrap gap-1">
+                      {sp.hashtags.map((t, j) => <span key={j} className="text-[10px] text-amber-600 font-medium">{t}</span>)}
+                    </div>
+                    {sp.reasoning && <p className="text-xs text-gray-400 mt-2 italic border-t border-gray-100 pt-2">{sp.reasoning}</p>}
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-center pt-2">
+                <button onClick={handleAcceptSmartPosts} className="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-xl flex items-center gap-2 text-sm shadow-md transition">
                   <CheckCircle size={16} /> Accept All & Add to Calendar
                 </button>
               </div>
-              {smartPosts.map((sp, i) => (
-                <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    {sp.platform === 'instagram' ? <Instagram size={14} className="text-pink-500" /> : <Facebook size={14} className="text-blue-500" />}
-                    <span className="text-xs text-gray-400">{new Date(sp.scheduledFor).toLocaleDateString()} {new Date(sp.scheduledFor).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    {sp.pillar && <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-200 font-medium">{sp.pillar}</span>}
-                  </div>
-                  <p className="text-sm text-gray-700 mb-2">{sp.content}</p>
-                  <div className="flex flex-wrap gap-1">
-                    {sp.hashtags.map((t, j) => <span key={j} className="text-[10px] text-amber-600 font-medium">{t}</span>)}
-                  </div>
-                  {sp.reasoning && <p className="text-xs text-gray-400 mt-2 italic">{sp.reasoning}</p>}
-                </div>
-              ))}
             </div>
           )}
         </div>
