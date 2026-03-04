@@ -416,7 +416,7 @@ const Settings = () => {
 
         {/* Email Configuration */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-            <SectionHeader title="Email Notifications" icon={Mail} description="Server-side email via SiteGround SMTP." configured={!!(emailConfig.enabled && emailConfig.adminEmail && emailConfig.fromEmail)} />
+            <SectionHeader title="Email Notifications" icon={Mail} description="Send order confirmations and shipping updates to customers." configured={!!(emailConfig.enabled && emailConfig.adminEmail && emailConfig.fromEmail && emailConfig.smtpPass)} />
 
             <div className="pl-0 md:pl-14 max-w-2xl">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 mb-6">
@@ -431,136 +431,109 @@ const Settings = () => {
                 </div>
                 
                 {emailConfig.enabled && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-5 animate-in fade-in slide-in-from-top-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">From Name</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Your Business Name</label>
                                 <input 
                                     value={emailConfig.fromName || ''} 
                                     onChange={e => setEmailConfig({...emailConfig, fromName: e.target.value})}
                                     className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
                                     placeholder="Pickle Nick"
                                 />
+                                <span className="text-xs text-gray-400 mt-1 block">Shown as the sender name on emails</span>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">From Email</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Sending Email Address</label>
                                 <input 
                                     type="email"
                                     value={emailConfig.fromEmail || ''} 
-                                    onChange={e => setEmailConfig({...emailConfig, fromEmail: e.target.value})}
-                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                    onChange={e => {
+                                        const email = e.target.value;
+                                        const domain = email.includes('@') ? email.split('@')[1] : '';
+                                        setEmailConfig({
+                                            ...emailConfig, 
+                                            fromEmail: email,
+                                            smtpHost: domain ? `mail.${domain}` : emailConfig.smtpHost,
+                                            smtpUser: email,
+                                        });
+                                    }}
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
                                     placeholder="noreply@picklenick.com"
                                 />
+                                <span className="text-xs text-gray-400 mt-1 block">The email address customers see — must be created in SiteGround first</span>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Admin BCC Email</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notification Email</label>
                                 <input 
                                     type="email"
                                     value={emailConfig.adminEmail || ''} 
                                     onChange={e => setEmailConfig({...emailConfig, adminEmail: e.target.value})}
-                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
                                     placeholder="orders@picklenick.com"
                                 />
+                                <span className="text-xs text-gray-400 mt-1 block">You'll get a copy of every order email here</span>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Mail Endpoint</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Email Password</label>
                                 <input 
-                                    value={emailConfig.smtpEndpoint || ''} 
-                                    onChange={e => setEmailConfig({...emailConfig, smtpEndpoint: e.target.value})}
-                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                                    placeholder="/api/send-email.php"
+                                    type="password"
+                                    value={emailConfig.smtpPass || ''} 
+                                    onChange={e => setEmailConfig({...emailConfig, smtpPass: e.target.value})}
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                    placeholder="••••••••"
                                 />
+                                <span className="text-xs text-gray-400 mt-1 block">The password for your sending email (set in SiteGround)</span>
                             </div>
                         </div>
 
-                        <div className="border-t border-gray-100 pt-6">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Server size={18} className="text-gray-600" />
-                                <h4 className="font-medium text-gray-900">SMTP Server Configuration</h4>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
-                                    <input 
-                                        value={emailConfig.smtpHost || ''} 
-                                        onChange={e => setEmailConfig({...emailConfig, smtpHost: e.target.value})}
-                                        className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                                        placeholder="mail.picklenick.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Port</label>
-                                    <div className="flex gap-3">
-                                        <input 
-                                            type="number"
-                                            value={emailConfig.smtpPort || ''} 
-                                            onChange={e => setEmailConfig({...emailConfig, smtpPort: parseInt(e.target.value) || undefined})}
-                                            className="w-28 p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                                            placeholder="465"
-                                        />
-                                        <select 
-                                            value={emailConfig.smtpSecure || 'ssl'} 
-                                            onChange={e => setEmailConfig({...emailConfig, smtpSecure: e.target.value as 'ssl' | 'tls', smtpPort: e.target.value === 'ssl' ? 465 : 587})}
-                                            title="Encryption method"
-                                            className="p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all bg-white"
-                                        >
-                                            <option value="ssl">SSL (port 465)</option>
-                                            <option value="tls">TLS (port 587)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Username</label>
-                                    <input 
-                                        value={emailConfig.smtpUser || ''} 
-                                        onChange={e => setEmailConfig({...emailConfig, smtpUser: e.target.value})}
-                                        className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                                        placeholder="noreply@picklenick.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Password</label>
-                                    <input 
-                                        type="password"
-                                        value={emailConfig.smtpPass || ''} 
-                                        onChange={e => setEmailConfig({...emailConfig, smtpPass: e.target.value})}
-                                        className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                                        placeholder="••••••••"
-                                    />
-                                </div>
-                            </div>
-                            <HelpTip text="These credentials are sent securely to your mail endpoint on each request. For SiteGround, the SMTP host is usually mail.yourdomain.com and the username is the full email address you created in Site Tools." />
-                        </div>
-
-                        <div className="border-t border-gray-100 pt-6">
-                            <div className="flex items-center gap-3">
-                                <button 
-                                    onClick={handleTestEmail}
-                                    disabled={isTestingEmail}
-                                    className="px-5 py-2.5 bg-native-black text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
+                        <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                            <span className="text-sm text-gray-600">Security:</span>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setEmailConfig({...emailConfig, smtpSecure: 'ssl', smtpPort: 465})}
+                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                        (emailConfig.smtpSecure || 'ssl') === 'ssl' 
+                                            ? 'bg-native-black text-white shadow-sm' 
+                                            : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+                                    }`}
                                 >
-                                    {isTestingEmail ? <><Loader2 size={16} className="animate-spin" /> Sending...</> : <><Send size={16} /> Send Test Email</>}
+                                    SSL (Recommended)
                                 </button>
-                                <span className="text-xs text-gray-400">Sends a test to your admin email</span>
+                                <button
+                                    onClick={() => setEmailConfig({...emailConfig, smtpSecure: 'tls', smtpPort: 587})}
+                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                        emailConfig.smtpSecure === 'tls' 
+                                            ? 'bg-native-black text-white shadow-sm' 
+                                            : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+                                    }`}
+                                >
+                                    TLS
+                                </button>
                             </div>
                         </div>
 
-                        <HelpTip text="Emails are sent via your server's PHP mail endpoint. Deploy the api/send-email.php file to your server root. The SMTP credentials above are passed to the endpoint so it can authenticate with your mail server." />
+                        <div className="flex items-center gap-3 pt-2">
+                            <button 
+                                onClick={handleTestEmail}
+                                disabled={isTestingEmail}
+                                className="px-5 py-2.5 bg-native-black text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
+                            >
+                                {isTestingEmail ? <><Loader2 size={16} className="animate-spin" /> Sending...</> : <><Send size={16} /> Send Test Email</>}
+                            </button>
+                            <span className="text-xs text-gray-400">Sends a test to your admin email</span>
+                        </div>
+
                         <HelpGuide
-                            title="How do I set up email notifications?"
+                            title="How do I set up email?"
                             steps={[
-                                'Log in to <strong>SiteGround Site Tools</strong> for your domain.',
-                                'Go to <strong>Email → Accounts</strong> and create an email address (e.g. <strong>noreply@picklenick.com</strong>).',
-                                'Create a second email for admin notifications (e.g. <strong>orders@picklenick.com</strong>).',
-                                'Upload the <strong>api/send-email.php</strong> file from this project to your server\'s public root folder.',
-                                'Back here, toggle <strong>Enable Email Notifications</strong> on.',
-                                'Fill in <strong>From Name</strong>, <strong>From Email</strong>, and <strong>Admin BCC Email</strong>.',
-                                'Under <strong>SMTP Server Configuration</strong>, enter your mail server host (e.g. <strong>mail.picklenick.com</strong>).',
-                                'Set the <strong>SMTP Username</strong> to the full email address (e.g. noreply@picklenick.com) and enter the <strong>password</strong> you created in SiteGround.',
-                                'Choose <strong>SSL (port 465)</strong> or <strong>TLS (port 587)</strong> — SSL is recommended for SiteGround.',
-                                'Click <strong>Send Test Email</strong> to verify everything works!'
+                                'In <strong>SiteGround Site Tools → Email → Accounts</strong>, create an email like <strong>noreply@picklenick.com</strong>.',
+                                'Create a second one for yourself, like <strong>orders@picklenick.com</strong>.',
+                                'Back here, enter the <strong>sending email</strong> and the <strong>password</strong> you just created.',
+                                'Enter your <strong>admin notification email</strong> so you get order copies.',
+                                'Click <strong>Send Test Email</strong> — if it arrives, you\'re all set!'
                             ]}
-                            tip="The test email will arrive at your Admin BCC address. Check spam if you don't see it within a minute."
+                            tip="The test email goes to your admin notification address. Check spam if it doesn't arrive within a minute."
                         />
                     </div>
                 )}
@@ -773,7 +746,8 @@ const Settings = () => {
           </div>
         </div>
 
-        <div className="pt-8 flex justify-end sticky bottom-0 bg-[#f8f5f2]/95 backdrop-blur-sm p-4 border-t border-gray-200 z-10 rounded-t-2xl">
+        {/* Fixed Save Bar */}
+        <div className="fixed bottom-0 right-0 left-0 md:left-72 bg-[#f8f5f2]/95 backdrop-blur-sm border-t border-gray-200 z-30 px-10 py-4 flex justify-end">
             <button 
             onClick={handleSave}
             disabled={saveStatus !== 'idle'}
