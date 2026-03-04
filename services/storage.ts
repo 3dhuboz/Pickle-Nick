@@ -200,15 +200,23 @@ const initFirebase = () => {
 
 initFirebase();
 
-const stamp = (data: any) => {
-    const cleanData = { ...data, updatedAt: Date.now() };
-    Object.keys(cleanData).forEach(key => {
-        if (cleanData[key] === undefined || (typeof cleanData[key] === 'number' && isNaN(cleanData[key]))) {
-            delete cleanData[key];
-        }
-    });
-    return cleanData;
+const deepClean = (obj: any): any => {
+    if (obj === null || obj === undefined) return null;
+    if (Array.isArray(obj)) return obj.map(deepClean).filter(v => v !== null && v !== undefined);
+    if (typeof obj === 'object') {
+        const cleaned: any = {};
+        Object.keys(obj).forEach(key => {
+            const val = obj[key];
+            if (val === undefined) return;
+            if (typeof val === 'number' && isNaN(val)) return;
+            cleaned[key] = typeof val === 'object' && val !== null ? deepClean(val) : val;
+        });
+        return cleaned;
+    }
+    return obj;
 };
+
+const stamp = (data: any) => deepClean({ ...data, updatedAt: Date.now() });
 
 export const StorageService = {
   getAuth: () => auth,
@@ -249,7 +257,7 @@ export const StorageService = {
     // Persist to Firestore for cross-device sync
     if (db) {
       try {
-        await withTimeout(setDoc(doc(db, 'settings', 'main'), { ...settings, updatedAt: Date.now() }));
+        await withTimeout(setDoc(doc(db, 'settings', 'main'), deepClean({ ...settings, updatedAt: Date.now() })));
       } catch (e) {
         console.error('Failed to save settings to cloud', e);
       }
