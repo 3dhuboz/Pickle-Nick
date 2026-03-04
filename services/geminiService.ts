@@ -61,7 +61,7 @@ export const generateSocialContent = async (
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-2.0-flash',
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -220,7 +220,7 @@ export const getPostingAdvice = async (platform: string) => {
     const ai = getAIClient();
     const prompt = `Best times to post on ${platform} for a food business to maximize engagement. Keep it brief and return a short 1-sentence tip.`;
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents: prompt
     });
     return response.text;
@@ -234,7 +234,7 @@ export const researchSocialTopic = async (query: string) => {
     Keep the tone professional yet creative.
   `;
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-2.0-flash',
     contents: prompt
   });
   return response.text;
@@ -249,7 +249,7 @@ export const analyzeSocialMetrics = async (metricName: string, value: string | n
     Keep the answer concise and encouraging.
   `;
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-2.0-flash',
     contents: prompt
   });
   return response.text;
@@ -288,7 +288,7 @@ export const analyzePostTimes = async (businessType: string, location: string) =
   const ai = getAIClient();
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: `What are the best times to post on Instagram and Facebook for a ${businessType} in ${location}? Give a concise bulleted list of 3 best time slots for the upcoming week.`
     });
     return response.text;
@@ -301,7 +301,7 @@ export const generateRecommendations = async (businessName: string, businessType
   const ai = getAIClient();
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: `
         You are a social media strategist for "${businessName}", a ${businessType}.
         Stats: Followers: ${stats.followers}, Reach: ${stats.reach}, Engagement: ${stats.engagement}%, Posts: ${stats.postsLast30Days}.
@@ -358,7 +358,7 @@ export const generateSmartSchedule = async (
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -404,7 +404,7 @@ export const generateProductDescription = async (name: string, category: string)
     Keep it under 50 words.
   `;
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-2.0-flash',
     contents: prompt
   });
   return response.text;
