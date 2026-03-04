@@ -272,7 +272,9 @@ export const generateMarketingImage = async (prompt: string): Promise<string | n
         for (const part of parts) {
           if (part.inlineData?.data) {
             const mimeType = part.inlineData.mimeType || 'image/png';
-            return `data:${mimeType};base64,${part.inlineData.data}`;
+            const raw = `data:${mimeType};base64,${part.inlineData.data}`;
+            // Compress to stay well under Firestore's 1 MB field limit
+            return await compressImage(raw, 700, 0.65);
           }
         }
       }
