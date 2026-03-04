@@ -80,6 +80,27 @@ const SocialAIDashboard = () => {
   const [isSmartGenerating, setIsSmartGenerating] = useState(false);
   const [smartCount, setSmartCount] = useState(7);
 
+  // Generation ticker
+  const TICKER_STEPS = [
+    { label: 'Analysing your brand profile...', pct: 8 },
+    { label: 'Researching content pillars...', pct: 18 },
+    { label: 'Crafting content strategy...', pct: 30 },
+    { label: 'Writing post captions...', pct: 45 },
+    { label: 'Selecting optimal platforms...', pct: 58 },
+    { label: 'Scheduling at peak engagement times...', pct: 68 },
+    { label: 'Weaving in hashtags & emojis...', pct: 78 },
+    { label: 'Polishing final drafts...', pct: 88 },
+    { label: 'Almost there — wrapping up...', pct: 95 },
+  ];
+  const [tickerIdx, setTickerIdx] = useState(0);
+  useEffect(() => {
+    if (!isSmartGenerating) { setTickerIdx(0); return; }
+    const id = setInterval(() => {
+      setTickerIdx(prev => (prev < TICKER_STEPS.length - 1 ? prev + 1 : prev));
+    }, 2800);
+    return () => clearInterval(id);
+  }, [isSmartGenerating]);
+
   // Insights State
   const [recommendations, setRecommendations] = useState('');
   const [bestTimes, setBestTimes] = useState('');
@@ -517,8 +538,53 @@ const SocialAIDashboard = () => {
             </div>
           </div>
 
+          {/* Generation Ticker */}
+          {isSmartGenerating && (
+            <div className="bg-native-black border border-amber-500/20 rounded-2xl p-6 overflow-hidden relative">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(245,158,11,0.07),transparent_55%)]" />
+              <div className="relative z-10 space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+                    <Sparkles size={16} className="text-amber-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <p className="text-white font-semibold text-sm">AI is building your schedule</p>
+                    <p className="text-white/40 text-xs">This takes 15–40 seconds — hang tight</p>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="space-y-1.5">
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-1000 ease-in-out"
+                      style={{ width: `${TICKER_STEPS[tickerIdx].pct}%` }}
+                    />
+                  </div>
+                  <p className="text-amber-300 text-xs font-medium">{TICKER_STEPS[tickerIdx].pct}% complete</p>
+                </div>
+
+                {/* Current step */}
+                <div className="flex items-center gap-2">
+                  <Loader2 size={14} className="text-amber-400 animate-spin flex-shrink-0" />
+                  <span className="text-white/80 text-sm">{TICKER_STEPS[tickerIdx].label}</span>
+                </div>
+
+                {/* Completed steps */}
+                <div className="space-y-1.5">
+                  {TICKER_STEPS.slice(0, tickerIdx).map((step, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <CheckCircle size={13} className="text-green-400 flex-shrink-0" />
+                      <span className="text-white/30 text-xs line-through">{step.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* How it works */}
-          {smartPosts.length === 0 && !smartStrategy && (
+          {!isSmartGenerating && smartPosts.length === 0 && !smartStrategy && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 { icon: Brain, title: 'Smart Strategy', desc: 'AI analyzes your brand, audience, and goals to create a tailored content strategy.' },
