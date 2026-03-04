@@ -178,16 +178,21 @@ const Orders = () => {
       
       setEmailSentStatus(false);
       
-      import('../../services/emailService').then(async ({ EmailService }) => {
+      try {
+        import('../../services/emailService').then(async ({ EmailService }) => {
           const success = await EmailService.sendTrackingUpdate(formData as Order, settings);
           if (success) {
               setEmailSentStatus(true);
               setShowEmailPreview(false);
-              alert(`📧 Notification successfully dispatched to ${formData.customerEmail}`);
+              alert(`📧 Shipping notification sent to ${formData.customerEmail}`);
           } else {
-              alert(`⚠️ Failed to send email. Ensure your SiteGround mail endpoint is configured in Settings.`);
+              alert(`⚠️ Failed to send email. Check your email settings in Admin → Settings → Email Notifications.`);
           }
-      });
+        });
+      } catch (e) {
+        console.error(e);
+        alert(`⚠️ Failed to send email. Check your email settings in Admin → Settings → Email Notifications.`);
+      }
   };
 
   const handleExportCSV = () => {

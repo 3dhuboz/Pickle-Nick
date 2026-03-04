@@ -58,26 +58,31 @@ export const EmailService = {
 
         const endpoint = config.emailProvider === 'smtp' ? (config.smtpEndpoint || '/api/send-email') : '/api/send-email';
         const brandName = config.fromName || 'Pickle Nick';
-        return sendEmail(endpoint, {
-            to: order.customerEmail,
-            subject: `Order Confirmed — #${order.id.slice(-8).toUpperCase()}`,
-            html: orderEmailHtml(
-                order.customerName,
-                order.id,
-                `$${order.total.toFixed(2)}`,
-                `Thank you for your order! Your order has been received and is currently <strong>${order.status}</strong>. We'll notify you when it ships.`,
-                brandName,
-                {
-                    shippingMethod: order.shippingMethod,
-                    shippingCost: order.shippingCost != null ? (order.shippingCost === 0 ? 'Free' : `$${order.shippingCost.toFixed(2)}`) : undefined
-                }
-            ),
-            fromName: brandName,
-            fromEmail: config.fromEmail,
-            bcc: config.adminEmail,
-            resendApiKey: config.emailProvider !== 'smtp' ? config.resendApiKey : undefined,
-            smtp: config.emailProvider === 'smtp' ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
-        });
+        try {
+            return await sendEmail(endpoint, {
+                to: order.customerEmail,
+                subject: `Order Confirmed — #${order.id.slice(-8).toUpperCase()}`,
+                html: orderEmailHtml(
+                    order.customerName,
+                    order.id,
+                    `$${order.total.toFixed(2)}`,
+                    `Thank you for your order! Your order has been received and is currently <strong>${order.status}</strong>. We'll notify you when it ships.`,
+                    brandName,
+                    {
+                        shippingMethod: order.shippingMethod,
+                        shippingCost: order.shippingCost != null ? (order.shippingCost === 0 ? 'Free' : `$${order.shippingCost.toFixed(2)}`) : undefined
+                    }
+                ),
+                fromName: brandName,
+                fromEmail: config.fromEmail,
+                bcc: config.adminEmail,
+                resendApiKey: config.emailProvider !== 'smtp' ? config.resendApiKey : undefined,
+                smtp: config.emailProvider === 'smtp' ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
+            });
+        } catch (e: any) {
+            console.error('Order confirmation email failed:', e?.message);
+            return false;
+        }
     },
 
     sendTrackingUpdate: async (order: Order, settings: AppSettings): Promise<boolean> => {
@@ -97,7 +102,8 @@ export const EmailService = {
 
         const endpoint = config.emailProvider === 'smtp' ? (config.smtpEndpoint || '/api/send-email') : '/api/send-email';
         const brandName = config.fromName || 'Pickle Nick';
-        return sendEmail(endpoint, {
+        try {
+        return await sendEmail(endpoint, {
             to: order.customerEmail,
             subject: `Your Order Has Shipped — #${order.id.slice(-8).toUpperCase()}`,
             html: orderEmailHtml(
@@ -113,6 +119,10 @@ export const EmailService = {
             resendApiKey: config.emailProvider !== 'smtp' ? config.resendApiKey : undefined,
             smtp: config.emailProvider === 'smtp' ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
         });
+        } catch (e: any) {
+            console.error('Tracking update email failed:', e?.message);
+            return false;
+        }
     },
 
     sendTestEmail: async (settings: AppSettings): Promise<boolean> => {
