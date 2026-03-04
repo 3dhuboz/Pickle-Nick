@@ -56,7 +56,7 @@ export const EmailService = {
             return false;
         }
 
-        const endpoint = config.smtpEndpoint || '/api/send-email';
+        const endpoint = config.emailProvider === 'smtp' ? (config.smtpEndpoint || '/api/send-email') : '/api/send-email';
         const brandName = config.fromName || 'Pickle Nick';
         return sendEmail(endpoint, {
             to: order.customerEmail,
@@ -95,7 +95,7 @@ export const EmailService = {
             ? `Your order has shipped! <a href="${trackingLink}" style="color:#26a69a;font-weight:bold;">Track your package here</a>.`
             : `Your order has shipped and is on its way! (Local pickup — no tracking number)`;
 
-        const endpoint = config.smtpEndpoint || '/api/send-email';
+        const endpoint = config.emailProvider === 'smtp' ? (config.smtpEndpoint || '/api/send-email') : '/api/send-email';
         const brandName = config.fromName || 'Pickle Nick';
         return sendEmail(endpoint, {
             to: order.customerEmail,
@@ -119,7 +119,7 @@ export const EmailService = {
         const config = settings.emailConfig;
         if (!config?.adminEmail) return false;
 
-        const endpoint = config.smtpEndpoint || '/api/send-email';
+        const endpoint = config.emailProvider === 'smtp' ? (config.smtpEndpoint || '/api/send-email') : '/api/send-email';
         return sendEmail(endpoint, {
             to: config.adminEmail,
             subject: `${config.fromName || 'Pickle Nick'} — Email Test`,
