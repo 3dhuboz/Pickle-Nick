@@ -689,6 +689,51 @@ const Settings = () => {
                             </div>
                         )}
 
+                        {/* Manual token entry — use when OAuth popup has expired session */}
+                        <details className="mt-4 group">
+                            <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-800 font-medium select-none list-none flex items-center gap-1">
+                                <span className="group-open:rotate-90 inline-block transition-transform">▶</span>
+                                Paste token manually (use if Connect button fails)
+                            </summary>
+                            <div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
+                                <p className="text-xs text-amber-800">Get a permanent page token from <strong>developers.facebook.com/tools/explorer</strong> → select your app → User or Page dropdown → Get Page Access Token.</p>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Page ID</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. 123456789012345"
+                                        title="Facebook Page ID"
+                                        value={form.fbPageId || ''}
+                                        onChange={e => setForm({ ...form, fbPageId: e.target.value })}
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-blue-400"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Page Name (optional)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Pickle Nick"
+                                        title="Facebook Page Name"
+                                        value={form.fbPageName || ''}
+                                        onChange={e => setForm({ ...form, fbPageName: e.target.value })}
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Page Access Token</label>
+                                    <textarea
+                                        placeholder="Paste your page access token here..."
+                                        title="Facebook Page Access Token"
+                                        value={form.fbPageAccessToken || ''}
+                                        onChange={e => setForm({ ...form, fbPageAccessToken: e.target.value })}
+                                        rows={3}
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-blue-400 resize-none"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500">Click <strong>Save Changes</strong> below after pasting.</p>
+                            </div>
+                        </details>
+
                         {showPageSelector && fbPages.length > 0 && (
                             <div className="mt-4 p-4 bg-white border border-gray-200 rounded-xl shadow-lg animate-in fade-in slide-in-from-top-2">
                                 <h6 className="font-semibold text-sm mb-3 text-gray-900">Select a Page to Connect:</h6>
