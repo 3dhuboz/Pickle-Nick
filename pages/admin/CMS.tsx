@@ -149,10 +149,10 @@ const ImageEditorModal = ({ label, value, onClose, onSave }: { label: string, va
 };
 
 // --- Visual Card Component ---
-const VisualCard = ({ label, value, onEdit }: { label: string, value: string, onEdit: () => void }) => {
+const VisualCard = ({ label, value, onEdit, square }: { label: string, value: string, onEdit: () => void, square?: boolean }) => {
     return (
         <div className="group relative bg-white border border-native-black/10 shadow-sm hover:shadow-card hover:-translate-y-1 transition-all duration-300">
-            <div className="aspect-video w-full overflow-hidden bg-native-sand/20 relative">
+            <div className={`${square ? 'aspect-square' : 'aspect-video'} w-full overflow-hidden bg-native-sand/20 relative`}>
                 {value ? (
                     <img src={value} alt={label} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 ) : (
@@ -232,6 +232,7 @@ const CMS = () => {
 
     const visuals = [
         { label: "Brand Logo", path: "general.logoUrl", value: content.general.logoUrl },
+        { label: "Favicon / Browser Icon", path: "general.faviconUrl", value: content.general.faviconUrl || content.general.logoUrl, square: true },
         { label: "Founder (The Alchemist)", path: "home.founderImage", value: content.home.founderImage },
         { label: "Gallery Banner (Gravel)", path: "home.galleryImage1", value: content.home.galleryImage1 },
         { label: "Gallery Detail (Rows)", path: "home.galleryImage2", value: content.home.galleryImage2 },
@@ -316,6 +317,7 @@ const CMS = () => {
                                     key={img.path}
                                     label={img.label}
                                     value={img.value}
+                                    square={(img as any).square}
                                     onEdit={() => setEditingField(img)}
                                 />
                             ))}
@@ -412,6 +414,27 @@ const CMS = () => {
                                         onChange={e => setContent({...content, general: {...content.general, tagline: e.target.value}})}
                                         className="w-full p-3 border border-native-black/20 font-tribal uppercase outline-none focus:border-native-black"
                                     />
+                                </div>
+                                <div className="md:col-span-2 border-t border-native-black/5 my-2"></div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-bold text-native-earth mb-2 uppercase tracking-widest font-tribal">Site URL</label>
+                                    <input 
+                                        value={content.general.siteUrl || ''}
+                                        onChange={e => setContent({...content, general: {...content.general, siteUrl: e.target.value}})}
+                                        className="w-full p-3 border border-native-black/20 font-mono text-sm outline-none focus:border-native-black"
+                                        placeholder="https://picklenick.au"
+                                    />
+                                    <p className="text-[10px] text-native-earth/60 mt-1">Used in canonical URL, Open Graph, and structured data for SEO.</p>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-bold text-native-earth mb-2 uppercase tracking-widest font-tribal">SEO Description</label>
+                                    <textarea 
+                                        value={content.general.seoDescription || ''}
+                                        onChange={e => setContent({...content, general: {...content.general, seoDescription: e.target.value}})}
+                                        className="w-full p-3 border border-native-black/20 font-sans text-sm outline-none focus:border-native-black h-20"
+                                        placeholder="Artisan pickles, fermented goods, and bold sauces — handcrafted in small batches and delivered Australia-wide."
+                                    />
+                                    <p className="text-[10px] text-native-earth/60 mt-1">Shown in Google search results and social media link previews. Aim for 120–160 characters.</p>
                                 </div>
                                 <div className="md:col-span-2 border-t border-native-black/5 my-2"></div>
                                 <div>

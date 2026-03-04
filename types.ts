@@ -182,7 +182,10 @@ export interface SiteContent {
   general: {
     brandName: string;
     logoUrl: string;
+    faviconUrl: string;
     tagline: string;
+    siteUrl: string;
+    seoDescription: string;
     email: string;
     phone: string;
     address: string;

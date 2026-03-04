@@ -66,10 +66,95 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
+const SeoManager = () => {
+  const { siteContent } = useStore();
+
+  useEffect(() => {
+    if (!siteContent) return;
+    const g = siteContent.general;
+    const brand = g.brandName || 'Pickle Nick';
+    const tagline = g.tagline || 'Spirit of the Brine';
+    const description = g.seoDescription || `${brand} — artisan pickles and provisions, delivered Australia-wide.`;
+    const siteUrl = (g.siteUrl || 'https://picklenick.au').replace(/\/$/, '');
+    const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.jpg';
+    const ogImage = faviconUrl.startsWith('http') ? faviconUrl : `${siteUrl}${faviconUrl}`;
+
+    // Title
+    document.title = `${brand} | ${tagline}`;
+
+    // Favicon (all link tags)
+    const setLink = (rel: string, href: string, type?: string) => {
+      let el = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+      if (!el) { el = document.createElement('link'); el.rel = rel; document.head.appendChild(el); }
+      el.href = href;
+      if (type) el.type = type;
+    };
+    const ext = faviconUrl.split('.').pop()?.toLowerCase() || 'jpg';
+    const mimeType = ext === 'png' ? 'image/png' : ext === 'svg' ? 'image/svg+xml' : ext === 'ico' ? 'image/x-icon' : 'image/jpeg';
+    setLink('icon', faviconUrl, mimeType);
+    setLink('shortcut icon', faviconUrl, mimeType);
+    setLink('apple-touch-icon', faviconUrl);
+
+    // Meta helper
+    const setMeta = (selector: string, content: string) => {
+      let el = document.querySelector<HTMLMetaElement>(selector);
+      if (!el) {
+        el = document.createElement('meta');
+        const attr = selector.includes('[property') ? 'property' : 'name';
+        const val = selector.replace(/.*["']([^"']+)["']\]/, '$1');
+        el.setAttribute(attr, val);
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+
+    setMeta('meta[name="description"]', description);
+    setMeta('meta[name="author"]', brand);
+
+    // Canonical
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = siteUrl;
+
+    // Open Graph
+    setMeta('meta[property="og:title"]', `${brand} — ${tagline}`);
+    setMeta('meta[property="og:description"]', description);
+    setMeta('meta[property="og:url"]', siteUrl);
+    setMeta('meta[property="og:image"]', ogImage);
+    setMeta('meta[property="og:site_name"]', brand);
+
+    // Twitter
+    setMeta('meta[name="twitter:title"]', `${brand} — ${tagline}`);
+    setMeta('meta[name="twitter:description"]', description);
+    setMeta('meta[name="twitter:image"]', ogImage);
+
+    // JSON-LD structured data
+    let ld = document.querySelector<HTMLScriptElement>('script[type="application/ld+json"]');
+    if (!ld) { ld = document.createElement('script'); ld.type = 'application/ld+json'; document.head.appendChild(ld); }
+    ld.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Store",
+      "name": brand,
+      "description": description,
+      "url": siteUrl,
+      "logo": ogImage,
+      "image": ogImage,
+      "priceRange": "$$",
+      "email": g.email || undefined,
+      "telephone": g.phone || undefined,
+      "address": { "@type": "PostalAddress", "streetAddress": g.address || undefined, "addressCountry": "AU" },
+      "sameAs": []
+    });
+  }, [siteContent]);
+
+  return null;
+};
+
 const AppContent = () => {
   return (
     <Router>
       <ScrollToTop />
+      <SeoManager />
       <Routes>
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/*" element={

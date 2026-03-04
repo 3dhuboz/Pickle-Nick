@@ -42,8 +42,11 @@ const INITIAL_CONTENT: SiteContent = {
   general: {
     brandName: 'Pickle Nick',
     logoUrl: '/logo.jpg',
+    faviconUrl: '/logo.jpg',
     tagline: 'Spirit of the Brine',
-    email: 'hello@picklenick.com',
+    siteUrl: 'https://picklenick.au',
+    seoDescription: 'Pickle Nick — handcrafted artisan pickles, fermented goods, and bold sauces. Small-batch, traditionally brined, and delivered Australia-wide.',
+    email: 'hello@picklenick.au',
     phone: '(555) 123-CRUNCH',
     address: '123 Brine Boulevard, Jarville, PK 90210',
     mascotUrl1: 'https://png.pngtree.com/png-clipart/20220910/original/pngtree-american-traditional-tattoo-native-american-head-vector-png-image_8535805.png',
