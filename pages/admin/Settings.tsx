@@ -456,7 +456,7 @@ const Settings = () => {
                                             fromEmail: email,
                                             smtpHost: domain ? `mail.${domain}` : emailConfig.smtpHost,
                                             smtpUser: email,
-                                            smtpEndpoint: domain ? `https://${domain}/api/send-email.php` : emailConfig.smtpEndpoint,
+                                            
                                         });
                                     }}
                                     className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
@@ -481,20 +481,9 @@ const Settings = () => {
                                     type="password"
                                     value={emailConfig.smtpPass || ''} 
                                     onChange={e => setEmailConfig({...emailConfig, smtpPass: e.target.value})}
-                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
                                     placeholder="••••••••"
                                 />
                                 <span className="text-xs text-gray-400 mt-1 block">The password for your sending email (set in SiteGround)</span>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Mail Server URL</label>
-                                <input 
-                                    value={emailConfig.smtpEndpoint || ''} 
-                                    onChange={e => setEmailConfig({...emailConfig, smtpEndpoint: e.target.value})}
-                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                                    placeholder="https://yourdomain.com/api/send-email.php"
-                                />
-                                <span className="text-xs text-gray-400 mt-1 block">The URL where <code className="bg-gray-100 px-1 rounded">send-email.php</code> is hosted on your SiteGround server</span>
                             </div>
                         </div>
 
@@ -538,14 +527,13 @@ const Settings = () => {
                         <HelpGuide
                             title="How do I set up email?"
                             steps={[
-                                'In <strong>SiteGround Site Tools → Email → Accounts</strong>, create an email like <strong>noreply@picklenick.com</strong>.',
-                                'Create a second one for yourself, like <strong>orders@picklenick.com</strong>.',
-                                'Upload <strong>send-email.php</strong> to your SiteGround hosting — place it at <code>/api/send-email.php</code> in your site\'s public folder.',
-                                'Set the <strong>Mail Server URL</strong> above to the full URL where the PHP file is accessible (e.g. <code>https://yourdomain.com/api/send-email.php</code>). This must point to SiteGround, not Vercel.',
-                                'Enter the <strong>sending email</strong>, <strong>password</strong>, and <strong>admin email</strong>.',
+                                'In <strong>SiteGround Site Tools → Email → Accounts</strong>, create an email like <strong>noreply@picklenick.au</strong>.',
+                                'Create a second one for yourself, like <strong>orders@picklenick.au</strong>.',
+                                'Back here, enter the <strong>sending email</strong> and the <strong>password</strong> you just created.',
+                                'Enter your <strong>admin notification email</strong> so you get order copies.',
                                 'Click <strong>Save Changes</strong>, then click <strong>Send Test Email</strong> — if it arrives, you\'re all set!'
                             ]}
-                            tip="Your frontend runs on Vercel but PHP must run on SiteGround. Make sure the Mail Server URL points to your SiteGround-hosted domain, not your Vercel domain."
+                            tip="Email is sent via your SiteGround SMTP server automatically. No extra hosting or file uploads required."
                         />
                     </div>
                 )}

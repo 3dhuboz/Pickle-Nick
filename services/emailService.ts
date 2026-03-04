@@ -58,13 +58,14 @@ const orderEmailHtml = (customerName: string, orderId: string, total: string, bo
 export const EmailService = {
     sendOrderConfirmation: async (order: Order, settings: AppSettings): Promise<boolean> => {
         const config = settings.emailConfig;
-        if (!config?.enabled || !config.smtpEndpoint) {
+        if (!config?.enabled) {
             console.warn("Email not configured or disabled. Skipping order confirmation.");
             return false;
         }
 
+        const endpoint = config.smtpEndpoint || '/api/send-email';
         const brandName = config.fromName || 'Pickle Nick';
-        return sendEmail(config.smtpEndpoint, {
+        return sendEmail(endpoint, {
             to: order.customerEmail,
             subject: `Order Confirmed — #${order.id.slice(-8).toUpperCase()}`,
             html: orderEmailHtml(
@@ -87,7 +88,7 @@ export const EmailService = {
 
     sendTrackingUpdate: async (order: Order, settings: AppSettings): Promise<boolean> => {
         const config = settings.emailConfig;
-        if (!config?.enabled || !config.smtpEndpoint) {
+        if (!config?.enabled) {
             console.warn("Email not configured or disabled. Skipping tracking email.");
             return false;
         }
@@ -100,8 +101,9 @@ export const EmailService = {
             ? `Your order has shipped! <a href="${trackingLink}" style="color:#26a69a;font-weight:bold;">Track your package here</a>.`
             : `Your order has shipped and is on its way! (Local pickup — no tracking number)`;
 
+        const endpoint = config.smtpEndpoint || '/api/send-email';
         const brandName = config.fromName || 'Pickle Nick';
-        return sendEmail(config.smtpEndpoint, {
+        return sendEmail(endpoint, {
             to: order.customerEmail,
             subject: `Your Order Has Shipped — #${order.id.slice(-8).toUpperCase()}`,
             html: orderEmailHtml(
@@ -120,9 +122,10 @@ export const EmailService = {
 
     sendTestEmail: async (settings: AppSettings): Promise<boolean> => {
         const config = settings.emailConfig;
-        if (!config?.smtpEndpoint || !config.adminEmail) return false;
+        if (!config?.adminEmail) return false;
 
-        return sendEmail(config.smtpEndpoint, {
+        const endpoint = config.smtpEndpoint || '/api/send-email';
+        return sendEmail(endpoint, {
             to: config.adminEmail,
             subject: `${config.fromName || 'Pickle Nick'} — Email Test`,
             html: `<div style="font-family:Georgia,serif;padding:32px;background:#f5f0e6;border-radius:12px;text-align:center;">

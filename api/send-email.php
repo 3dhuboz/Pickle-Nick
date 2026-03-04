@@ -26,9 +26,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ─── Fallback SMTP defaults (used only if admin hasn't configured SMTP in Settings) ───
-$DEFAULT_SMTP_HOST   = 'mail.picklenick.com';
+$DEFAULT_SMTP_HOST   = 'mail.picklenick.au';
 $DEFAULT_SMTP_PORT   = 465;
-$DEFAULT_SMTP_USER   = 'noreply@picklenick.com';
+$DEFAULT_SMTP_USER   = 'noreply@picklenick.au';
 $DEFAULT_SMTP_PASS   = '';  // Set on server if not using admin config
 $DEFAULT_SMTP_SECURE = 'ssl';
 
