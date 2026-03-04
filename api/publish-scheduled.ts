@@ -125,12 +125,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Accept an optional Authorization header for manual triggers from the app
   // Cron calls arrive with x-vercel-cron: 1 header
 
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const fbApiKey = process.env.FIREBASE_API_KEY;
+  // Accept both plain and VITE_-prefixed env vars (VITE_ prefix is added by Vite for client builds
+  // but serverless functions can also read them via process.env)
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.VITE_FIREBASE_PROJECT_ID;
+  const fbApiKey  = process.env.FIREBASE_API_KEY    || process.env.VITE_FIREBASE_API_KEY;
 
   if (!projectId || !fbApiKey) {
     return res.status(500).json({
-      error: 'Missing FIREBASE_PROJECT_ID or FIREBASE_API_KEY environment variables. Set these in your Vercel project settings.'
+      error: 'Missing Firebase env vars. Add VITE_FIREBASE_PROJECT_ID and VITE_FIREBASE_API_KEY in Vercel project settings.'
     });
   }
 
@@ -218,14 +220,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           fbPostId = await postTextToFacebook(fbPageId, fbAccessToken, message);
         }
 
-        // 6. Update post status + image URL in Firestore (success)
+        // 6. Update post status in Firestore (success)
+        // Note: we intentionally clear imageUrl after publish — the image lives on Facebook now
+        // and storing large base64 strings back to Firestore would exceed the 1MB field limit.
         const docId = post._docName?.split('/').pop();
         if (docId) {
           const updated = toFsDoc({
             ...post,
             _docName: undefined,
             status: 'published',
-            imageUrl: imageDataUrl || post.imageUrl || null,
+            imageUrl: null,
             fbPostId,
             publishAttempts: 0,
             publishError: null,
