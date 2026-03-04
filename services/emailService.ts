@@ -4,23 +4,16 @@ const sendEmail = async (
     endpoint: string,
     payload: { to: string; subject: string; html: string; fromName?: string; fromEmail?: string; bcc?: string; resendApiKey?: string; smtp?: { host?: string; port?: number; user?: string; pass?: string; secure?: string } }
 ): Promise<boolean> => {
-    try {
-        const res = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!data.success) {
-            console.error('Email send failed:', data.error);
-            return false;
-        }
-        console.log('Email sent successfully');
-        return true;
-    } catch (err) {
-        console.error('Email send error:', err);
-        return false;
+    const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data.success) {
+        throw new Error(data.error || data.debug || 'Unknown error from email server');
     }
+    return true;
 };
 
 const orderEmailHtml = (customerName: string, orderId: string, total: string, bodyText: string, brandName: string, extras?: { shippingMethod?: string; shippingCost?: string }) => `
