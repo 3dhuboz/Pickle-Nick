@@ -13,26 +13,30 @@ export interface FacebookPage {
 export const FacebookService = {
     init: (appId: string): Promise<void> => {
         return new Promise((resolve) => {
-            if (window.FB) {
-                resolve();
-                return;
-            }
-
-            window.fbAsyncInit = function() {
+            const doInit = () => {
                 window.FB.init({
-                    appId      : appId,
-                    cookie     : true,
-                    xfbml      : true,
-                    version    : 'v19.0'
+                    appId  : appId,
+                    cookie : true,
+                    xfbml  : true,
+                    version: 'v21.0'
                 });
                 resolve();
             };
 
-            const script = document.createElement('script');
-            script.src = "https://connect.facebook.net/en_US/sdk.js";
-            script.async = true;
-            script.defer = true;
-            document.body.appendChild(script);
+            if (window.FB) {
+                doInit(); // Re-init with (possibly new) appId
+                return;
+            }
+
+            window.fbAsyncInit = doInit;
+
+            if (!document.querySelector('script[src*="connect.facebook.net"]')) {
+                const script = document.createElement('script');
+                script.src = "https://connect.facebook.net/en_US/sdk.js";
+                script.async = true;
+                script.defer = true;
+                document.body.appendChild(script);
+            }
         });
     },
 
