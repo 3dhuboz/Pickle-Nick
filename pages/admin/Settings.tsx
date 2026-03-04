@@ -64,7 +64,7 @@ const Settings = () => {
   const [form, setForm] = useState<AppSettings>(settings);
   const [fbConfig, setFbConfig] = useState<Partial<FirebaseConfig>>(settings.firebaseConfig || {});
   const [emailConfig, setEmailConfig] = useState<EmailConfig>(settings.emailConfig || {
-    enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/send-email.php'
+    enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/send-email'
   });
   const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(settings.shippingConfig || {
       carrierName: 'Australia Post',
@@ -91,7 +91,7 @@ const Settings = () => {
     setForm(settings);
     setFbConfig(settings.firebaseConfig || {});
     setEmailConfig(settings.emailConfig || {
-       enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/send-email.php'
+       enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/send-email'
     });
     setShippingConfig(settings.shippingConfig || {
         carrierName: 'Australia Post',
@@ -141,7 +141,7 @@ const Settings = () => {
           if (success) {
               alert(`✔ Test email sent to ${emailConfig.adminEmail}`);
           } else {
-              alert(`⚠ Email send failed. Ensure send-email.php is deployed on your SiteGround server and the endpoint URL is correct.`);
+              alert(`⚠ Email send failed. Check SMTP credentials in Admin Settings and ensure the Vercel function is deployed.`);
           }
       } catch (e: any) {
           alert(`⚠ Test failed: ${e.message || 'Unknown error'}`);
@@ -481,6 +481,7 @@ const Settings = () => {
                                     type="password"
                                     value={emailConfig.smtpPass || ''} 
                                     onChange={e => setEmailConfig({...emailConfig, smtpPass: e.target.value})}
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all"
                                     placeholder="••••••••"
                                 />
                                 <span className="text-xs text-gray-400 mt-1 block">The password for your sending email (set in SiteGround)</span>
