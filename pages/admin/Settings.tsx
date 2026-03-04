@@ -141,12 +141,12 @@ const Settings = () => {
           const testSettings = { ...settings, emailConfig };
           const success = await EmailService.sendTestEmail(testSettings);
           if (success) {
-              alert(`✔ Test email sent to ${emailConfig.adminEmail}`);
+              alert(`✔ Test email sent to ${emailConfig.adminEmail}\n\nIf you don't receive it within 2 minutes, check your spam folder.`);
           } else {
-              alert(`⚠ Email send failed. Check SMTP credentials in Admin Settings and ensure the Vercel function is deployed.`);
+              alert(`⚠ Email send failed — no error detail returned. Check that email is enabled and your Resend API key is saved.`);
           }
       } catch (e: any) {
-          alert(`⚠ Test failed: ${e.message || 'Unknown error'}`);
+          alert(`⚠ Email failed:\n\n${e.message || 'Unknown error'}`);
       } finally {
           setIsTestingEmail(false);
       }

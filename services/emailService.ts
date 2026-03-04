@@ -9,9 +9,15 @@ const sendEmail = async (
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     });
-    const data = await res.json();
+    let data: any;
+    try {
+        data = await res.json();
+    } catch {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Email server returned HTTP ${res.status}${text ? ': ' + text.slice(0, 300) : ''}`);
+    }
     if (!data.success) {
-        throw new Error(data.error || data.debug || 'Unknown error from email server');
+        throw new Error(data.error || data.debug || `HTTP ${res.status} from email server`);
     }
     return true;
 };
