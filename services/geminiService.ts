@@ -336,7 +336,8 @@ export const generateSmartSchedule = async (
   tone: string,
   stats: any,
   postsToGenerate: number = 7,
-  location: string = 'Australia'
+  location: string = 'Australia',
+  platforms: { facebook: boolean; instagram: boolean } = { facebook: true, instagram: true }
 ): Promise<SmartScheduleResult> => {
   const ai = getAIClient();
   try {
@@ -344,7 +345,6 @@ export const generateSmartSchedule = async (
     const windowEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
     // ── Phase 1: Research ──────────────────────────────────────────
-    // Ask AI to research the best strategy for this specific business before generating
     const researchPrompt = `
 You are an expert social media researcher. Research the optimal social media strategy for:
 - Business: "${businessName}" — ${businessType}
@@ -375,7 +375,6 @@ Respond with ONLY the raw JSON object — no markdown, no code fences.`;
         .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
       if (researchRaw) research = JSON.parse(researchRaw);
     } catch {
-      // Research failed — fall back to sensible defaults, generation still proceeds
       research = {
         bestPostingTimes: ['09:00', '12:00', '18:00'],
         bestDays: ['Tuesday', 'Thursday', 'Saturday'],
@@ -388,8 +387,17 @@ Respond with ONLY the raw JSON object — no markdown, no code fences.`;
     }
 
     // ── Phase 2: Generate Schedule using Research Insights ─────────
-    const igCount = Math.round(postsToGenerate * (research.platformSplit?.instagram || 60) / 100);
-    const fbCount = postsToGenerate - igCount;
+    // Override AI platform split with the admin's actual connected platforms
+    let fbCount: number;
+    let igCount: number;
+    if (platforms.facebook && !platforms.instagram) {
+      fbCount = postsToGenerate; igCount = 0;
+    } else if (platforms.instagram && !platforms.facebook) {
+      igCount = postsToGenerate; fbCount = 0;
+    } else {
+      igCount = Math.round(postsToGenerate * (research.platformSplit?.instagram || 60) / 100);
+      fbCount = postsToGenerate - igCount;
+    }
 
     const prompt = `
 You are a social media strategist for "${businessName}", a ${businessType}. Tone: ${tone}.

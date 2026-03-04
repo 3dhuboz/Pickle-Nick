@@ -286,11 +286,17 @@ const SocialAIDashboard = () => {
   // ── Smart Schedule ──
   const handleSmartSchedule = async () => {
     if (!hasApiKey) { toast('Set your Gemini API key in Settings first.', 'warning'); return; }
+    const fbActive = !!(settings?.fbPageId && settings?.fbPageAccessToken);
+    const igActive = !!(settings?.instaAppId);
+    // Only use platforms that are actually configured; fall back to both if neither is set
+    const activePlatforms = (fbActive || igActive)
+      ? { facebook: fbActive, instagram: igActive }
+      : { facebook: true, instagram: true };
     setIsSmartGenerating(true);
     setSmartPostImages({});
     setAutoGenSet(new Set());
     try {
-      const result = await generateSmartSchedule(profile.name, profile.type, profile.tone, stats, smartCount, profile.location || 'Australia');
+      const result = await generateSmartSchedule(profile.name, profile.type, profile.tone, stats, smartCount, profile.location || 'Australia', activePlatforms);
       setSmartPosts(result.posts);
       setSmartStrategy(result.strategy);
       // Auto-generate images in the background after posts are ready
@@ -302,27 +308,35 @@ const SocialAIDashboard = () => {
   };
 
   const handleAcceptSmartPosts = async () => {
-    for (let i = 0; i < smartPosts.length; i++) {
-      const sp = smartPosts[i];
-      const newPost: SocialPost = {
-        id: `sp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-        platform: sp.platform as SocialPost['platform'],
-        content: sp.content,
-        hashtags: sp.hashtags,
-        scheduledTime: sp.scheduledFor,
-        status: 'scheduled',
-        imageUrl: smartPostImages[i] || undefined,
-        imagePrompt: sp.imagePrompt,
-        reasoning: sp.reasoning,
-        pillar: sp.pillar,
-        topic: sp.topic
-      };
-      await addPost(newPost);
+    const total = smartPosts.length;
+    try {
+      for (let i = 0; i < smartPosts.length; i++) {
+        const sp = smartPosts[i];
+        const newPost: SocialPost = {
+          id: `sp_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 6)}`,
+          platform: sp.platform as SocialPost['platform'],
+          content: sp.content,
+          hashtags: sp.hashtags,
+          scheduledTime: sp.scheduledFor,
+          status: 'scheduled',
+          imageUrl: smartPostImages[i] || undefined,
+          imagePrompt: sp.imagePrompt,
+          reasoning: sp.reasoning,
+          pillar: sp.pillar,
+          topic: sp.topic
+        };
+        await addPost(newPost);
+      }
+      toast(`${total} posts scheduled and added to calendar!`, 'success');
+    } catch (e: any) {
+      toast(`Failed to save posts: ${e?.message?.substring(0, 100) || 'Unknown error'}`, 'error');
+    } finally {
+      setSmartPosts([]);
+      setSmartStrategy('');
+      setSmartPostImages({});
+      setAutoGenSet(new Set());
+      setCurrentGenIdx(null);
     }
-    toast(`${smartPosts.length} posts added to calendar!`);
-    setSmartPosts([]);
-    setSmartStrategy('');
-    setSmartPostImages({});
   };
 
   // ── Insights ──
