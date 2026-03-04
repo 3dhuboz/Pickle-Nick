@@ -34,7 +34,7 @@ interface StoreContextType {
   logoutCustomer: () => Promise<void>;
   addPost: (post: SocialPost) => void;
   deletePost: (id: string) => Promise<void>;
-  updateSettings: (s: AppSettings) => void;
+  updateSettings: (s: AppSettings) => Promise<void>;
   updateSiteContent: (c: SiteContent) => Promise<void>;
   sendMessage: (msg: ContactMessage) => void;
   deleteMessage: (id: string) => Promise<void>;
@@ -86,6 +86,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setPosts(post);
       setSiteContent(content);
       setMessages(msgs);
+
+      // Sync settings from cloud (cloud wins, but keep local firebaseConfig for bootstrap)
+      const cloudSettings = await StorageService.getSettingsFromCloud();
+      if (cloudSettings) {
+        const localSettings = StorageService.getSettings();
+        const merged = { ...localSettings, ...cloudSettings, firebaseConfig: localSettings.firebaseConfig };
+        localStorage.setItem('pn_settings', JSON.stringify(merged));
+        setSettings(merged);
+      }
     } catch (e) {
       console.error("Failed to refresh data", e);
     }
@@ -270,9 +279,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Settings & Content
-  const updateSettings = (s: AppSettings) => {
+  const updateSettings = async (s: AppSettings) => {
     setSettings(s);
-    StorageService.saveSettings(s);
+    await StorageService.saveSettings(s);
   };
 
   const updateSiteContent = async (c: SiteContent) => {

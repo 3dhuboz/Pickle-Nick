@@ -215,7 +215,7 @@ export const StorageService = {
   isFirebaseReady: () => !!db && !!auth,
   getConnectionError: () => initError,
 
-  // --- SETTINGS (Local Storage Only - Bootstrapping) ---
+  // --- SETTINGS (localStorage for bootstrap + Firestore for cross-device sync) ---
   getSettings: (): AppSettings => {
     const data = localStorage.getItem(SETTINGS_KEY);
     if (data) {
@@ -227,9 +227,88 @@ export const StorageService = {
     }
     return INITIAL_SETTINGS;
   },
-  saveSettings: (settings: AppSettings) => {
+
+  getSettingsFromCloud: async (): Promise<AppSettings | null> => {
+    if (!db) return null;
+    try {
+      const docSnap = await withTimeout(getDoc(doc(db, 'settings', 'main')));
+      if (docSnap.exists()) {
+        return { ...INITIAL_SETTINGS, ...docSnap.data() } as AppSettings;
+      }
+      return null;
+    } catch (e) {
+      console.error('Cloud Fetch Settings Error', e);
+      return null;
+    }
+  },
+
+  saveSettings: async (settings: AppSettings): Promise<boolean> => {
+    const oldSettings = StorageService.getSettings();
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    window.location.reload(); 
+
+    // Persist to Firestore for cross-device sync
+    if (db) {
+      try {
+        await withTimeout(setDoc(doc(db, 'settings', 'main'), { ...settings, updatedAt: Date.now() }));
+      } catch (e) {
+        console.error('Failed to save settings to cloud', e);
+      }
+    }
+
+    // Only reload if Firebase config changed (requires SDK reinit)
+    const configChanged = JSON.stringify(oldSettings.firebaseConfig || {}) !== JSON.stringify(settings.firebaseConfig || {});
+    if (configChanged && settings.firebaseConfig?.apiKey) {
+      window.location.reload();
+      return true;
+    }
+    return false;
+  },
+
+  // --- SOCIAL CONFIG (profile, stats, API key — synced to Firestore) ---
+  getSocialConfig: async (): Promise<{ profile: any; stats: any; geminiKey: string }> => {
+    const fallback = {
+      profile: JSON.parse(localStorage.getItem('pn_social_profile') || 'null'),
+      stats: JSON.parse(localStorage.getItem('pn_social_stats') || 'null'),
+      geminiKey: localStorage.getItem('pn_gemini_key') || ''
+    };
+    if (!db) return fallback;
+    try {
+      const docSnap = await withTimeout(getDoc(doc(db, 'settings', 'social')));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Also cache to localStorage for offline/fast boot
+        if (data.profile) localStorage.setItem('pn_social_profile', JSON.stringify(data.profile));
+        if (data.stats) localStorage.setItem('pn_social_stats', JSON.stringify(data.stats));
+        if (data.geminiKey) localStorage.setItem('pn_gemini_key', data.geminiKey);
+        return {
+          profile: data.profile || fallback.profile,
+          stats: data.stats || fallback.stats,
+          geminiKey: data.geminiKey || fallback.geminiKey
+        };
+      }
+      return fallback;
+    } catch (e) {
+      console.error('Cloud Fetch Social Config Error', e);
+      return fallback;
+    }
+  },
+
+  saveSocialConfig: async (config: { profile?: any; stats?: any; geminiKey?: string }) => {
+    // Always cache locally
+    if (config.profile) localStorage.setItem('pn_social_profile', JSON.stringify(config.profile));
+    if (config.stats) localStorage.setItem('pn_social_stats', JSON.stringify(config.stats));
+    if (config.geminiKey !== undefined) localStorage.setItem('pn_gemini_key', config.geminiKey);
+
+    // Persist to Firestore
+    if (db) {
+      try {
+        const existing = await withTimeout(getDoc(doc(db, 'settings', 'social')));
+        const merged = existing.exists() ? { ...existing.data(), ...config, updatedAt: Date.now() } : { ...config, updatedAt: Date.now() };
+        await withTimeout(setDoc(doc(db, 'settings', 'social'), merged));
+      } catch (e) {
+        console.error('Failed to save social config to cloud', e);
+      }
+    }
   },
 
   // --- PRODUCTS ---

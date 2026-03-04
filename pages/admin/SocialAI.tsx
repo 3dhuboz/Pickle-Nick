@@ -3,6 +3,7 @@ import { useStore } from '../../context/StoreContext';
 import { generateSocialContent, generateMarketingImage, analyzePostTimes, generateRecommendations, generateSmartSchedule } from '../../services/geminiService';
 import type { SmartScheduledPostResult } from '../../services/geminiService';
 import { SocialPost, ContentCalendarStats } from '../../types';
+import { StorageService } from '../../services/storage';
 import { ToastProvider, useToast } from '../../components/Toast';
 import {
   Sparkles, Settings, Calendar, BarChart3, Wand2, Image as ImageIcon,
@@ -48,9 +49,18 @@ const SocialAIDashboard = () => {
     return saved ? { ...DEFAULT_STATS, ...JSON.parse(saved) } : DEFAULT_STATS;
   });
 
-  // Persist profile & stats
-  useEffect(() => { localStorage.setItem('pn_social_profile', JSON.stringify(profile)); }, [profile]);
-  useEffect(() => { localStorage.setItem('pn_social_stats', JSON.stringify(stats)); }, [stats]);
+  // Persist profile & stats to cloud + localStorage
+  useEffect(() => { StorageService.saveSocialConfig({ profile }); }, [profile]);
+  useEffect(() => { StorageService.saveSocialConfig({ stats }); }, [stats]);
+
+  // Load social config from cloud on mount
+  useEffect(() => {
+    StorageService.getSocialConfig().then(config => {
+      if (config.profile) setProfile(prev => ({ ...DEFAULT_PROFILE, ...prev, ...config.profile }));
+      if (config.stats) setStats(prev => ({ ...DEFAULT_STATS, ...prev, ...config.stats }));
+      if (config.geminiKey) setApiKeyInput(config.geminiKey);
+    });
+  }, []);
 
   // Content Generator State
   const [topic, setTopic] = useState('');
@@ -481,7 +491,7 @@ const SocialAIDashboard = () => {
               />
               <button
                 onClick={() => {
-                  localStorage.setItem('pn_gemini_key', apiKeyInput);
+                  StorageService.saveSocialConfig({ geminiKey: apiKeyInput });
                   toast('API Key saved! AI features are now active.');
                 }}
                 className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg text-sm transition"
