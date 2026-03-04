@@ -2,7 +2,7 @@ import { AppSettings, Order } from '../types';
 
 const sendEmail = async (
     endpoint: string,
-    payload: { to: string; subject: string; html: string; fromName?: string; fromEmail?: string; bcc?: string; smtp?: { host?: string; port?: number; user?: string; pass?: string; secure?: string } }
+    payload: { to: string; subject: string; html: string; fromName?: string; fromEmail?: string; bcc?: string; resendApiKey?: string; smtp?: { host?: string; port?: number; user?: string; pass?: string; secure?: string } }
 ): Promise<boolean> => {
     try {
         const res = await fetch(endpoint, {
@@ -82,7 +82,8 @@ export const EmailService = {
             fromName: brandName,
             fromEmail: config.fromEmail,
             bcc: config.adminEmail,
-            smtp: config.smtpHost ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
+            resendApiKey: config.emailProvider !== 'smtp' ? config.resendApiKey : undefined,
+            smtp: config.emailProvider === 'smtp' ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
         });
     },
 
@@ -116,7 +117,8 @@ export const EmailService = {
             fromName: brandName,
             fromEmail: config.fromEmail,
             bcc: config.adminEmail,
-            smtp: config.smtpHost ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
+            resendApiKey: config.emailProvider !== 'smtp' ? config.resendApiKey : undefined,
+            smtp: config.emailProvider === 'smtp' ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
         });
     },
 
@@ -130,12 +132,13 @@ export const EmailService = {
             subject: `${config.fromName || 'Pickle Nick'} — Email Test`,
             html: `<div style="font-family:Georgia,serif;padding:32px;background:#f5f0e6;border-radius:12px;text-align:center;">
                 <h2 style="color:#1a1a1a;">Email Configuration Working</h2>
-                <p style="color:#4e342e;">If you received this, your SiteGround email is correctly configured.</p>
+                <p style="color:#4e342e;">If you received this, your email is correctly configured.</p>
                 <p style="color:#8d6e63;font-size:12px;">Sent at ${new Date().toLocaleString()}</p>
             </div>`,
             fromName: config.fromName,
             fromEmail: config.fromEmail,
-            smtp: config.smtpHost ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
+            resendApiKey: config.emailProvider !== 'smtp' ? config.resendApiKey : undefined,
+            smtp: config.emailProvider === 'smtp' ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
         });
     }
 };

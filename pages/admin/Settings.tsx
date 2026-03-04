@@ -471,7 +471,7 @@ const Settings = () => {
 
         {/* Email Configuration */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-            <SectionHeader title="Email Notifications" icon={Mail} description="Send order confirmations and shipping updates to customers." configured={!!(emailConfig.enabled && emailConfig.adminEmail && emailConfig.fromEmail && emailConfig.smtpPass)} />
+            <SectionHeader title="Email Notifications" icon={Mail} description="Send order confirmations and shipping updates to customers." configured={!!(emailConfig.enabled && emailConfig.adminEmail && emailConfig.fromEmail && (emailConfig.resendApiKey || emailConfig.smtpPass))} />
 
             <div className="pl-0 md:pl-14 max-w-2xl">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 mb-6">
@@ -484,93 +484,133 @@ const Settings = () => {
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-native-black/10 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-native-black"></div>
                     </label>
                 </div>
-                
+
                 {emailConfig.enabled && (
                     <div className="space-y-5 animate-in fade-in slide-in-from-top-2">
+
+                        {/* Provider Toggle */}
+                        <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-xl w-fit">
+                            <button
+                                onClick={() => setEmailConfig({...emailConfig, emailProvider: 'resend'})}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${(emailConfig.emailProvider || 'resend') === 'resend' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Resend <span className="text-[10px] font-bold text-green-600 ml-1">Easy</span>
+                            </button>
+                            <button
+                                onClick={() => setEmailConfig({...emailConfig, emailProvider: 'smtp'})}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${emailConfig.emailProvider === 'smtp' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                SMTP <span className="text-[10px] text-gray-400 ml-1">Advanced</span>
+                            </button>
+                        </div>
+
+                        {/* Common fields */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Your Business Name</label>
-                                <input 
-                                    value={emailConfig.fromName || ''} 
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Sender Name</label>
+                                <input
+                                    value={emailConfig.fromName || ''}
                                     onChange={e => setEmailConfig({...emailConfig, fromName: e.target.value})}
-                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all"
                                     placeholder="Pickle Nick"
                                 />
                                 <span className="text-xs text-gray-400 mt-1 block">Shown as the sender name on emails</span>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Sending Email Address</label>
-                                <input 
+                                <input
                                     type="email"
-                                    value={emailConfig.fromEmail || ''} 
-                                    onChange={e => {
-                                        const email = e.target.value;
-                                        const domain = email.includes('@') ? email.split('@')[1] : '';
-                                        setEmailConfig({
-                                            ...emailConfig, 
-                                            fromEmail: email,
-                                            smtpHost: domain ? `mail.${domain}` : emailConfig.smtpHost,
-                                            smtpUser: email,
-                                            
-                                        });
-                                    }}
-                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                                    placeholder="noreply@picklenick.com"
-                                />
-                                <span className="text-xs text-gray-400 mt-1 block">The email address customers see — must be created in SiteGround first</span>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notification Email</label>
-                                <input 
-                                    type="email"
-                                    value={emailConfig.adminEmail || ''} 
-                                    onChange={e => setEmailConfig({...emailConfig, adminEmail: e.target.value})}
-                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                                    placeholder="orders@picklenick.com"
-                                />
-                                <span className="text-xs text-gray-400 mt-1 block">You'll get a copy of every order email here</span>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Email Password</label>
-                                <input 
-                                    type="password"
-                                    value={emailConfig.smtpPass || ''} 
-                                    onChange={e => setEmailConfig({...emailConfig, smtpPass: e.target.value})}
+                                    value={emailConfig.fromEmail || ''}
+                                    onChange={e => setEmailConfig({...emailConfig, fromEmail: e.target.value, smtpUser: e.target.value, smtpHost: e.target.value.includes('@') ? `mail.${e.target.value.split('@')[1]}` : emailConfig.smtpHost})}
                                     className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all"
-                                    placeholder="••••••••"
+                                    placeholder="noreply@picklenick.au"
                                 />
-                                <span className="text-xs text-gray-400 mt-1 block">The password for your sending email (set in SiteGround)</span>
+                                <span className="text-xs text-gray-400 mt-1 block">Must be a verified domain in your email provider</span>
+                            </div>
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notification Email</label>
+                                <input
+                                    type="email"
+                                    value={emailConfig.adminEmail || ''}
+                                    onChange={e => setEmailConfig({...emailConfig, adminEmail: e.target.value})}
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all"
+                                    placeholder="orders@picklenick.au"
+                                />
+                                <span className="text-xs text-gray-400 mt-1 block">You'll receive a BCC of every order email</span>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                            <span className="text-sm text-gray-600">Security:</span>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setEmailConfig({...emailConfig, smtpSecure: 'ssl', smtpPort: 465})}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                                        (emailConfig.smtpSecure || 'ssl') === 'ssl' 
-                                            ? 'bg-native-black text-white shadow-sm' 
-                                            : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
-                                    }`}
-                                >
-                                    SSL (Recommended)
-                                </button>
-                                <button
-                                    onClick={() => setEmailConfig({...emailConfig, smtpSecure: 'tls', smtpPort: 587})}
-                                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                                        emailConfig.smtpSecure === 'tls' 
-                                            ? 'bg-native-black text-white shadow-sm' 
-                                            : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
-                                    }`}
-                                >
-                                    TLS
-                                </button>
+                        {/* Resend panel */}
+                        {(emailConfig.emailProvider || 'resend') === 'resend' && (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-top-1">
+                                <div className="p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800 flex gap-3">
+                                    <Zap size={18} className="shrink-0 mt-0.5 text-green-600" />
+                                    <div>
+                                        <p className="font-semibold mb-1">Resend — the easiest way to send email</p>
+                                        <p className="text-green-700 text-xs leading-relaxed">Free plan: 3,000 emails/month. No SMTP setup needed — just paste your API key below.</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Resend API Key</label>
+                                    <input
+                                        type="password"
+                                        value={emailConfig.resendApiKey || ''}
+                                        onChange={e => setEmailConfig({...emailConfig, resendApiKey: e.target.value})}
+                                        className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all"
+                                        placeholder="re_..."
+                                    />
+                                    <span className="text-xs text-gray-400 mt-1 block">From resend.com → API Keys</span>
+                                </div>
+                                <HelpGuide
+                                    title="How do I set up Resend?"
+                                    steps={[
+                                        'Go to <strong>resend.com</strong> and create a free account.',
+                                        'Click <strong>Domains</strong> → <strong>Add Domain</strong> and enter your domain (e.g. <strong>picklenick.au</strong>). Follow the DNS instructions.',
+                                        'Click <strong>API Keys</strong> → <strong>Create API Key</strong>. Copy the key (starts with <strong>re_</strong>).',
+                                        'Paste the key above, set your <strong>Sending Email</strong> to an address on your verified domain.',
+                                        'Click <strong>Save Changes</strong>, then <strong>Send Test Email</strong>.'
+                                    ]}
+                                    tip="Domain verification usually takes under 5 minutes. Resend's free tier covers 3,000 emails/month."
+                                />
                             </div>
-                        </div>
+                        )}
 
-                        <div className="flex items-center gap-3 pt-2">
-                            <button 
+                        {/* SMTP panel */}
+                        {emailConfig.emailProvider === 'smtp' && (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-top-1">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
+                                        <input
+                                            value={emailConfig.smtpHost || ''}
+                                            onChange={e => setEmailConfig({...emailConfig, smtpHost: e.target.value})}
+                                            className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all"
+                                            placeholder="mail.picklenick.au"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Email Password</label>
+                                        <input
+                                            type="password"
+                                            value={emailConfig.smtpPass || ''}
+                                            onChange={e => setEmailConfig({...emailConfig, smtpPass: e.target.value})}
+                                            className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all"
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <span className="text-sm text-gray-600">Security:</span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setEmailConfig({...emailConfig, smtpSecure: 'ssl', smtpPort: 465})} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${(emailConfig.smtpSecure || 'ssl') === 'ssl' ? 'bg-native-black text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}`}>SSL (port 465)</button>
+                                        <button onClick={() => setEmailConfig({...emailConfig, smtpSecure: 'tls', smtpPort: 587})} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${emailConfig.smtpSecure === 'tls' ? 'bg-native-black text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}`}>TLS (port 587)</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-3 pt-1">
+                            <button
                                 onClick={handleTestEmail}
                                 disabled={isTestingEmail}
                                 className="px-5 py-2.5 bg-native-black text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
@@ -579,18 +619,6 @@ const Settings = () => {
                             </button>
                             <span className="text-xs text-gray-400">Sends a test to your admin email</span>
                         </div>
-
-                        <HelpGuide
-                            title="How do I set up email?"
-                            steps={[
-                                'In <strong>SiteGround Site Tools → Email → Accounts</strong>, create an email like <strong>noreply@picklenick.au</strong>.',
-                                'Create a second one for yourself, like <strong>orders@picklenick.au</strong>.',
-                                'Back here, enter the <strong>sending email</strong> and the <strong>password</strong> you just created.',
-                                'Enter your <strong>admin notification email</strong> so you get order copies.',
-                                'Click <strong>Save Changes</strong>, then click <strong>Send Test Email</strong> — if it arrives, you\'re all set!'
-                            ]}
-                            tip="Email is sent via your SiteGround SMTP server automatically. No extra hosting or file uploads required."
-                        />
                     </div>
                 )}
             </div>

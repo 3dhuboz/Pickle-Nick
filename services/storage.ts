@@ -145,10 +145,11 @@ const INITIAL_SETTINGS: AppSettings = {
   gstRate: 10,
   emailConfig: {
     enabled: false,
-    adminEmail: 'orders@picklenick.com',
+    adminEmail: 'orders@picklenick.au',
     fromName: 'Pickle Nick',
-    fromEmail: 'noreply@picklenick.com',
-    smtpEndpoint: '/api/send-email.php'
+    fromEmail: 'noreply@picklenick.au',
+    emailProvider: 'resend',
+    smtpEndpoint: '/api/send-email'
   },
   shippingConfig: {
     carrierName: 'Australia Post',

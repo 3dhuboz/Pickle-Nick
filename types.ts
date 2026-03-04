@@ -114,6 +114,8 @@ export interface EmailConfig {
   adminEmail: string;
   fromName: string;
   fromEmail: string;
+  emailProvider?: 'resend' | 'smtp'; // default: 'resend'
+  resendApiKey?: string;              // Resend.com API key (re_...)
   smtpEndpoint: string; // URL to server-side mail script (e.g. /api/send-email.php)
   smtpHost?: string;     // e.g. mail.picklenick.com
   smtpPort?: number;     // 465 (SSL) or 587 (TLS)
