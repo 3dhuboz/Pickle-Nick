@@ -343,52 +343,40 @@ export const generateSmartSchedule = async (
     const windowEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
     const prompt = `
-      You are a social media strategist for "${businessName}", a ${businessType}. Tone: ${tone}.
-      Current date: ${now.toISOString().split('T')[0]}.
-      Window: ${now.toISOString().split('T')[0]} to ${windowEnd.toISOString().split('T')[0]}.
-      Stats: Followers ${stats.followers}, Engagement ${stats.engagement}%, Reach ${stats.reach}.
+You are a social media strategist for "${businessName}", a ${businessType}. Tone: ${tone}.
+Current date: ${now.toISOString().split('T')[0]}.
+Window: ${now.toISOString().split('T')[0]} to ${windowEnd.toISOString().split('T')[0]}.
+Stats: Followers ${stats.followers}, Engagement ${stats.engagement}%, Reach ${stats.reach}.
 
-      Generate exactly ${postsToGenerate} social media posts spread across the next 2 weeks.
-      Mix platforms (Facebook and Instagram). Schedule at optimal times for Australia.
-      Use lowercase platform names: "facebook" or "instagram".
-      
-      Return JSON with:
-      - "strategy": a 2-sentence strategy summary
-      - "posts": array of objects with: platform, scheduledFor (ISO datetime), topic, content, hashtags (array), imagePrompt, reasoning, pillar
+Generate exactly ${postsToGenerate} social media posts spread across the next 2 weeks.
+Mix platforms (facebook and instagram). Schedule at optimal times for an Australian audience.
+
+Respond with ONLY a valid JSON object — no markdown, no code fences, no explanation. Format:
+{
+  "strategy": "2-sentence strategy summary",
+  "posts": [
+    {
+      "platform": "facebook",
+      "scheduledFor": "2025-01-15T09:00:00",
+      "topic": "short topic",
+      "content": "full post caption with emojis",
+      "hashtags": ["#tag1", "#tag2"],
+      "imagePrompt": "image description for AI generation",
+      "reasoning": "why this post at this time",
+      "pillar": "content pillar name"
+    }
+  ]
+}
     `;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
       contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            strategy: { type: Type.STRING },
-            posts: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  platform: { type: Type.STRING },
-                  scheduledFor: { type: Type.STRING },
-                  topic: { type: Type.STRING },
-                  content: { type: Type.STRING },
-                  hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  imagePrompt: { type: Type.STRING },
-                  reasoning: { type: Type.STRING },
-                  pillar: { type: Type.STRING }
-                }
-              }
-            }
-          }
-        }
-      }
     });
 
-    const data = response.text ? JSON.parse(response.text) : { posts: [], strategy: '' };
-    return { posts: data.posts || [], strategy: data.strategy || '' };
+    const raw = (response.text || '').trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    const data = raw ? JSON.parse(raw) : { posts: [], strategy: '' };
+    return { posts: Array.isArray(data.posts) ? data.posts : [], strategy: data.strategy || '' };
   } catch (error: any) {
     console.error("Smart Schedule Error:", error);
     return { posts: [], strategy: `Error: ${error?.message || 'Unknown'}` };
