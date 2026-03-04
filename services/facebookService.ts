@@ -111,6 +111,33 @@ export const FacebookService = {
         };
     },
 
+    postToPageDirect: async (pageId: string, pageAccessToken: string, message: string, imageBase64?: string): Promise<string> => {
+        const base = 'https://graph.facebook.com/v21.0';
+        if (imageBase64 && imageBase64.startsWith('data:image/')) {
+            const [header, b64data] = imageBase64.split(',');
+            const mimeMatch = header.match(/data:(image\/[^;]+)/);
+            const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+            const bytes = Uint8Array.from(atob(b64data), c => c.charCodeAt(0));
+            const form = new FormData();
+            form.append('source', new Blob([bytes], { type: mimeType }), 'post.jpg');
+            form.append('message', message);
+            form.append('access_token', pageAccessToken);
+            form.append('published', 'true');
+            const res = await fetch(`${base}/${pageId}/photos`, { method: 'POST', body: form });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error.message);
+            return data.post_id || data.id;
+        }
+        const res = await fetch(`${base}/${pageId}/feed`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, access_token: pageAccessToken })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        return data.id;
+    },
+
     postToPage: (pageId: string, pageAccessToken: string, message: string, imageUrl?: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             if (!window.FB) return reject(new Error("Facebook SDK not initialized"));

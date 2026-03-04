@@ -335,46 +335,106 @@ export const generateSmartSchedule = async (
   businessType: string,
   tone: string,
   stats: any,
-  postsToGenerate: number = 7
+  postsToGenerate: number = 7,
+  location: string = 'Australia'
 ): Promise<SmartScheduleResult> => {
   const ai = getAIClient();
   try {
     const now = new Date();
     const windowEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
+    // ── Phase 1: Research ──────────────────────────────────────────
+    // Ask AI to research the best strategy for this specific business before generating
+    const researchPrompt = `
+You are an expert social media researcher. Research the optimal social media strategy for:
+- Business: "${businessName}" — ${businessType}
+- Location: ${location}
+- Audience: local customers and online shoppers
+- Current stats: ${stats.followers} followers, ${stats.engagement}% engagement
+
+Research and provide a concise JSON object with exactly these fields:
+{
+  "bestPostingTimes": ["HH:MM", "HH:MM", "HH:MM"],
+  "bestDays": ["Monday", "Wednesday", "Friday"],
+  "contentPillars": ["pillar1", "pillar2", "pillar3", "pillar4", "pillar5"],
+  "hashtagThemes": ["theme1", "theme2", "theme3"],
+  "imageStyle": "description of ideal image aesthetic for this business type",
+  "platformSplit": { "facebook": 40, "instagram": 60 },
+  "engagementTips": "one sentence of the most impactful tactic for this business type"
+}
+
+Respond with ONLY the raw JSON object — no markdown, no code fences.`;
+
+    let research: any = {};
+    try {
+      const researchRes = await ai.models.generateContent({
+        model: 'gemini-1.5-flash',
+        contents: researchPrompt,
+      });
+      const researchRaw = (researchRes.text || '').trim()
+        .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+      if (researchRaw) research = JSON.parse(researchRaw);
+    } catch {
+      // Research failed — fall back to sensible defaults, generation still proceeds
+      research = {
+        bestPostingTimes: ['09:00', '12:00', '18:00'],
+        bestDays: ['Tuesday', 'Thursday', 'Saturday'],
+        contentPillars: ['Product Showcase', 'Behind the Scenes', 'Customer Stories', 'Educational', 'Seasonal/Trending'],
+        hashtagThemes: ['artisan food', 'local business', 'foodie culture'],
+        imageStyle: 'vibrant, appetizing, clean background with natural lighting',
+        platformSplit: { facebook: 40, instagram: 60 },
+        engagementTips: 'Post consistently and respond to every comment within 2 hours.'
+      };
+    }
+
+    // ── Phase 2: Generate Schedule using Research Insights ─────────
+    const igCount = Math.round(postsToGenerate * (research.platformSplit?.instagram || 60) / 100);
+    const fbCount = postsToGenerate - igCount;
+
     const prompt = `
 You are a social media strategist for "${businessName}", a ${businessType}. Tone: ${tone}.
-Current date: ${now.toISOString().split('T')[0]}.
+Location: ${location}. Current date: ${now.toISOString().split('T')[0]}.
 Window: ${now.toISOString().split('T')[0]} to ${windowEnd.toISOString().split('T')[0]}.
 Stats: Followers ${stats.followers}, Engagement ${stats.engagement}%, Reach ${stats.reach}.
 
-Generate exactly ${postsToGenerate} social media posts spread across the next 2 weeks.
-Mix platforms (facebook and instagram). Schedule at optimal times for an Australian audience.
+RESEARCH INSIGHTS (use these to inform every decision):
+- Best posting times: ${(research.bestPostingTimes || []).join(', ')}
+- Best days: ${(research.bestDays || []).join(', ')}
+- Content pillars to use: ${(research.contentPillars || []).join(', ')}
+- Hashtag themes: ${(research.hashtagThemes || []).join(', ')}
+- Image aesthetic: ${research.imageStyle || 'vibrant and appetizing'}
+- Platform split: ${fbCount} Facebook posts, ${igCount} Instagram posts
+- Key engagement tip: ${research.engagementTips || ''}
 
-Respond with ONLY a valid JSON object — no markdown, no code fences, no explanation. Format:
+Generate exactly ${postsToGenerate} posts (${fbCount} facebook, ${igCount} instagram).
+Spread them across the 2-week window. Use the researched best times and days.
+Rotate through ALL content pillars. Each post needs a specific imagePrompt matching the image aesthetic above.
+Hashtags must be relevant to the hashtag themes researched above (8-12 per post).
+
+Respond with ONLY a valid JSON object — no markdown, no code fences, no explanation:
 {
-  "strategy": "2-sentence strategy summary",
+  "strategy": "2-sentence strategy summary referencing the research insights",
   "posts": [
     {
       "platform": "facebook",
-      "scheduledFor": "2025-01-15T09:00:00",
-      "topic": "short topic",
-      "content": "full post caption with emojis",
-      "hashtags": ["#tag1", "#tag2"],
-      "imagePrompt": "image description for AI generation",
-      "reasoning": "why this post at this time",
-      "pillar": "content pillar name"
+      "scheduledFor": "${now.toISOString().split('T')[0]}T09:00:00",
+      "topic": "short topic label",
+      "content": "full post caption with emojis and personality matching tone",
+      "hashtags": ["#tag1", "#tag2", "#tag3"],
+      "imagePrompt": "detailed image description matching the researched aesthetic",
+      "reasoning": "why this content pillar + time was chosen based on research",
+      "pillar": "content pillar name from the researched list"
     }
   ]
-}
-    `;
+}`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-1.5-flash',
       contents: prompt,
     });
 
-    const raw = (response.text || '').trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    const raw = (response.text || '').trim()
+      .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
     const data = raw ? JSON.parse(raw) : { posts: [], strategy: '' };
     return { posts: Array.isArray(data.posts) ? data.posts : [], strategy: data.strategy || '' };
   } catch (error: any) {

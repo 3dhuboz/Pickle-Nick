@@ -97,15 +97,17 @@ const SocialAIDashboard = () => {
 
   // Generation ticker
   const TICKER_STEPS = [
-    { label: 'Analysing your brand profile...', pct: 8 },
-    { label: 'Researching content pillars...', pct: 18 },
-    { label: 'Crafting content strategy...', pct: 30 },
-    { label: 'Writing post captions...', pct: 45 },
-    { label: 'Selecting optimal platforms...', pct: 58 },
-    { label: 'Scheduling at peak engagement times...', pct: 68 },
-    { label: 'Weaving in hashtags & emojis...', pct: 78 },
-    { label: 'Polishing final drafts...', pct: 88 },
-    { label: 'Almost there — wrapping up...', pct: 95 },
+    { label: 'Analysing your brand profile & location...', pct: 5 },
+    { label: 'Researching best posting times for your audience...', pct: 15 },
+    { label: 'Identifying top content pillars for your industry...', pct: 25 },
+    { label: 'Studying hashtag themes & trending topics...', pct: 35 },
+    { label: 'Determining ideal platform mix & image aesthetic...', pct: 45 },
+    { label: 'Building strategy from research insights...', pct: 55 },
+    { label: 'Writing post captions with your brand tone...', pct: 65 },
+    { label: 'Scheduling at researched peak engagement times...', pct: 75 },
+    { label: 'Crafting image prompts for each post...', pct: 83 },
+    { label: 'Weaving in researched hashtags...', pct: 90 },
+    { label: 'Almost there — finalising your calendar...', pct: 96 },
   ];
   const [tickerIdx, setTickerIdx] = useState(0);
   useEffect(() => {
@@ -241,7 +243,7 @@ const SocialAIDashboard = () => {
     if (!hasApiKey) { toast('Set your Gemini API key in Settings first.', 'warning'); return; }
     setIsSmartGenerating(true);
     try {
-      const result = await generateSmartSchedule(profile.name, profile.type, profile.tone, stats, smartCount);
+      const result = await generateSmartSchedule(profile.name, profile.type, profile.tone, stats, smartCount, profile.location || 'Australia');
       setSmartPosts(result.posts);
       setSmartStrategy(result.strategy);
     } catch (e: any) {
@@ -301,6 +303,26 @@ const SocialAIDashboard = () => {
   const handleEditPost = async (post: SocialPost) => {
     await addPost(post);
     toast('Post updated.');
+  };
+
+  // ── Publish Now (manual from calendar) ──
+  const [publishingPostId, setPublishingPostId] = useState<string | null>(null);
+  const handlePublishNow = async (post: SocialPost) => {
+    if (!settings?.fbPageId || !settings?.fbPageAccessToken) {
+      toast('Facebook page not connected. Go to Settings to connect.', 'warning');
+      return;
+    }
+    setPublishingPostId(post.id);
+    try {
+      const hashtags = post.hashtags?.length ? '\n\n' + post.hashtags.join(' ') : '';
+      const message = `${post.content}${hashtags}`;
+      await FacebookService.postToPageDirect(settings.fbPageId, settings.fbPageAccessToken, message, post.imageUrl);
+      await addPost({ ...post, status: 'published' });
+      toast('Published to Facebook!', 'success');
+    } catch (e: any) {
+      toast(`Publish failed: ${e?.message?.substring(0, 100) || 'Unknown error'}`, 'error');
+    }
+    setPublishingPostId(null);
   };
 
   // ── Tab Config ──
@@ -363,7 +385,7 @@ const SocialAIDashboard = () => {
               <button
                 onClick={handlePullStats}
                 disabled={isPullingStats || !fbConnected}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-4 py-2 rounded-xl text-xs transition disabled:opacity-40"
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition disabled:opacity-40"
                 title={!fbConnected ? 'Connect a Facebook page in Settings first' : 'Pull live stats from Facebook'}
               >
                 <RefreshCw size={14} className={isPullingStats ? 'animate-spin' : ''} />
@@ -518,7 +540,7 @@ const SocialAIDashboard = () => {
       )}
 
       {/* ═══ CALENDAR TAB ═══ */}
-      {activeTab === 'calendar' && <CalendarView posts={posts} onDelete={handleDeletePost} onEdit={handleEditPost} onCreateClick={() => setActiveTab('create')} />}
+      {activeTab === 'calendar' && <CalendarView posts={posts} onDelete={handleDeletePost} onEdit={handleEditPost} onPublishNow={handlePublishNow} publishingPostId={publishingPostId} onCreateClick={() => setActiveTab('create')} fbConnected={fbConnected} />}
 
       {/* ═══ SMART AI TAB (HERO) ═══ */}
       {activeTab === 'smart' && (
@@ -837,7 +859,15 @@ const SocialAIDashboard = () => {
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-const CalendarView = ({ posts, onDelete, onEdit, onCreateClick }: { posts: SocialPost[]; onDelete: (id: string) => void; onEdit: (post: SocialPost) => void; onCreateClick: () => void }) => {
+const CalendarView = ({ posts, onDelete, onEdit, onPublishNow, publishingPostId, fbConnected, onCreateClick }: {
+  posts: SocialPost[];
+  onDelete: (id: string) => void;
+  onEdit: (post: SocialPost) => void;
+  onPublishNow: (post: SocialPost) => void;
+  publishingPostId: string | null;
+  fbConnected: boolean;
+  onCreateClick: () => void;
+}) => {
   const today = new Date();
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -1127,31 +1157,12 @@ const CalendarView = ({ posts, onDelete, onEdit, onCreateClick }: { posts: Socia
                           {post.topic && <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded border border-amber-200 font-medium">{post.topic}</span>}
                         </div>
 
-                        {/* Expandable content */}
-                        {editingPostId === post.id ? (
-                          <div className="flex flex-col gap-2">
-                            <textarea
-                              value={editContent}
-                              onChange={e => setEditContent(e.target.value)}
-                              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-900 text-sm min-h-[60px] outline-none focus:border-native-black"
-                            />
-                            <div className="flex gap-2">
-                              <button onClick={() => saveEdit(post)} className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-                                Save
-                              </button>
-                              <button onClick={cancelEdit} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition">
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div
-                            className={`text-sm text-gray-700 leading-relaxed cursor-pointer ${expandedPostId === post.id ? 'whitespace-pre-wrap' : 'line-clamp-3'}`}
-                            onClick={() => setExpandedPostId(expandedPostId === post.id ? null : post.id)}
-                          >
-                            {post.content}
-                          </div>
-                        )}
+                        <div
+                          className={`text-sm text-gray-700 leading-relaxed cursor-pointer ${expandedPostId === post.id ? 'whitespace-pre-wrap' : 'line-clamp-3'}`}
+                          onClick={() => setExpandedPostId(expandedPostId === post.id ? null : post.id)}
+                        >
+                          {post.content}
+                        </div>
                         {post.content.length > 150 && (
                           <button
                             onClick={() => setExpandedPostId(expandedPostId === post.id ? null : post.id)}
@@ -1160,7 +1171,6 @@ const CalendarView = ({ posts, onDelete, onEdit, onCreateClick }: { posts: Socia
                             <Eye size={11} /> {expandedPostId === post.id ? 'Show less' : 'Read more'}
                           </button>
                         )}
-
                         {post.hashtags?.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {post.hashtags.map((tag, i) => (
@@ -1168,21 +1178,67 @@ const CalendarView = ({ posts, onDelete, onEdit, onCreateClick }: { posts: Socia
                             ))}
                           </div>
                         )}
-
                         {post.reasoning && (
                           <p className="text-xs text-gray-400 mt-2 italic flex items-center gap-1"><Brain size={11} /> {post.reasoning}</p>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex flex-col gap-1 shrink-0">
+                        {fbConnected && post.status !== 'published' && (
+                          <button
+                            onClick={() => onPublishNow(post)}
+                            disabled={publishingPostId === post.id}
+                            title="Publish to Facebook now"
+                            className="text-blue-500 hover:text-blue-700 p-1.5 rounded-lg hover:bg-blue-50 transition disabled:opacity-50"
+                          >
+                            {publishingPostId === post.id ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                          </button>
+                        )}
                         <button onClick={() => startEdit(post)} title="Edit post" className="text-gray-400 hover:text-amber-600 p-1.5 rounded-lg hover:bg-amber-50 transition">
                           <Edit2 size={14} />
                         </button>
-                        <button onClick={() => onDelete(post.id)} title="Delete post" className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition">
+                        <button onClick={() => onDelete(post.id)} title="Delete post" className="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition">
                           <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
+                    {editingPostId === post.id && (
+                      <div className="mt-3 pt-3 border-t border-amber-100 space-y-3 bg-amber-50/50 rounded-xl p-3">
+                        <textarea
+                          value={editContent}
+                          onChange={e => setEditContent(e.target.value)}
+                          title="Edit post content"
+                          className="w-full bg-white border border-amber-200 rounded-lg p-3 text-sm text-gray-800 resize-y min-h-[80px] outline-none focus:border-amber-400"
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          <input
+                            type="datetime-local"
+                            value={editTime}
+                            onChange={e => setEditTime(e.target.value)}
+                            title="Scheduled time"
+                            className="bg-white border border-amber-200 rounded-lg px-3 py-1.5 text-sm text-gray-800 outline-none focus:border-amber-400"
+                          />
+                          <select
+                            value={editStatus}
+                            onChange={e => setEditStatus(e.target.value as SocialPost['status'])}
+                            title="Post status"
+                            className="bg-white border border-amber-200 rounded-lg px-3 py-1.5 text-sm text-gray-800 outline-none focus:border-amber-400"
+                          >
+                            <option value="draft">Draft</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="published">Published</option>
+                          </select>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => saveEdit(post)} className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg flex items-center gap-1 transition">
+                            <Save size={12} /> Save
+                          </button>
+                          <button onClick={cancelEdit} className="bg-white text-gray-500 hover:text-gray-700 text-xs font-medium px-4 py-1.5 rounded-lg border border-gray-200 flex items-center gap-1 transition">
+                            <X size={12} /> Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
             </div>
@@ -1192,6 +1248,7 @@ const CalendarView = ({ posts, onDelete, onEdit, onCreateClick }: { posts: Socia
     </div>
   );
 };
+
 const SocialAI = () => (
   <ToastProvider>
     <SocialAIDashboard />
