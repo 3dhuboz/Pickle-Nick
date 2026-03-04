@@ -80,6 +80,8 @@ const Settings = () => {
       ]
   });
   const [isTestingEmail, setIsTestingEmail] = useState(false);
+  const [isTestingSquare, setIsTestingSquare] = useState(false);
+  const [squareTestResult, setSquareTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   
   // Facebook Connection State
@@ -147,6 +149,44 @@ const Settings = () => {
           alert(`⚠ Test failed: ${e.message || 'Unknown error'}`);
       } finally {
           setIsTestingEmail(false);
+      }
+  };
+
+  const handleTestSquare = async () => {
+      if (!form.squareAccessToken) return alert('Enter your Square Access Token first.');
+      setIsTestingSquare(true);
+      setSquareTestResult(null);
+      const tryFetch = async (baseUrl: string) => {
+          const res = await fetch(`${baseUrl}/v2/locations`, {
+              headers: {
+                  'Authorization': `Bearer ${form.squareAccessToken}`,
+                  'Square-Version': '2024-01-18',
+                  'Content-Type': 'application/json'
+              }
+          });
+          return { res, data: await res.json() };
+      };
+      try {
+          let result = await tryFetch('https://connect.squareup.com');
+          if (!result.res.ok) result = await tryFetch('https://connect.squareupsandbox.com');
+          const { res, data } = result;
+          if (res.ok && data.locations?.length > 0) {
+              const mode = res.url.includes('sandbox') ? 'Sandbox' : 'Production';
+              const match = form.squareLocationId ? data.locations.find((l: any) => l.id === form.squareLocationId) : null;
+              if (form.squareLocationId && !match) {
+                  setSquareTestResult({ ok: false, msg: `Token valid (${mode}) but Location ID not found. Available: ${data.locations.map((l: any) => l.id).join(', ')}` });
+              } else {
+                  const loc = match || data.locations[0];
+                  setSquareTestResult({ ok: true, msg: `Connected (${mode}) — ${loc.name || loc.id}` });
+              }
+          } else {
+              const errMsg = data.errors?.[0]?.detail || data.errors?.[0]?.code || 'Authentication failed. Check your Access Token.';
+              setSquareTestResult({ ok: false, msg: errMsg });
+          }
+      } catch (e: any) {
+          setSquareTestResult({ ok: false, msg: e.message || 'Network error' });
+      } finally {
+          setIsTestingSquare(false);
       }
   };
 
@@ -322,6 +362,21 @@ const Settings = () => {
                     />
                 </div>
                 <HelpTip text="Find these keys in your Square Developer Dashboard." />
+                <div className="flex items-center gap-3 pt-1">
+                    <button
+                        onClick={handleTestSquare}
+                        disabled={isTestingSquare || !form.squareAccessToken}
+                        className="px-5 py-2.5 bg-native-black text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-40"
+                    >
+                        {isTestingSquare ? <><Loader2 size={16} className="animate-spin" /> Testing...</> : <><Zap size={16} /> Test Connection</>}
+                    </button>
+                    {squareTestResult && (
+                        <span className={`flex items-center gap-1.5 text-sm font-medium ${squareTestResult.ok ? 'text-green-600' : 'text-red-600'}`}>
+                            {squareTestResult.ok ? <Check size={15} /> : <AlertCircle size={15} />}
+                            {squareTestResult.msg}
+                        </span>
+                    )}
+                </div>
                 <HelpGuide
                     title="How do I set up Square payments?"
                     steps={[
