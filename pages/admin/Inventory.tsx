@@ -43,6 +43,7 @@ const Inventory = () => {
         form.description !== originalData.description ||
         form.price !== originalData.price ||
         form.stock !== originalData.stock ||
+        form.weight !== originalData.weight ||
         form.category !== originalData.category ||
         form.image !== originalData.image ||
         form.featured !== originalData.featured
@@ -84,6 +85,7 @@ const Inventory = () => {
               ...form, 
               price: parseFloat(form.price as any) || 0,
               stock: parseInt(form.stock as any) || 0,
+              weight: parseInt(form.weight as any) || undefined,
               id: `prod-${Date.now()}` 
           } as Product;
           await addProduct(newProduct);
@@ -100,6 +102,7 @@ const Inventory = () => {
               ...form, 
               price: parseFloat(form.price as any) || 0,
               stock: parseInt(form.stock as any) || 0,
+              weight: parseInt(form.weight as any) || undefined,
               id: editingId 
           } as Product;
           await updateProduct(updatedProduct);
@@ -450,9 +453,10 @@ const ProductForm = ({ form, setForm, categories }: any) => {
                  </div>
              </div>
         </div>
-        <div className="flex gap-6 items-center">
-            <label className="block"><span className="block text-xs font-medium text-gray-500 mb-1.5">Price</span><input type="number" step="0.01" value={form.price ?? ''} onChange={e => setForm({...form, price: e.target.value})} className="w-24 p-2.5 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-native-clay/10 focus:border-native-clay outline-none" /></label>
+        <div className="flex gap-6 items-center flex-wrap">
+            <label className="block"><span className="block text-xs font-medium text-gray-500 mb-1.5">Price ($)</span><input type="number" step="0.01" value={form.price ?? ''} onChange={e => setForm({...form, price: e.target.value})} className="w-24 p-2.5 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-native-clay/10 focus:border-native-clay outline-none" /></label>
             <label className="block"><span className="block text-xs font-medium text-gray-500 mb-1.5">Stock</span><input type="number" value={form.stock ?? ''} onChange={e => setForm({...form, stock: e.target.value})} className="w-24 p-2.5 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-native-clay/10 focus:border-native-clay outline-none" /></label>
+            <label className="block"><span className="block text-xs font-medium text-gray-500 mb-1.5">Weight (g)</span><input type="number" value={form.weight ?? ''} onChange={e => setForm({...form, weight: e.target.value})} placeholder="500" className="w-24 p-2.5 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-native-clay/10 focus:border-native-clay outline-none" /></label>
             <label className="flex items-center gap-2 mt-6 cursor-pointer select-none"><input type="checkbox" checked={form.featured || false} onChange={e => setForm({...form, featured: e.target.checked})} className="w-4 h-4 text-native-clay rounded border-gray-300 focus:ring-native-clay" /><span className="text-sm font-medium text-gray-700">Featured Item</span></label>
         </div>
     </div>

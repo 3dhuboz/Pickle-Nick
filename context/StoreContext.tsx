@@ -33,6 +33,7 @@ interface StoreContextType {
   loginCustomer: () => Promise<void>;
   logoutCustomer: () => Promise<void>;
   addPost: (post: SocialPost) => void;
+  deletePost: (id: string) => Promise<void>;
   updateSettings: (s: AppSettings) => void;
   updateSiteContent: (c: SiteContent) => Promise<void>;
   sendMessage: (msg: ContactMessage) => void;
@@ -247,7 +248,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Social
   const addPost = async (post: SocialPost) => {
     await StorageService.savePost(post);
-    // Determine if update or insert for state
     setPosts(prev => {
         const index = prev.findIndex(p => p.id === post.id);
         if (index > -1) {
@@ -257,6 +257,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
         return [post, ...prev];
     });
+  };
+
+  const deletePost = async (id: string) => {
+    await StorageService.deletePost(id);
+    setPosts(prev => prev.filter(p => p.id !== id));
   };
 
   const deleteMessage = async (id: string) => {
@@ -307,7 +312,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       products, categories, orders, users, posts, cart, isAdmin, settings, siteContent, messages, currentUser, installPrompt,
       addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, placeOrder, updateOrderStatus, updateOrder,
       addToCart, removeFromCart, clearCart, loginAdmin, logoutAdmin, loginCustomer, logoutCustomer, 
-      addPost, updateSettings, updateSiteContent, sendMessage, deleteMessage, refreshData, updateUser, deleteUser, resetStore, reseedStore, triggerInstall
+      addPost, deletePost, updateSettings, updateSiteContent, sendMessage, deleteMessage, refreshData, updateUser, deleteUser, resetStore, reseedStore, triggerInstall
     }}>
       {children}
     </StoreContext.Provider>

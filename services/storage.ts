@@ -54,10 +54,10 @@ const INITIAL_CONTENT: SiteContent = {
     heroSubheading: 'Spirit of the Brine',
     heroText: 'Hand-harvested, earth-grown, and preserved with the wisdom of tradition. Flavor that speaks to the soul.',
     heroImage: '/logo.jpg',
-    founderImage: 'https://images.unsplash.com/photo-1583095117917-06c88f24458c?auto=format&fit=crop&q=80&w=800',
-    galleryImage1: 'https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&q=80&w=1600',
-    galleryImage2: 'https://images.unsplash.com/photo-1607337775929-37f225381a3d?auto=format&fit=crop&q=80&w=800',
-    galleryImage3: 'https://images.unsplash.com/photo-1622329792613-2d1741126588?auto=format&fit=crop&q=80&w=800'
+    founderImage: 'https://images.pexels.com/photos/2403391/pexels-photo-2403391.jpeg?auto=compress&cs=tinysrgb&w=800',
+    galleryImage1: 'https://images.pexels.com/photos/8601704/pexels-photo-8601704.jpeg?auto=compress&cs=tinysrgb&w=1600',
+    galleryImage2: 'https://images.pexels.com/photos/9005955/pexels-photo-9005955.jpeg?auto=compress&cs=tinysrgb&w=800',
+    galleryImage3: 'https://images.pexels.com/photos/5793770/pexels-photo-5793770.jpeg?auto=compress&cs=tinysrgb&w=800'
   },
   about: {
     heading: 'The Pickle Nick Standard',
@@ -70,14 +70,14 @@ const INITIAL_CATEGORIES: Category[] = [
     id: 'cat_pickles',
     name: 'Pickles',
     description: 'Crisp, crunchy, and brined to perfection.',
-    image: 'https://images.unsplash.com/photo-1605634501607-28d447d4e48b?auto=format&fit=crop&w=1600&q=80',
+    image: 'https://images.pexels.com/photos/8601700/pexels-photo-8601700.jpeg?auto=compress&cs=tinysrgb&w=1600',
     updatedAt: 1
   },
   {
     id: 'cat_sauces',
     name: 'Sauces',
     description: 'Liquid gold for your feast.',
-    image: 'https://images.unsplash.com/photo-1622329792613-2d1741126588?auto=format&fit=crop&w=1600&q=80',
+    image: 'https://images.pexels.com/photos/6941017/pexels-photo-6941017.jpeg?auto=compress&cs=tinysrgb&w=1600',
     updatedAt: 1
   }
 ];
@@ -89,9 +89,10 @@ const INITIAL_PRODUCTS: Product[] = [
     description: 'Our signature crunch. Fermented for 48 hours in oak barrels with fresh dill and garlic.',
     price: 12.99,
     stock: 50,
-    image: 'https://images.unsplash.com/photo-1599951681282-3d7c49b6b7a2?auto=format&fit=crop&w=1000&q=80',
+    image: 'https://images.pexels.com/photos/8601701/pexels-photo-8601701.jpeg?auto=compress&cs=tinysrgb&w=1000',
     category: 'Pickles',
     featured: true,
+    weight: 500,
     updatedAt: 1
   },
   {
@@ -100,9 +101,10 @@ const INITIAL_PRODUCTS: Product[] = [
     description: 'For those who like a kick. Infused with roasted habanero and a touch of honey.',
     price: 14.50,
     stock: 25,
-    image: 'https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=1000&q=80',
+    image: 'https://images.pexels.com/photos/3646/pickled-jalapenos-preserve-preserved.jpg?auto=compress&cs=tinysrgb&w=1000',
     category: 'Pickles',
     featured: true,
+    weight: 450,
     updatedAt: 1
   },
   {
@@ -111,9 +113,10 @@ const INITIAL_PRODUCTS: Product[] = [
     description: 'A nostalgic trip down memory lane. Perfectly sliced, sweet, tangy, and undeniably delightful.',
     price: 11.00,
     stock: 100,
-    image: 'https://images.unsplash.com/photo-1607337775929-37f225381a3d?auto=format&fit=crop&w=1000&q=80',
+    image: 'https://images.pexels.com/photos/5503189/pexels-photo-5503189.jpeg?auto=compress&cs=tinysrgb&w=1000',
     category: 'Pickles',
     featured: false,
+    weight: 400,
     updatedAt: 1
   },
   {
@@ -122,9 +125,10 @@ const INITIAL_PRODUCTS: Product[] = [
     description: 'The green gold. A creamy, dill-infused aioli perfect for burgers.',
     price: 18.00,
     stock: 40,
-    image: 'https://images.unsplash.com/photo-1622329792613-2d1741126588?auto=format&fit=crop&w=1000&q=80',
+    image: 'https://images.pexels.com/photos/5793770/pexels-photo-5793770.jpeg?auto=compress&cs=tinysrgb&w=1000',
     category: 'Sauces',
     featured: true,
+    weight: 350,
     updatedAt: 1
   },
 ];
@@ -141,14 +145,23 @@ const INITIAL_SETTINGS: AppSettings = {
   gstRate: 10,
   emailConfig: {
     enabled: false,
-    serviceId: '',
-    templateId: '',
-    publicKey: '',
-    adminEmail: 'orders@picklenick.com'
+    adminEmail: 'orders@picklenick.com',
+    fromName: 'Pickle Nick',
+    fromEmail: 'noreply@picklenick.com',
+    smtpEndpoint: '/api/send-email.php'
   },
   shippingConfig: {
     carrierName: 'Australia Post',
-    trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/'
+    trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/',
+    freeShippingThreshold: 75,
+    defaultWeightGrams: 500,
+    rates: [
+      { maxWeightGrams: 500, standardPrice: 9.50, expressPrice: 15.90 },
+      { maxWeightGrams: 1000, standardPrice: 12.50, expressPrice: 19.90 },
+      { maxWeightGrams: 3000, standardPrice: 16.00, expressPrice: 26.50 },
+      { maxWeightGrams: 5000, standardPrice: 20.00, expressPrice: 33.00 },
+      { maxWeightGrams: 10000, standardPrice: 25.00, expressPrice: 42.00 }
+    ]
   }
 };
 
@@ -389,6 +402,16 @@ export const StorageService = {
         if (index > -1) posts[index] = stamp(post);
         else posts.push(stamp(post));
         safeSetItem(LS_KEYS.POSTS, JSON.stringify(posts));
+    }
+  },
+
+  deletePost: async (id: string) => {
+    if (db) {
+        await withTimeout(deleteDoc(doc(db, 'posts', id)));
+    } else {
+        const posts = await StorageService.getPosts();
+        const filtered = posts.filter(p => p.id !== id);
+        safeSetItem(LS_KEYS.POSTS, JSON.stringify(filtered));
     }
   },
 

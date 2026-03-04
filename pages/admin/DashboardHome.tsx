@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, ShoppingBag, Users, TrendingUp, Wifi, CreditCard, Share2, Sparkles, AlertCircle, CheckCircle2, Package, Trash2, AlertTriangle, RefreshCw, HelpCircle, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { DollarSign, ShoppingBag, Users, TrendingUp, Wifi, CreditCard, Share2, Sparkles, AlertCircle, CheckCircle2, Package, Trash2, AlertTriangle, RefreshCw, HelpCircle, ArrowUpRight, ArrowDownRight, Lightbulb, Circle, Mail, Cloud, Settings as SettingsIcon } from 'lucide-react';
 import { StorageService } from '../../services/storage';
 import { Link } from 'react-router-dom';
 
@@ -115,6 +115,46 @@ const DashboardHome = () => {
         </div>
       </div>
       
+      {/* Getting Started Checklist */}
+      {(() => {
+        const checks = [
+          { label: 'Set up payments', done: systemStatus.payment, icon: CreditCard, hint: 'Connect Square to accept orders' },
+          { label: 'Configure email', done: !!(settings.emailConfig?.enabled && settings.emailConfig?.adminEmail), icon: Mail, hint: 'Get order confirmations' },
+          { label: 'Connect database', done: systemStatus.firebase, icon: Cloud, hint: 'Save data to the cloud' },
+          { label: 'Link social media', done: systemStatus.facebook, icon: Share2, hint: 'Auto-post to Facebook & Instagram' },
+        ];
+        const doneCount = checks.filter(c => c.done).length;
+        const allDone = doneCount === checks.length;
+        if (allDone) return null;
+        return (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Lightbulb size={20} className="text-amber-600" />
+                <div>
+                  <h3 className="font-display font-semibold text-gray-900">Getting Started</h3>
+                  <p className="text-xs text-gray-500">{doneCount} of {checks.length} done — finish setup to unlock all features</p>
+                </div>
+              </div>
+              <Link to="/admin/settings" className="text-xs font-medium text-amber-700 hover:text-amber-900 bg-white px-3 py-1.5 rounded-lg border border-amber-200 shadow-sm flex items-center gap-1.5 transition-colors">
+                <SettingsIcon size={13} /> Open Settings
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              {checks.map((c, i) => (
+                <div key={i} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm ${c.done ? 'bg-white/60 text-gray-400' : 'bg-white text-gray-900 border border-amber-200 shadow-sm'}`}>
+                  {c.done ? <CheckCircle2 size={16} className="text-green-500 shrink-0" /> : <Circle size={16} className="text-amber-400 shrink-0" />}
+                  <div className="min-w-0">
+                    <span className={`block text-sm ${c.done ? 'line-through' : 'font-medium'}`}>{c.label}</span>
+                    {!c.done && <span className="text-[10px] text-gray-400 block">{c.hint}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Total Revenue" value={`$${totalRevenue.toFixed(2)}`} icon={DollarSign} trend="12%" trendUp={true} />

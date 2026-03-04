@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { Save, Cloud, Database, AlertCircle, DollarSign, Mail, Server, Send, Loader2, Check, HelpCircle, Truck, Share2, Instagram, Facebook, Link as LinkIcon, Settings as SettingsIcon } from 'lucide-react';
+import { Save, Cloud, Database, AlertCircle, DollarSign, Mail, Server, Send, Loader2, Check, HelpCircle, Truck, Share2, Instagram, Facebook, Link as LinkIcon, Settings as SettingsIcon, ChevronDown, ChevronRight, Lightbulb, CheckCircle2, Circle, ExternalLink, Zap, BookOpen } from 'lucide-react';
 import { AppSettings, FirebaseConfig, EmailConfig, ShippingConfig } from '../../types';
 import { FacebookService, FacebookPage } from '../../services/facebookService';
+import { EmailService } from '../../services/emailService';
 
 const HelpTip = ({ text }: { text: string }) => (
     <div className="flex items-start gap-3 bg-blue-50 text-blue-700 p-4 text-sm rounded-xl border border-blue-100 mt-2">
@@ -11,13 +12,48 @@ const HelpTip = ({ text }: { text: string }) => (
     </div>
 );
 
-const SectionHeader = ({ title, icon: Icon, description }: { title: string, icon: any, description?: string }) => (
+const HelpGuide = ({ title, steps, tip }: { title: string; steps: string[]; tip?: string }) => {
+    const [open, setOpen] = React.useState(false);
+    return (
+        <div className="mt-3 border border-amber-200 rounded-xl overflow-hidden bg-amber-50/50">
+            <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-2.5 px-4 py-3 text-left hover:bg-amber-50 transition">
+                <BookOpen size={16} className="text-amber-600 shrink-0" />
+                <span className="text-sm font-medium text-amber-800 flex-1">{title}</span>
+                {open ? <ChevronDown size={16} className="text-amber-500" /> : <ChevronRight size={16} className="text-amber-500" />}
+            </button>
+            {open && (
+                <div className="px-4 pb-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <ol className="space-y-2 ml-1">
+                        {steps.map((step, i) => (
+                            <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700">
+                                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold flex items-center justify-center mt-0.5">{i + 1}</span>
+                                <span className="leading-relaxed" dangerouslySetInnerHTML={{ __html: step }} />
+                            </li>
+                        ))}
+                    </ol>
+                    {tip && <p className="text-xs text-amber-700 mt-3 pl-7 italic">{tip}</p>}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const SectionHeader = ({ title, icon: Icon, description, configured }: { title: string; icon: any; description?: string; configured?: boolean }) => (
     <div className="flex items-start gap-4 mb-6">
-        <div className="p-3 bg-gray-100 rounded-xl text-native-black">
+        <div className={`p-3 rounded-xl ${configured ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-native-black'}`}>
             <Icon size={24} />
         </div>
-        <div>
-            <h3 className="text-lg font-display font-semibold text-gray-900">{title}</h3>
+        <div className="flex-1">
+            <div className="flex items-center gap-2">
+                <h3 className="text-lg font-display font-semibold text-gray-900">{title}</h3>
+                {configured !== undefined && (
+                    configured ? (
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-700 px-2 py-0.5 rounded-full border border-green-200">Ready</span>
+                    ) : (
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200">Setup needed</span>
+                    )
+                )}
+            </div>
             {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
         </div>
     </div>
@@ -28,11 +64,20 @@ const Settings = () => {
   const [form, setForm] = useState<AppSettings>(settings);
   const [fbConfig, setFbConfig] = useState<Partial<FirebaseConfig>>(settings.firebaseConfig || {});
   const [emailConfig, setEmailConfig] = useState<EmailConfig>(settings.emailConfig || {
-    enabled: false, serviceId: '', templateId: '', publicKey: '', adminEmail: ''
+    enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/send-email.php'
   });
   const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(settings.shippingConfig || {
       carrierName: 'Australia Post',
-      trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/'
+      trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/',
+      freeShippingThreshold: 75,
+      defaultWeightGrams: 500,
+      rates: [
+        { maxWeightGrams: 500, standardPrice: 9.50, expressPrice: 15.90 },
+        { maxWeightGrams: 1000, standardPrice: 12.50, expressPrice: 19.90 },
+        { maxWeightGrams: 3000, standardPrice: 16.00, expressPrice: 26.50 },
+        { maxWeightGrams: 5000, standardPrice: 20.00, expressPrice: 33.00 },
+        { maxWeightGrams: 10000, standardPrice: 25.00, expressPrice: 42.00 }
+      ]
   });
   const [isTestingEmail, setIsTestingEmail] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -46,11 +91,20 @@ const Settings = () => {
     setForm(settings);
     setFbConfig(settings.firebaseConfig || {});
     setEmailConfig(settings.emailConfig || {
-       enabled: false, serviceId: '', templateId: '', publicKey: '', adminEmail: ''
+       enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/send-email.php'
     });
     setShippingConfig(settings.shippingConfig || {
         carrierName: 'Australia Post',
-        trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/'
+        trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/',
+        freeShippingThreshold: 75,
+        defaultWeightGrams: 500,
+        rates: [
+          { maxWeightGrams: 500, standardPrice: 9.50, expressPrice: 15.90 },
+          { maxWeightGrams: 1000, standardPrice: 12.50, expressPrice: 19.90 },
+          { maxWeightGrams: 3000, standardPrice: 16.00, expressPrice: 26.50 },
+          { maxWeightGrams: 5000, standardPrice: 20.00, expressPrice: 33.00 },
+          { maxWeightGrams: 10000, standardPrice: 25.00, expressPrice: 42.00 }
+        ]
     });
   }, [settings]);
 
@@ -76,15 +130,24 @@ const Settings = () => {
     }, 600);
   };
 
-  const handleTestEmail = () => {
-      if (!emailConfig.enabled) return alert("Enable EmailJS configuration first.");
-      if (!emailConfig.serviceId || !emailConfig.templateId || !emailConfig.publicKey) return alert("Service ID, Template ID, and Public Key are required.");
+  const handleTestEmail = async () => {
+      if (!emailConfig.enabled) return alert("Enable email notifications first.");
+      if (!emailConfig.adminEmail) return alert("Enter an admin email to receive the test.");
       
       setIsTestingEmail(true);
-      setTimeout(() => {
+      try {
+          const testSettings = { ...settings, emailConfig };
+          const success = await EmailService.sendTestEmail(testSettings);
+          if (success) {
+              alert(`✔ Test email sent to ${emailConfig.adminEmail}`);
+          } else {
+              alert(`⚠ Email send failed. Ensure send-email.php is deployed on your SiteGround server and the endpoint URL is correct.`);
+          }
+      } catch (e: any) {
+          alert(`⚠ Test failed: ${e.message || 'Unknown error'}`);
+      } finally {
           setIsTestingEmail(false);
-          alert(`✔ Configuration Validated.\n\nReady to send emails via EmailJS.`);
-      }, 2000);
+      }
   };
 
   const handleConnectFacebook = async () => {
@@ -138,6 +201,39 @@ const Settings = () => {
         <h1 className="text-3xl font-display text-native-black mb-2">Settings</h1>
         <p className="text-gray-500">Manage your store configuration and integrations.</p>
       </div>
+
+      {/* ── Quick Setup Checklist ── */}
+      {(() => {
+        const checks = [
+          { label: 'Payments configured', done: !!(form.squareApplicationId && form.squareAccessToken && form.squareLocationId), section: 'Square Payments' },
+          { label: 'Shipping rates set', done: (shippingConfig.rates || []).length > 0, section: 'Shipping & Postage' },
+          { label: 'Email notifications', done: !!(emailConfig.enabled && emailConfig.adminEmail && emailConfig.fromEmail), section: 'Email Notifications' },
+          { label: 'Firebase database', done: !!(fbConfig.apiKey && fbConfig.projectId), section: 'Firebase Persistence' },
+        ];
+        const doneCount = checks.filter(c => c.done).length;
+        const allDone = doneCount === checks.length;
+        return (
+          <div className={`mb-8 p-6 rounded-2xl border shadow-sm ${allDone ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+            <div className="flex items-center gap-3 mb-4">
+              {allDone ? <CheckCircle2 size={22} className="text-green-600" /> : <Lightbulb size={22} className="text-amber-600" />}
+              <div>
+                <h2 className="font-display font-semibold text-gray-900">{allDone ? 'All Set!' : 'Quick Setup Checklist'}</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{allDone ? 'Your store is fully configured and ready to go.' : `${doneCount} of ${checks.length} integrations ready — complete the items below to go live.`}</p>
+              </div>
+            </div>
+            {!allDone && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {checks.map((c, i) => (
+                  <div key={i} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm ${c.done ? 'bg-white/60 text-gray-500' : 'bg-white text-gray-900 border border-amber-200 shadow-sm'}`}>
+                    {c.done ? <CheckCircle2 size={16} className="text-green-500 shrink-0" /> : <Circle size={16} className="text-amber-400 shrink-0" />}
+                    <span className={c.done ? 'line-through' : 'font-medium'}>{c.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
       
       <div className="space-y-8">
 
@@ -194,7 +290,7 @@ const Settings = () => {
 
         {/* Square Payment Config */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-            <SectionHeader title="Square Payments" icon={DollarSign} description="Connect your Square account for payment processing." />
+            <SectionHeader title="Square Payments" icon={DollarSign} description="Connect your Square account for payment processing." configured={!!(form.squareApplicationId && form.squareAccessToken && form.squareLocationId)} />
 
             <div className="pl-0 md:pl-14 max-w-2xl space-y-4">
                 <div>
@@ -226,44 +322,107 @@ const Settings = () => {
                     />
                 </div>
                 <HelpTip text="Find these keys in your Square Developer Dashboard." />
+                <HelpGuide
+                    title="How do I set up Square payments?"
+                    steps={[
+                        'Go to <strong>developer.squareup.com</strong> and sign in (or create a free account).',
+                        'Click <strong>Applications</strong> → <strong>Create Application</strong> and give it a name (e.g. "Pickle Nick Store").',
+                        'On the app page, copy the <strong>Sandbox Application ID</strong> (starts with sq0idp-) and paste it above.',
+                        'Go to the <strong>Credentials</strong> tab and copy the <strong>Sandbox Access Token</strong> (starts with EAAA).',
+                        'Go to the <strong>Locations</strong> tab and copy your <strong>Location ID</strong> (starts with L).',
+                        'Paste all three values above, then click <strong>Save Changes</strong> at the bottom of this page.',
+                        'When you\'re ready to go live, switch to <strong>Production</strong> credentials in your Square dashboard.'
+                    ]}
+                    tip="Sandbox mode lets you test payments without real money. Switch to Production when your store is live."
+                />
             </div>
         </div>
 
         {/* Shipping Configuration */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-            <SectionHeader title="Shipping & Tracking" icon={Truck} description="Configure carrier details for order tracking." />
+            <SectionHeader title="Shipping & Postage Rates" icon={Truck} description="Configure carrier, tracking, and weight-based postage rates for Standard and Express delivery." configured={(shippingConfig.rates || []).length > 0} />
 
-            <div className="pl-0 md:pl-14 max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Carrier Name</label>
-                    <input 
-                        value={shippingConfig.carrierName} 
-                        onChange={e => setShippingConfig({...shippingConfig, carrierName: e.target.value})}
-                        className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                        placeholder="Australia Post"
-                    />
+            <div className="pl-0 md:pl-14 max-w-3xl space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Carrier Name</label>
+                        <input 
+                            value={shippingConfig.carrierName} 
+                            onChange={e => setShippingConfig({...shippingConfig, carrierName: e.target.value})}
+                            className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                            placeholder="Australia Post"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Tracking URL Base</label>
+                        <input 
+                            value={shippingConfig.trackingBaseUrl} 
+                            onChange={e => setShippingConfig({...shippingConfig, trackingBaseUrl: e.target.value})}
+                            className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                            placeholder="https://..."
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Free Standard Shipping Over ($)</label>
+                        <input 
+                            type="number" step="1"
+                            value={shippingConfig.freeShippingThreshold ?? 75} 
+                            onChange={e => setShippingConfig({...shippingConfig, freeShippingThreshold: parseFloat(e.target.value) || 0})}
+                            className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Default Item Weight (g)</label>
+                        <input 
+                            type="number"
+                            value={shippingConfig.defaultWeightGrams ?? 500} 
+                            onChange={e => setShippingConfig({...shippingConfig, defaultWeightGrams: parseInt(e.target.value) || 500})}
+                            className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                        />
+                    </div>
                 </div>
+
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Tracking URL Base</label>
-                    <input 
-                        value={shippingConfig.trackingBaseUrl} 
-                        onChange={e => setShippingConfig({...shippingConfig, trackingBaseUrl: e.target.value})}
-                        className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                        placeholder="https://..."
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-3">Weight-Based Rate Tiers</label>
+                    <div className="border border-gray-200 rounded-xl overflow-hidden">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider">
+                                    <th className="p-3 text-left font-medium">Max Weight (g)</th>
+                                    <th className="p-3 text-left font-medium">Standard ($)</th>
+                                    <th className="p-3 text-left font-medium">Express ($)</th>
+                                    <th className="p-3 w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(shippingConfig.rates || []).map((rate, i) => (
+                                    <tr key={i} className="border-t border-gray-100">
+                                        <td className="p-2"><input type="number" value={rate.maxWeightGrams} onChange={e => { const r = [...(shippingConfig.rates||[])]; r[i] = {...r[i], maxWeightGrams: parseInt(e.target.value)||0}; setShippingConfig({...shippingConfig, rates: r}); }} className="w-full p-1.5 border border-gray-200 rounded text-sm text-center focus:border-native-black outline-none" /></td>
+                                        <td className="p-2"><input type="number" step="0.01" value={rate.standardPrice} onChange={e => { const r = [...(shippingConfig.rates||[])]; r[i] = {...r[i], standardPrice: parseFloat(e.target.value)||0}; setShippingConfig({...shippingConfig, rates: r}); }} className="w-full p-1.5 border border-gray-200 rounded text-sm text-center focus:border-native-black outline-none" /></td>
+                                        <td className="p-2"><input type="number" step="0.01" value={rate.expressPrice} onChange={e => { const r = [...(shippingConfig.rates||[])]; r[i] = {...r[i], expressPrice: parseFloat(e.target.value)||0}; setShippingConfig({...shippingConfig, rates: r}); }} className="w-full p-1.5 border border-gray-200 rounded text-sm text-center focus:border-native-black outline-none" /></td>
+                                        <td className="p-2 text-center"><button title="Remove tier" onClick={() => { const r = [...(shippingConfig.rates||[])]; r.splice(i,1); setShippingConfig({...shippingConfig, rates: r}); }} className="text-red-400 hover:text-red-600 text-xs">✕</button></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                        <div className="p-2 bg-gray-50 border-t border-gray-100">
+                            <button onClick={() => setShippingConfig({...shippingConfig, rates: [...(shippingConfig.rates||[]), {maxWeightGrams: 5000, standardPrice: 15, expressPrice: 25}]})} className="text-xs text-native-clay font-medium hover:underline">+ Add Tier</button>
+                        </div>
+                    </div>
+                    <HelpTip text="Rates are matched by total order weight. The first tier whose max weight covers the order is used. Standard shipping becomes free when the cart exceeds the free shipping threshold above. Express always charges." />
                 </div>
             </div>
         </div>
 
         {/* Email Configuration */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-            <SectionHeader title="Email Notifications" icon={Mail} description="Configure EmailJS for transactional emails." />
+            <SectionHeader title="Email Notifications" icon={Mail} description="Server-side email via SiteGround SMTP." configured={!!(emailConfig.enabled && emailConfig.adminEmail && emailConfig.fromEmail)} />
 
             <div className="pl-0 md:pl-14 max-w-2xl">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 mb-6">
                     <div>
                         <span className="block text-sm font-medium text-gray-900">Enable Email Notifications</span>
-                        <span className="text-xs text-gray-500">Send order confirmations and alerts</span>
+                        <span className="text-xs text-gray-500">Order confirmations, shipping alerts, and admin BCC</span>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" checked={emailConfig.enabled || false} onChange={() => setEmailConfig({...emailConfig, enabled: !emailConfig.enabled})} className="sr-only peer" />
@@ -272,48 +431,137 @@ const Settings = () => {
                 </div>
                 
                 {emailConfig.enabled && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Service ID</label>
-                            <input 
-                                value={emailConfig.serviceId} 
-                                onChange={e => setEmailConfig({...emailConfig, serviceId: e.target.value})}
-                                className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                            />
+                    <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">From Name</label>
+                                <input 
+                                    value={emailConfig.fromName || ''} 
+                                    onChange={e => setEmailConfig({...emailConfig, fromName: e.target.value})}
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                    placeholder="Pickle Nick"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">From Email</label>
+                                <input 
+                                    type="email"
+                                    value={emailConfig.fromEmail || ''} 
+                                    onChange={e => setEmailConfig({...emailConfig, fromEmail: e.target.value})}
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                    placeholder="noreply@picklenick.com"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Admin BCC Email</label>
+                                <input 
+                                    type="email"
+                                    value={emailConfig.adminEmail || ''} 
+                                    onChange={e => setEmailConfig({...emailConfig, adminEmail: e.target.value})}
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                    placeholder="orders@picklenick.com"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Mail Endpoint</label>
+                                <input 
+                                    value={emailConfig.smtpEndpoint || ''} 
+                                    onChange={e => setEmailConfig({...emailConfig, smtpEndpoint: e.target.value})}
+                                    className="w-full p-2.5 border border-gray-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                    placeholder="/api/send-email.php"
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Template ID</label>
-                            <input 
-                                value={emailConfig.templateId} 
-                                onChange={e => setEmailConfig({...emailConfig, templateId: e.target.value})}
-                                className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                            />
+
+                        <div className="border-t border-gray-100 pt-6">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Server size={18} className="text-gray-600" />
+                                <h4 className="font-medium text-gray-900">SMTP Server Configuration</h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Host</label>
+                                    <input 
+                                        value={emailConfig.smtpHost || ''} 
+                                        onChange={e => setEmailConfig({...emailConfig, smtpHost: e.target.value})}
+                                        className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                        placeholder="mail.picklenick.com"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Port</label>
+                                    <div className="flex gap-3">
+                                        <input 
+                                            type="number"
+                                            value={emailConfig.smtpPort || ''} 
+                                            onChange={e => setEmailConfig({...emailConfig, smtpPort: parseInt(e.target.value) || undefined})}
+                                            className="w-28 p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                            placeholder="465"
+                                        />
+                                        <select 
+                                            value={emailConfig.smtpSecure || 'ssl'} 
+                                            onChange={e => setEmailConfig({...emailConfig, smtpSecure: e.target.value as 'ssl' | 'tls', smtpPort: e.target.value === 'ssl' ? 465 : 587})}
+                                            title="Encryption method"
+                                            className="p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all bg-white"
+                                        >
+                                            <option value="ssl">SSL (port 465)</option>
+                                            <option value="tls">TLS (port 587)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Username</label>
+                                    <input 
+                                        value={emailConfig.smtpUser || ''} 
+                                        onChange={e => setEmailConfig({...emailConfig, smtpUser: e.target.value})}
+                                        className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                        placeholder="noreply@picklenick.com"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">SMTP Password</label>
+                                    <input 
+                                        type="password"
+                                        value={emailConfig.smtpPass || ''} 
+                                        onChange={e => setEmailConfig({...emailConfig, smtpPass: e.target.value})}
+                                        className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
+                            <HelpTip text="These credentials are sent securely to your mail endpoint on each request. For SiteGround, the SMTP host is usually mail.yourdomain.com and the username is the full email address you created in Site Tools." />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Public Key</label>
-                            <input 
-                                value={emailConfig.publicKey} 
-                                onChange={e => setEmailConfig({...emailConfig, publicKey: e.target.value})}
-                                className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                            />
+
+                        <div className="border-t border-gray-100 pt-6">
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={handleTestEmail}
+                                    disabled={isTestingEmail}
+                                    className="px-5 py-2.5 bg-native-black text-white rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-sm"
+                                >
+                                    {isTestingEmail ? <><Loader2 size={16} className="animate-spin" /> Sending...</> : <><Send size={16} /> Send Test Email</>}
+                                </button>
+                                <span className="text-xs text-gray-400">Sends a test to your admin email</span>
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Admin Email</label>
-                            <input 
-                                value={emailConfig.adminEmail} 
-                                onChange={e => setEmailConfig({...emailConfig, adminEmail: e.target.value})}
-                                className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                            />
-                        </div>
-                        <div className="md:col-span-2 mt-2">
-                            <button 
-                                onClick={handleTestEmail}
-                                disabled={isTestingEmail}
-                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center gap-2"
-                            >
-                                {isTestingEmail ? <><Loader2 size={16} className="animate-spin" /> Verifying...</> : <><Send size={16} /> Validate Config</>}
-                            </button>
-                        </div>
+
+                        <HelpTip text="Emails are sent via your server's PHP mail endpoint. Deploy the api/send-email.php file to your server root. The SMTP credentials above are passed to the endpoint so it can authenticate with your mail server." />
+                        <HelpGuide
+                            title="How do I set up email notifications?"
+                            steps={[
+                                'Log in to <strong>SiteGround Site Tools</strong> for your domain.',
+                                'Go to <strong>Email → Accounts</strong> and create an email address (e.g. <strong>noreply@picklenick.com</strong>).',
+                                'Create a second email for admin notifications (e.g. <strong>orders@picklenick.com</strong>).',
+                                'Upload the <strong>api/send-email.php</strong> file from this project to your server\'s public root folder.',
+                                'Back here, toggle <strong>Enable Email Notifications</strong> on.',
+                                'Fill in <strong>From Name</strong>, <strong>From Email</strong>, and <strong>Admin BCC Email</strong>.',
+                                'Under <strong>SMTP Server Configuration</strong>, enter your mail server host (e.g. <strong>mail.picklenick.com</strong>).',
+                                'Set the <strong>SMTP Username</strong> to the full email address (e.g. noreply@picklenick.com) and enter the <strong>password</strong> you created in SiteGround.',
+                                'Choose <strong>SSL (port 465)</strong> or <strong>TLS (port 587)</strong> — SSL is recommended for SiteGround.',
+                                'Click <strong>Send Test Email</strong> to verify everything works!'
+                            ]}
+                            tip="The test email will arrive at your Admin BCC address. Check spam if you don't see it within a minute."
+                        />
                     </div>
                 )}
             </div>
@@ -321,7 +569,7 @@ const Settings = () => {
 
         {/* Social Configuration */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-            <SectionHeader title="Social Media API" icon={Share2} description="Connect Facebook and Instagram for auto-posting." />
+            <SectionHeader title="Social Media API" icon={Share2} description="Connect Facebook and Instagram for auto-posting." configured={!!(form.fbAppId && form.fbPageId)} />
 
             <div className="pl-0 md:pl-14 max-w-2xl space-y-8">
                 <div>
@@ -431,13 +679,26 @@ const Settings = () => {
                             placeholder="1784..."
                         />
                     </div>
+                    <HelpGuide
+                        title="How do I connect Facebook & Instagram?"
+                        steps={[
+                            'Go to <strong>developers.facebook.com</strong> and create a <strong>Facebook Developer</strong> account (it\'s free).',
+                            'Click <strong>My Apps → Create App</strong>, choose <strong>Business</strong> type, and name it.',
+                            'On the app dashboard, find your <strong>App ID</strong> and <strong>App Secret</strong> — paste them above.',
+                            'Click <strong>Save Changes</strong> at the bottom of this page, then click the blue <strong>Connect Facebook Page</strong> button.',
+                            'A Facebook popup will ask you to choose which Page to connect — select your business page.',
+                            'For Instagram, your Facebook Page must be <strong>linked to an Instagram Business account</strong> in Meta Business Suite.',
+                            'Find your Instagram Business ID in <strong>Meta Business Suite → Settings → Accounts → Instagram</strong> and paste it above.'
+                        ]}
+                        tip="Social media auto-posting is optional. Your store works perfectly fine without it — this just adds convenience."
+                    />
                 </div>
             </div>
         </div>
 
         {/* Firebase Persistence */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-          <SectionHeader title="Firebase Persistence" icon={Cloud} description="Connect Google Firebase for data storage." />
+          <SectionHeader title="Firebase Persistence" icon={Cloud} description="Connect Google Firebase for cloud data storage." configured={!!(fbConfig.apiKey && fbConfig.projectId)} />
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-0 md:pl-14 max-w-3xl">
             <div>
@@ -494,6 +755,21 @@ const Settings = () => {
                  placeholder="1:123456:web:abcdef"
                />
             </div>
+          </div>
+          <div className="pl-0 md:pl-14 max-w-3xl">
+            <HelpGuide
+                title="How do I set up Firebase?"
+                steps={[
+                    'Go to <strong>console.firebase.google.com</strong> and sign in with your Google account.',
+                    'Click <strong>Add Project</strong>, give it a name (e.g. "pickle-nick"), and follow the prompts.',
+                    'Once your project is created, click the <strong>Web</strong> icon (&lt;/&gt;) to add a web app.',
+                    'Firebase will show your config object — copy each value into the matching fields above.',
+                    'In the left sidebar, go to <strong>Build → Firestore Database</strong> and click <strong>Create Database</strong>.',
+                    'Choose <strong>Start in production mode</strong> and pick the closest server region.',
+                    'Click <strong>Save Changes</strong> at the bottom of this page — your data will sync to the cloud automatically!'
+                ]}
+                tip="Without Firebase, your store data is saved in the browser only. Firebase keeps your products, orders, and settings safe in the cloud."
+            />
           </div>
         </div>
 

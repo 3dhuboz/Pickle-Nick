@@ -1,10 +1,19 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const getAIClient = () => {
-  if (!process.env.API_KEY) {
-    throw new Error("API Key is missing. Please select one using the settings.");
+const getApiKey = () => {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('pn_gemini_key');
+    if (stored) return stored;
   }
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+  return process.env.API_KEY || '';
+};
+
+const getAIClient = () => {
+  const key = getApiKey();
+  if (!key) {
+    throw new Error("API Key is missing. Set it in the Social Spirit settings.");
+  }
+  return new GoogleGenAI({ apiKey: key });
 };
 
 const compressImage = (base64Str: string, maxWidth = 800, quality = 0.7): Promise<string> => {
@@ -238,6 +247,146 @@ export const analyzeSocialMetrics = async (metricName: string, value: string | n
     contents: prompt
   });
   return response.text;
+};
+
+export const generateMarketingImage = async (prompt: string): Promise<string | null> => {
+  const ai = getAIClient();
+  const models = ['gemini-2.5-flash-image', 'gemini-2.0-flash-exp-image-generation'];
+  for (const model of models) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: `Professional marketing image: ${prompt}. High quality, vibrant, cinematic lighting, no text or watermarks.`,
+        config: {
+          responseModalities: ['IMAGE', 'TEXT'],
+        } as any,
+      });
+      const parts = (response as any)?.candidates?.[0]?.content?.parts;
+      if (parts) {
+        for (const part of parts) {
+          if (part.inlineData?.data) {
+            const mimeType = part.inlineData.mimeType || 'image/png';
+            return `data:${mimeType};base64,${part.inlineData.data}`;
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`Gemini Image (${model}):`, error);
+      continue;
+    }
+  }
+  return null;
+};
+
+export const analyzePostTimes = async (businessType: string, location: string) => {
+  const ai = getAIClient();
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `What are the best times to post on Instagram and Facebook for a ${businessType} in ${location}? Give a concise bulleted list of 3 best time slots for the upcoming week.`
+    });
+    return response.text;
+  } catch (error) {
+    return "Could not analyze times.";
+  }
+};
+
+export const generateRecommendations = async (businessName: string, businessType: string, stats: any) => {
+  const ai = getAIClient();
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `
+        You are a social media strategist for "${businessName}", a ${businessType}.
+        Stats: Followers: ${stats.followers}, Reach: ${stats.reach}, Engagement: ${stats.engagement}%, Posts: ${stats.postsLast30Days}.
+        Provide 3 specific, high-impact recommendations. Format as a concise bulleted list.
+      `
+    });
+    return response.text || "No recommendations generated.";
+  } catch (error) {
+    return "Unable to analyze stats at this time.";
+  }
+};
+
+export interface SmartScheduleResult {
+  posts: SmartScheduledPostResult[];
+  strategy: string;
+}
+
+export interface SmartScheduledPostResult {
+  platform: 'facebook' | 'instagram';
+  scheduledFor: string;
+  topic: string;
+  content: string;
+  hashtags: string[];
+  imagePrompt: string;
+  reasoning: string;
+  pillar: string;
+}
+
+export const generateSmartSchedule = async (
+  businessName: string,
+  businessType: string,
+  tone: string,
+  stats: any,
+  postsToGenerate: number = 7
+): Promise<SmartScheduleResult> => {
+  const ai = getAIClient();
+  try {
+    const now = new Date();
+    const windowEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+    const prompt = `
+      You are a social media strategist for "${businessName}", a ${businessType}. Tone: ${tone}.
+      Current date: ${now.toISOString().split('T')[0]}.
+      Window: ${now.toISOString().split('T')[0]} to ${windowEnd.toISOString().split('T')[0]}.
+      Stats: Followers ${stats.followers}, Engagement ${stats.engagement}%, Reach ${stats.reach}.
+
+      Generate exactly ${postsToGenerate} social media posts spread across the next 2 weeks.
+      Mix platforms (Facebook and Instagram). Schedule at optimal times for Australia.
+      Use lowercase platform names: "facebook" or "instagram".
+      
+      Return JSON with:
+      - "strategy": a 2-sentence strategy summary
+      - "posts": array of objects with: platform, scheduledFor (ISO datetime), topic, content, hashtags (array), imagePrompt, reasoning, pillar
+    `;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            strategy: { type: Type.STRING },
+            posts: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  platform: { type: Type.STRING },
+                  scheduledFor: { type: Type.STRING },
+                  topic: { type: Type.STRING },
+                  content: { type: Type.STRING },
+                  hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  imagePrompt: { type: Type.STRING },
+                  reasoning: { type: Type.STRING },
+                  pillar: { type: Type.STRING }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const data = response.text ? JSON.parse(response.text) : { posts: [], strategy: '' };
+    return { posts: data.posts || [], strategy: data.strategy || '' };
+  } catch (error: any) {
+    console.error("Smart Schedule Error:", error);
+    return { posts: [], strategy: `Error: ${error?.message || 'Unknown'}` };
+  }
 };
 
 export const generateProductDescription = async (name: string, category: string) => {

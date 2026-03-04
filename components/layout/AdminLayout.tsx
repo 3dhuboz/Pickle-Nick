@@ -12,7 +12,8 @@ import {
   Mountain,
   FileText,
   Mail,
-  ChevronRight
+  ChevronRight,
+  ExternalLink
 } from 'lucide-react';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -86,8 +87,17 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         </nav>
 
-        {/* Footer / Logout */}
-        <div className="p-6 border-t border-white/5 bg-black/20">
+        {/* Footer */}
+        <div className="p-6 border-t border-white/5 bg-black/20 space-y-1">
+          <NavLink
+            to="/"
+            className="flex items-center justify-between px-4 py-3 w-full rounded-xl text-native-sand/60 hover:bg-white/5 hover:text-white transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <ExternalLink size={18} className="text-native-sand/40 group-hover:text-white transition-colors" />
+              <span className="font-medium text-sm">View Store</span>
+            </div>
+          </NavLink>
           <button 
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-native-sand/60 hover:bg-red-500/10 hover:text-red-400 transition-all group"

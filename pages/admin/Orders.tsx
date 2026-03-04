@@ -185,7 +185,7 @@ const Orders = () => {
               setShowEmailPreview(false);
               alert(`📧 Notification successfully dispatched to ${formData.customerEmail}`);
           } else {
-              alert(`⚠️ Failed to send email via EmailJS. Check console for details.`);
+              alert(`⚠️ Failed to send email. Ensure your SiteGround mail endpoint is configured in Settings.`);
           }
       });
   };

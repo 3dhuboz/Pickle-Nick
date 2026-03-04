@@ -37,7 +37,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-10">
+          <div className="hidden md:flex items-center space-x-14 lg:space-x-16">
             <Link to="/" className={`font-tribal text-sm font-bold uppercase tracking-[0.2em] ${isActive('/')}`}>Home</Link>
             <Link to="/shop" className={`font-tribal text-sm font-bold uppercase tracking-[0.2em] ${isActive('/shop')}`}>Shop</Link>
             <Link to="/about" className={`font-tribal text-sm font-bold uppercase tracking-[0.2em] ${isActive('/about')}`}>About</Link>

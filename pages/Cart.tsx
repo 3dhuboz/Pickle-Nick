@@ -1,13 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Trash2, CreditCard, Lock, ShieldCheck, CheckCircle2, ChevronRight, Truck, AlertCircle, Loader2 } from 'lucide-react';
+import { Trash2, CreditCard, Lock, ShieldCheck, CheckCircle2, ChevronRight, Truck, AlertCircle, Loader2, MapPin, Zap, Package } from 'lucide-react';
+
+const AU_STATES = [
+  { value: '', label: 'Select State/Territory' },
+  { value: 'NSW', label: 'New South Wales' },
+  { value: 'VIC', label: 'Victoria' },
+  { value: 'QLD', label: 'Queensland' },
+  { value: 'SA', label: 'South Australia' },
+  { value: 'WA', label: 'Western Australia' },
+  { value: 'TAS', label: 'Tasmania' },
+  { value: 'NT', label: 'Northern Territory' },
+  { value: 'ACT', label: 'Australian Capital Territory' }
+];
+
+const validatePostcode = (postcode: string, state: string): string | null => {
+  if (!/^\d{4}$/.test(postcode)) return 'Postcode must be exactly 4 digits.';
+  const p = parseInt(postcode);
+  const ranges: Record<string, [number,number][]> = {
+    NSW: [[1000,1999],[2000,2599],[2619,2899],[2921,2999]],
+    VIC: [[3000,3999],[8000,8999]],
+    QLD: [[4000,4999],[9000,9999]],
+    SA:  [[5000,5799],[5800,5999]],
+    WA:  [[6000,6797],[6800,6999]],
+    TAS: [[7000,7799],[7800,7999]],
+    NT:  [[800,899],[900,999]],
+    ACT: [[200,299],[2600,2618],[2900,2920]]
+  };
+  if (state && ranges[state]) {
+    const valid = ranges[state].some(([lo, hi]) => p >= lo && p <= hi);
+    if (!valid) return `Postcode ${postcode} doesn't match ${state}. Please check.`;
+  }
+  return null;
+};
 import { Link, useNavigate } from 'react-router-dom';
 import { PaymentService } from '../services/paymentService';
 
 type CheckoutStep = 'cart' | 'shipping' | 'payment' | 'success';
 
 const Cart = () => {
-  const { cart, removeFromCart, placeOrder, clearCart, settings, currentUser } = useStore();
+  const { cart, removeFromCart, placeOrder, clearCart, settings, currentUser, products } = useStore();
   const navigate = useNavigate();
   
   const [step, setStep] = useState<CheckoutStep>('cart');
@@ -19,16 +51,43 @@ const Cart = () => {
     name: currentUser?.name || '',
     email: currentUser?.email || '',
     address: '',
-    city: '',
-    zip: '',
+    suburb: '',
+    state: '',
+    postcode: '',
     cardNumber: '',
     expiry: '',
     cvc: ''
   });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const tax = settings.gstEnabled ? (subtotal * (settings.gstRate / 100)) : 0;
-  const shippingCost = subtotal > 50 ? 0 : 10; // Simple shipping logic for now
+
+  // Live weight-based postage calculator
+  const sc = settings.shippingConfig;
+  const defaultWeight = sc?.defaultWeightGrams || 500;
+  const totalWeightGrams = cart.reduce((acc, item) => {
+    const prod = products.find(p => p.id === item.productId);
+    const itemWeight = prod?.weight || defaultWeight;
+    return acc + (itemWeight * item.quantity);
+  }, 0);
+
+  const calcShipping = (method: 'standard' | 'express'): number => {
+    const rates = sc?.rates || [];
+    if (rates.length === 0) return method === 'express' ? 15 : 10;
+    const sorted = [...rates].sort((a, b) => a.maxWeightGrams - b.maxWeightGrams);
+    const tier = sorted.find(r => totalWeightGrams <= r.maxWeightGrams) || sorted[sorted.length - 1];
+    if (method === 'standard') {
+      const threshold = sc?.freeShippingThreshold ?? 75;
+      return subtotal >= threshold ? 0 : tier.standardPrice;
+    }
+    return tier.expressPrice;
+  };
+
+  const standardCost = calcShipping('standard');
+  const expressCost = calcShipping('express');
+  const shippingCost = shippingMethod === 'express' ? expressCost : standardCost;
   const total = subtotal + tax + shippingCost;
 
   // Auto-fill user data if logged in
@@ -44,8 +103,20 @@ const Cart = () => {
 
   const handleShippingSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      if (!formData.name || !formData.email || !formData.address || !formData.city || !formData.zip) {
-          setError("Please complete all shipping fields.");
+      const errors: Record<string, string> = {};
+
+      if (!formData.name.trim()) errors.name = 'Name is required.';
+      if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Valid email is required.';
+      if (!formData.address.trim() || formData.address.trim().length < 5) errors.address = 'Enter a valid street address.';
+      if (!formData.suburb.trim()) errors.suburb = 'Suburb/City is required.';
+      if (!formData.state) errors.state = 'Please select a state.';
+
+      const postcodeErr = validatePostcode(formData.postcode, formData.state);
+      if (postcodeErr) errors.postcode = postcodeErr;
+
+      setFieldErrors(errors);
+      if (Object.keys(errors).length > 0) {
+          setError('Please correct the highlighted fields.');
           return;
       }
       setError(null);
@@ -85,10 +156,12 @@ const Cart = () => {
             userId: currentUser ? currentUser.id : 'guest',
             customerName: formData.name,
             customerEmail: formData.email,
-            shippingAddress: `${formData.address}, ${formData.city} ${formData.zip}`,
+            shippingAddress: `${formData.address}, ${formData.suburb} ${formData.state} ${formData.postcode}`,
             items: cart,
             subtotal,
             tax,
+            shippingCost,
+            shippingMethod,
             total,
             status: 'pending' as const,
             paymentStatus: 'paid' as const,
@@ -232,16 +305,17 @@ const Cart = () => {
                             <Truck className="text-native-clay" size={28} /> Shipping Destination
                         </h3>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-bold text-native-earth/60 mb-2 uppercase tracking-widest font-tribal">Recipient Name</label>
                                 <input 
                                     required
                                     value={formData.name}
-                                    onChange={e => setFormData({...formData, name: e.target.value})}
-                                    className="w-full p-4 bg-native-sand/30 rounded-2xl border border-native-black/5 focus:border-native-clay/50 focus:bg-white outline-none font-display text-lg transition-all shadow-inner"
+                                    onChange={e => { setFormData({...formData, name: e.target.value}); setFieldErrors(prev => ({...prev, name: ''})); }}
+                                    className={`w-full p-4 bg-native-sand/30 rounded-2xl border ${fieldErrors.name ? 'border-red-400 bg-red-50/30' : 'border-native-black/5'} focus:border-native-clay/50 focus:bg-white outline-none font-display text-lg transition-all shadow-inner`}
                                     placeholder="Full Name"
                                 />
+                                {fieldErrors.name && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{fieldErrors.name}</p>}
                             </div>
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-bold text-native-earth/60 mb-2 uppercase tracking-widest font-tribal">Email Address</label>
@@ -249,39 +323,99 @@ const Cart = () => {
                                     required
                                     type="email"
                                     value={formData.email}
-                                    onChange={e => setFormData({...formData, email: e.target.value})}
-                                    className="w-full p-4 bg-native-sand/30 rounded-2xl border border-native-black/5 focus:border-native-clay/50 focus:bg-white outline-none font-sans transition-all shadow-inner"
+                                    onChange={e => { setFormData({...formData, email: e.target.value}); setFieldErrors(prev => ({...prev, email: ''})); }}
+                                    className={`w-full p-4 bg-native-sand/30 rounded-2xl border ${fieldErrors.email ? 'border-red-400 bg-red-50/30' : 'border-native-black/5'} focus:border-native-clay/50 focus:bg-white outline-none font-sans transition-all shadow-inner`}
                                     placeholder="updates@example.com"
                                 />
+                                {fieldErrors.email && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{fieldErrors.email}</p>}
                             </div>
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-bold text-native-earth/60 mb-2 uppercase tracking-widest font-tribal">Street Address</label>
                                 <input 
                                     required
                                     value={formData.address}
-                                    onChange={e => setFormData({...formData, address: e.target.value})}
-                                    className="w-full p-4 bg-native-sand/30 rounded-2xl border border-native-black/5 focus:border-native-clay/50 focus:bg-white outline-none font-sans transition-all shadow-inner"
-                                    placeholder="123 Pickle Lane"
+                                    onChange={e => { setFormData({...formData, address: e.target.value}); setFieldErrors(prev => ({...prev, address: ''})); }}
+                                    className={`w-full p-4 bg-native-sand/30 rounded-2xl border ${fieldErrors.address ? 'border-red-400 bg-red-50/30' : 'border-native-black/5'} focus:border-native-clay/50 focus:bg-white outline-none font-sans transition-all shadow-inner`}
+                                    placeholder="42 Brine Boulevard, Unit 3"
                                 />
+                                {fieldErrors.address && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{fieldErrors.address}</p>}
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-native-earth/60 mb-2 uppercase tracking-widest font-tribal">City</label>
+                                <label className="block text-xs font-bold text-native-earth/60 mb-2 uppercase tracking-widest font-tribal">Suburb / City</label>
                                 <input 
                                     required
-                                    value={formData.city}
-                                    onChange={e => setFormData({...formData, city: e.target.value})}
-                                    className="w-full p-4 bg-native-sand/30 rounded-2xl border border-native-black/5 focus:border-native-clay/50 focus:bg-white outline-none font-sans transition-all shadow-inner"
+                                    value={formData.suburb}
+                                    onChange={e => { setFormData({...formData, suburb: e.target.value}); setFieldErrors(prev => ({...prev, suburb: ''})); }}
+                                    className={`w-full p-4 bg-native-sand/30 rounded-2xl border ${fieldErrors.suburb ? 'border-red-400 bg-red-50/30' : 'border-native-black/5'} focus:border-native-clay/50 focus:bg-white outline-none font-sans transition-all shadow-inner`}
+                                    placeholder="Sydney"
                                 />
+                                {fieldErrors.suburb && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{fieldErrors.suburb}</p>}
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-native-earth/60 mb-2 uppercase tracking-widest font-tribal">Zip/Postal Code</label>
+                                <label className="block text-xs font-bold text-native-earth/60 mb-2 uppercase tracking-widest font-tribal">State / Territory</label>
+                                <select
+                                    required
+                                    value={formData.state}
+                                    onChange={e => { setFormData({...formData, state: e.target.value}); setFieldErrors(prev => ({...prev, state: '', postcode: ''})); }}
+                                    className={`w-full p-4 bg-native-sand/30 rounded-2xl border ${fieldErrors.state ? 'border-red-400 bg-red-50/30' : 'border-native-black/5'} focus:border-native-clay/50 focus:bg-white outline-none font-sans transition-all shadow-inner appearance-none`}
+                                >
+                                    {AU_STATES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                                </select>
+                                {fieldErrors.state && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{fieldErrors.state}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-native-earth/60 mb-2 uppercase tracking-widest font-tribal">Postcode</label>
                                 <input 
                                     required
-                                    value={formData.zip}
-                                    onChange={e => setFormData({...formData, zip: e.target.value})}
-                                    className="w-full p-4 bg-native-sand/30 rounded-2xl border border-native-black/5 focus:border-native-clay/50 focus:bg-white outline-none font-sans transition-all shadow-inner"
+                                    inputMode="numeric"
+                                    maxLength={4}
+                                    value={formData.postcode}
+                                    onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0,4); setFormData({...formData, postcode: v}); setFieldErrors(prev => ({...prev, postcode: ''})); }}
+                                    className={`w-full p-4 bg-native-sand/30 rounded-2xl border ${fieldErrors.postcode ? 'border-red-400 bg-red-50/30' : 'border-native-black/5'} focus:border-native-clay/50 focus:bg-white outline-none font-mono text-lg tracking-widest transition-all shadow-inner`}
+                                    placeholder="2000"
                                 />
+                                {fieldErrors.postcode && <p className="text-red-500 text-xs mt-1.5 flex items-center gap-1"><AlertCircle size={12}/>{fieldErrors.postcode}</p>}
                             </div>
+                        </div>
+
+                        {/* Shipping Method Selector */}
+                        <div className="mt-8">
+                            <label className="block text-xs font-bold text-native-earth/60 mb-3 uppercase tracking-widest font-tribal">Delivery Speed</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShippingMethod('standard')}
+                                    className={`p-5 rounded-2xl border-2 text-left transition-all ${shippingMethod === 'standard' ? 'border-native-clay bg-native-clay/5 shadow-md' : 'border-native-black/10 hover:border-native-black/20 bg-white'}`}
+                                >
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <Package size={20} className={shippingMethod === 'standard' ? 'text-native-clay' : 'text-native-earth/40'} />
+                                        <span className="font-display text-lg uppercase text-native-black">Standard</span>
+                                    </div>
+                                    <p className="text-xs text-native-earth/60 mb-2">3–7 business days via {sc?.carrierName || 'Australia Post'}</p>
+                                    <span className="font-display text-xl text-native-clay">
+                                        {standardCost === 0 ? 'FREE' : `$${standardCost.toFixed(2)}`}
+                                    </span>
+                                    {standardCost === 0 && <span className="text-[10px] text-native-turquoise font-bold uppercase tracking-wider ml-2">Orders ${sc?.freeShippingThreshold ?? 75}+</span>}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShippingMethod('express')}
+                                    className={`p-5 rounded-2xl border-2 text-left transition-all ${shippingMethod === 'express' ? 'border-native-clay bg-native-clay/5 shadow-md' : 'border-native-black/10 hover:border-native-black/20 bg-white'}`}
+                                >
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <Zap size={20} className={shippingMethod === 'express' ? 'text-native-clay' : 'text-native-earth/40'} />
+                                        <span className="font-display text-lg uppercase text-native-black">Express</span>
+                                    </div>
+                                    <p className="text-xs text-native-earth/60 mb-2">1–3 business days via {sc?.carrierName || 'Australia Post'}</p>
+                                    <span className="font-display text-xl text-native-clay">${expressCost.toFixed(2)}</span>
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-native-earth/50 mt-2 text-center">Order weight: {(totalWeightGrams / 1000).toFixed(2)} kg</p>
+                        </div>
+
+                        <div className="mt-6 flex items-start gap-3 bg-native-sand/40 p-4 rounded-2xl border border-native-black/5">
+                            <MapPin size={18} className="text-native-clay shrink-0 mt-0.5" />
+                            <p className="text-xs text-native-earth/70 leading-relaxed">We ship Australia-wide via {sc?.carrierName || 'Australia Post'}. Free standard shipping on orders over ${sc?.freeShippingThreshold ?? 75}. Express available on all orders.</p>
                         </div>
 
                         <div className="flex justify-between mt-12 pt-8 border-t border-native-black/5 items-center">
@@ -416,7 +550,10 @@ const Cart = () => {
                             </div>
                         )}
                         <div className="flex justify-between text-native-earth/70 font-medium">
-                            <span>Shipping</span>
+                            <span className="flex items-center gap-1.5">
+                                {shippingMethod === 'express' ? <Zap size={12} /> : <Package size={12} />}
+                                {shippingMethod === 'express' ? 'Express' : 'Standard'}
+                            </span>
                             <span>{shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}</span>
                         </div>
                     </div>
@@ -428,8 +565,8 @@ const Cart = () => {
 
                     {step === 'payment' && (
                         <div className="mt-8 p-4 bg-native-sand/30 text-[10px] text-native-earth/60 text-center rounded-2xl border border-native-black/5 uppercase tracking-widest font-bold">
-                            Shipping to: <br/>
-                            <span className="text-native-black mt-1 block">{formData.address}, {formData.city}</span>
+                            {shippingMethod === 'express' ? '⚡ Express' : '📦 Standard'} Shipping to: <br/>
+                            <span className="text-native-black mt-1 block">{formData.address}, {formData.suburb} {formData.state} {formData.postcode}</span>
                         </div>
                     )}
                 </div>

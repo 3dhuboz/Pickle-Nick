@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   name: string;
@@ -8,6 +7,7 @@ export interface Product {
   image: string;
   category: string;
   featured: boolean;
+  weight?: number; // grams
   updatedAt?: number;
 }
 
@@ -38,6 +38,8 @@ export interface Order {
   items: OrderItem[];
   subtotal: number;
   tax: number;
+  shippingCost: number;
+  shippingMethod?: 'standard' | 'express';
   total: number;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
@@ -66,7 +68,29 @@ export interface SocialPost {
   scheduledTime: string;
   status: 'draft' | 'scheduled' | 'published';
   hashtags: string[];
+  imagePrompt?: string;
+  reasoning?: string;
+  pillar?: string;
+  topic?: string;
   updatedAt?: number;
+}
+
+export interface SmartScheduledPost {
+  platform: 'facebook' | 'instagram';
+  scheduledFor: string;
+  topic: string;
+  content: string;
+  hashtags: string[];
+  imagePrompt: string;
+  reasoning: string;
+  pillar: string;
+}
+
+export interface ContentCalendarStats {
+  followers: number;
+  reach: number;
+  engagement: number;
+  postsLast30Days: number;
 }
 
 export interface SocialMetrics {
@@ -87,15 +111,29 @@ export interface FirebaseConfig {
 
 export interface EmailConfig {
   enabled: boolean;
-  serviceId: string;
-  templateId: string;
-  publicKey: string;
   adminEmail: string;
+  fromName: string;
+  fromEmail: string;
+  smtpEndpoint: string; // URL to server-side mail script (e.g. /api/send-email.php)
+  smtpHost?: string;     // e.g. mail.picklenick.com
+  smtpPort?: number;     // 465 (SSL) or 587 (TLS)
+  smtpUser?: string;     // e.g. noreply@picklenick.com
+  smtpPass?: string;     // email account password
+  smtpSecure?: 'ssl' | 'tls'; // encryption method
+}
+
+export interface ShippingRate {
+  maxWeightGrams: number; // upper limit for this tier
+  standardPrice: number;
+  expressPrice: number;
 }
 
 export interface ShippingConfig {
   carrierName: string;
   trackingBaseUrl: string;
+  freeShippingThreshold: number; // order $ amount for free standard shipping
+  defaultWeightGrams: number; // fallback weight per item if not set on product
+  rates: ShippingRate[]; // weight-based tiers, sorted ascending by maxWeightGrams
 }
 
 export interface AppSettings {
