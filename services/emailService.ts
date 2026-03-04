@@ -38,9 +38,10 @@ const emailWrapper = (content: string, brandName: string) => `<!DOCTYPE html>
 
         <!-- Header -->
         <tr>
-          <td style="background:#1a1a1a;padding:32px;text-align:center;">
-            <img src="${LOGO_URL}" alt="${brandName}" width="80" height="80" style="border-radius:12px;display:block;margin:0 auto 16px;object-fit:cover;"/>
-            <p style="margin:0;color:#a08060;font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:600;">Handcrafted Pickles &amp; Preserves</p>
+          <td style="background:#1a1a1a;padding:36px 32px;text-align:center;">
+            <img src="${LOGO_URL}" alt="" width="80" height="80" style="border-radius:12px;display:block;margin:0 auto 16px;object-fit:cover;" onerror="this.style.display='none'"/>
+            <h1 style="margin:0 0 6px;color:#f5f0e6;font-size:26px;font-weight:700;letter-spacing:1px;font-family:Georgia,serif;">${brandName}</h1>
+            <p style="margin:0;color:#a08060;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:600;">Handcrafted Pickles &amp; Preserves</p>
           </td>
         </tr>
 
