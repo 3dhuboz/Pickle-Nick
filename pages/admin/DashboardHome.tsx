@@ -118,10 +118,10 @@ const DashboardHome = () => {
       {/* Getting Started Checklist */}
       {(() => {
         const checks = [
-          { label: 'Set up payments', done: systemStatus.payment, icon: CreditCard, hint: 'Connect Square to accept orders' },
-          { label: 'Configure email', done: !!(settings.emailConfig?.enabled && settings.emailConfig?.adminEmail), icon: Mail, hint: 'Get order confirmations' },
-          { label: 'Connect database', done: systemStatus.firebase, icon: Cloud, hint: 'Save data to the cloud' },
-          { label: 'Link social media', done: systemStatus.facebook, icon: Share2, hint: 'Auto-post to Facebook & Instagram' },
+          { label: 'Set up payments', done: systemStatus.payment, icon: CreditCard, hint: 'Connect Square to accept orders', link: '/admin/settings' },
+          { label: 'Configure email', done: !!(settings.emailConfig?.enabled && settings.emailConfig?.adminEmail), icon: Mail, hint: 'Get order confirmations', link: '/admin/settings' },
+          { label: 'Connect database', done: systemStatus.firebase, icon: Cloud, hint: 'Save data to the cloud', link: '/admin/settings' },
+          { label: 'Link social media', done: systemStatus.facebook, icon: Share2, hint: 'Auto-post to Facebook & Instagram', link: '/admin/settings' },
         ];
         const doneCount = checks.filter(c => c.done).length;
         const allDone = doneCount === checks.length;
@@ -141,15 +141,22 @@ const DashboardHome = () => {
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-              {checks.map((c, i) => (
-                <div key={i} className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm ${c.done ? 'bg-white/60 text-gray-400' : 'bg-white text-gray-900 border border-amber-200 shadow-sm'}`}>
-                  {c.done ? <CheckCircle2 size={16} className="text-green-500 shrink-0" /> : <Circle size={16} className="text-amber-400 shrink-0" />}
-                  <div className="min-w-0">
-                    <span className={`block text-sm ${c.done ? 'line-through' : 'font-medium'}`}>{c.label}</span>
-                    {!c.done && <span className="text-[10px] text-gray-400 block">{c.hint}</span>}
+              {checks.map((c, i) => 
+                c.done ? (
+                  <div key={i} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm bg-white/60 text-gray-400">
+                    <CheckCircle2 size={16} className="text-green-500 shrink-0" />
+                    <span className="block text-sm line-through">{c.label}</span>
                   </div>
-                </div>
-              ))}
+                ) : (
+                  <Link key={i} to={c.link} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm bg-white text-gray-900 border border-amber-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-pointer group">
+                    <Circle size={16} className="text-amber-400 shrink-0 group-hover:text-amber-500 transition-colors" />
+                    <div className="min-w-0">
+                      <span className="block text-sm font-medium group-hover:text-amber-700 transition-colors">{c.label}</span>
+                      <span className="text-[10px] text-gray-400 block">{c.hint}</span>
+                    </div>
+                  </Link>
+                )
+              )}
             </div>
           </div>
         );
