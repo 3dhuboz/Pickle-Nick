@@ -339,15 +339,38 @@ export const generateSmartSchedule = async (
   stats: any,
   postsToGenerate: number = 7,
   location: string = 'Australia',
-  platforms: { facebook: boolean; instagram: boolean } = { facebook: true, instagram: true }
+  platforms: { facebook: boolean; instagram: boolean } = { facebook: true, instagram: true },
+  saturationMode: boolean = false
 ): Promise<SmartScheduleResult> => {
   const ai = getAIClient();
   try {
     const now = new Date();
-    const windowEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+    // Saturation = 7-day blitz window; normal = 14-day spread
+    const windowDays = saturationMode ? 7 : 14;
+    const windowEnd = new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000);
 
     // ── Phase 1: Research ──────────────────────────────────────────
-    const researchPrompt = `
+    const researchPrompt = saturationMode ? `
+You are an expert social media growth hacker specialising in HIGH-FREQUENCY SATURATION posting strategies.
+Research the optimal saturation posting plan for:
+- Business: "${businessName}" — ${businessType}
+- Location: ${location}
+- Goal: Maximum algorithmic reach and traction through sheer posting volume
+- Current stats: ${stats.followers} followers, ${stats.engagement}% engagement
+
+Saturation posting means 3-5 posts per day across platforms. Research how to do this without audience fatigue.
+
+Respond with ONLY a raw JSON object — no markdown, no code fences:
+{
+  "dailyPostingWindows": ["07:00", "10:00", "12:30", "16:00", "19:30"],
+  "contentVarietyStrategy": "how to vary content across 5 daily posts to avoid fatigue",
+  "contentPillars": ["pillar1", "pillar2", "pillar3", "pillar4", "pillar5", "pillar6", "pillar7"],
+  "hashtagThemes": ["theme1", "theme2", "theme3", "theme4"],
+  "imageStyle": "description of ideal image aesthetic",
+  "platformSplit": { "facebook": 40, "instagram": 60 },
+  "saturationTactics": "2-sentence tactical description of how to sustain volume without burning out the audience",
+  "bestContentMix": "ratio/description of promo vs value vs entertainment vs story posts for saturation"
+}` : `
 You are an expert social media researcher. Research the optimal social media strategy for:
 - Business: "${businessName}" — ${businessType}
 - Location: ${location}
@@ -367,6 +390,26 @@ Research and provide a concise JSON object with exactly these fields:
 
 Respond with ONLY the raw JSON object — no markdown, no code fences.`;
 
+    const saturationFallback = {
+      dailyPostingWindows: ['07:00', '10:00', '12:30', '16:00', '19:30'],
+      contentVarietyStrategy: 'Rotate promo, value, story, entertainment, and UGC each day',
+      contentPillars: ['Product Showcase', 'Behind the Scenes', 'Customer Stories', 'Educational', 'Flash Deals', 'Trending/Seasonal', 'Community Engagement'],
+      hashtagThemes: ['artisan food', 'local business', 'foodie culture', 'daily specials'],
+      imageStyle: 'vibrant, appetizing, clean background with natural lighting',
+      platformSplit: { facebook: 40, instagram: 60 },
+      saturationTactics: 'Post at every peak window daily, alternating content types so each post feels fresh. Vary formats: static images, carousels, reels-style captions, polls, and behind-the-scenes.',
+      bestContentMix: '30% promotional, 30% value/educational, 20% entertainment, 20% behind-the-scenes/story'
+    };
+    const normalFallback = {
+      bestPostingTimes: ['09:00', '12:00', '18:00'],
+      bestDays: ['Tuesday', 'Thursday', 'Saturday'],
+      contentPillars: ['Product Showcase', 'Behind the Scenes', 'Customer Stories', 'Educational', 'Seasonal/Trending'],
+      hashtagThemes: ['artisan food', 'local business', 'foodie culture'],
+      imageStyle: 'vibrant, appetizing, clean background with natural lighting',
+      platformSplit: { facebook: 40, instagram: 60 },
+      engagementTips: 'Post consistently and respond to every comment within 2 hours.'
+    };
+
     let research: any = {};
     try {
       const researchRes = await ai.models.generateContent({
@@ -377,18 +420,10 @@ Respond with ONLY the raw JSON object — no markdown, no code fences.`;
         .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
       if (researchRaw) research = JSON.parse(researchRaw);
     } catch {
-      research = {
-        bestPostingTimes: ['09:00', '12:00', '18:00'],
-        bestDays: ['Tuesday', 'Thursday', 'Saturday'],
-        contentPillars: ['Product Showcase', 'Behind the Scenes', 'Customer Stories', 'Educational', 'Seasonal/Trending'],
-        hashtagThemes: ['artisan food', 'local business', 'foodie culture'],
-        imageStyle: 'vibrant, appetizing, clean background with natural lighting',
-        platformSplit: { facebook: 40, instagram: 60 },
-        engagementTips: 'Post consistently and respond to every comment within 2 hours.'
-      };
+      research = saturationMode ? saturationFallback : normalFallback;
     }
 
-    // ── Phase 2: Generate Schedule using Research Insights ─────────
+    // ── Phase 2: Generate Schedule ─────────────────────────────────
     // Override AI platform split with the admin's actual connected platforms
     let fbCount: number;
     let igCount: number;
@@ -401,17 +436,62 @@ Respond with ONLY the raw JSON object — no markdown, no code fences.`;
       fbCount = postsToGenerate - igCount;
     }
 
-    const prompt = `
+    const postsPerDay = saturationMode ? Math.ceil(postsToGenerate / windowDays) : null;
+    const postingWindows = saturationMode
+      ? (research.dailyPostingWindows || saturationFallback.dailyPostingWindows)
+      : (research.bestPostingTimes || normalFallback.bestPostingTimes);
+
+    const prompt = saturationMode ? `
+You are an aggressive social media growth strategist running a SATURATION CAMPAIGN for "${businessName}", a ${businessType}. Tone: ${tone}.
+Location: ${location}. Current date: ${now.toISOString().split('T')[0]}.
+Campaign window: ${now.toISOString().split('T')[0]} to ${windowEnd.toISOString().split('T')[0]} (${windowDays} days).
+Stats: Followers ${stats.followers}, Engagement ${stats.engagement}%, Reach ${stats.reach}.
+
+SATURATION RESEARCH INSIGHTS:
+- Daily posting windows: ${postingWindows.join(', ')}
+- Content variety strategy: ${research.contentVarietyStrategy || saturationFallback.contentVarietyStrategy}
+- Content pillars (rotate ALL of them): ${(research.contentPillars || saturationFallback.contentPillars).join(', ')}
+- Hashtag themes: ${(research.hashtagThemes || saturationFallback.hashtagThemes).join(', ')}
+- Image aesthetic: ${research.imageStyle || saturationFallback.imageStyle}
+- Saturation tactics: ${research.saturationTactics || saturationFallback.saturationTactics}
+- Content mix: ${research.bestContentMix || saturationFallback.bestContentMix}
+- Platform split: ${fbCount} Facebook posts, ${igCount} Instagram posts
+
+SATURATION RULES:
+1. Generate exactly ${postsToGenerate} posts (${fbCount} facebook, ${igCount} instagram).
+2. Spread ~${postsPerDay} posts per day across the ${windowDays}-day window.
+3. Use ALL ${postingWindows.length} daily time windows — never schedule two posts at the same time on the same day.
+4. Each day must have DIFFERENT content pillars — NO two consecutive posts from the same pillar.
+5. Vary the format: some posts are punchy 1-liners, some are storytelling, some are questions/polls, some are product-focused, some are behind-the-scenes.
+6. Hashtags must be highly relevant and varied per post (8-12 per post, mix broad and niche).
+7. Every post needs a unique, specific imagePrompt for AI image generation.
+
+Respond with ONLY a valid JSON object — no markdown, no code fences, no explanation:
+{
+  "strategy": "2-sentence saturation strategy summary explaining the volume approach and content variety",
+  "posts": [
+    {
+      "platform": "facebook",
+      "scheduledFor": "${now.toISOString().split('T')[0]}T07:00:00",
+      "topic": "short topic label",
+      "content": "full post caption with emojis and personality matching tone",
+      "hashtags": ["#tag1", "#tag2", "#tag3"],
+      "imagePrompt": "detailed image description matching the researched aesthetic",
+      "reasoning": "which content pillar + time window this uses and why",
+      "pillar": "content pillar name"
+    }
+  ]
+}` : `
 You are a social media strategist for "${businessName}", a ${businessType}. Tone: ${tone}.
 Location: ${location}. Current date: ${now.toISOString().split('T')[0]}.
 Window: ${now.toISOString().split('T')[0]} to ${windowEnd.toISOString().split('T')[0]}.
 Stats: Followers ${stats.followers}, Engagement ${stats.engagement}%, Reach ${stats.reach}.
 
 RESEARCH INSIGHTS (use these to inform every decision):
-- Best posting times: ${(research.bestPostingTimes || []).join(', ')}
-- Best days: ${(research.bestDays || []).join(', ')}
-- Content pillars to use: ${(research.contentPillars || []).join(', ')}
-- Hashtag themes: ${(research.hashtagThemes || []).join(', ')}
+- Best posting times: ${postingWindows.join(', ')}
+- Best days: ${(research.bestDays || normalFallback.bestDays).join(', ')}
+- Content pillars to use: ${(research.contentPillars || normalFallback.contentPillars).join(', ')}
+- Hashtag themes: ${(research.hashtagThemes || normalFallback.hashtagThemes).join(', ')}
 - Image aesthetic: ${research.imageStyle || 'vibrant and appetizing'}
 - Platform split: ${fbCount} Facebook posts, ${igCount} Instagram posts
 - Key engagement tip: ${research.engagementTips || ''}

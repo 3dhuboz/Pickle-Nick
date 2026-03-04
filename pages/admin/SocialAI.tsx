@@ -88,6 +88,7 @@ const SocialAIDashboard = () => {
   const [smartPosts, setSmartPosts] = useState<SmartScheduledPostResult[]>([]);
   const [smartStrategy, setSmartStrategy] = useState('');
   const [isSmartGenerating, setIsSmartGenerating] = useState(false);
+  const [saturationMode, setSaturationMode] = useState(false);
   const [smartCount, setSmartCount] = useState(7);
 
   // Smart post image generation
@@ -141,7 +142,7 @@ const SocialAIDashboard = () => {
   };
 
   // Generation ticker
-  const TICKER_STEPS = [
+  const TICKER_STEPS_NORMAL = [
     { label: 'Analysing your brand profile & location...', pct: 5 },
     { label: 'Researching best posting times for your audience...', pct: 15 },
     { label: 'Identifying top content pillars for your industry...', pct: 25 },
@@ -154,6 +155,20 @@ const SocialAIDashboard = () => {
     { label: 'Weaving in researched hashtags...', pct: 90 },
     { label: 'Almost there — finalising your calendar...', pct: 96 },
   ];
+  const TICKER_STEPS_SATURATION = [
+    { label: 'Activating saturation mode — maximum volume campaign...', pct: 5 },
+    { label: 'Researching peak intra-day posting windows...', pct: 12 },
+    { label: 'Mapping 7-day blitz schedule (3-5 posts/day)...', pct: 22 },
+    { label: 'Building 7-pillar content variety matrix...', pct: 32 },
+    { label: 'Calculating platform saturation split...', pct: 42 },
+    { label: 'Engineering anti-fatigue content rotation...', pct: 52 },
+    { label: 'Writing high-frequency captions with varied formats...', pct: 63 },
+    { label: 'Spacing posts across all daily time windows...', pct: 73 },
+    { label: 'Crafting unique image prompts for every post...', pct: 82 },
+    { label: 'Loading niche + broad hashtag mix per post...', pct: 90 },
+    { label: 'Finalising your 7-day saturation campaign...', pct: 96 },
+  ];
+  const TICKER_STEPS = saturationMode ? TICKER_STEPS_SATURATION : TICKER_STEPS_NORMAL;
   const [tickerIdx, setTickerIdx] = useState(0);
   useEffect(() => {
     if (!isSmartGenerating) { setTickerIdx(0); return; }
@@ -296,7 +311,7 @@ const SocialAIDashboard = () => {
     setSmartPostImages({});
     setAutoGenSet(new Set());
     try {
-      const result = await generateSmartSchedule(profile.name, profile.type, profile.tone, stats, smartCount, profile.location || 'Australia', activePlatforms);
+      const result = await generateSmartSchedule(profile.name, profile.type, profile.tone, stats, smartCount, profile.location || 'Australia', activePlatforms, saturationMode);
       setSmartPosts(result.posts);
       setSmartStrategy(result.strategy);
       // Auto-generate images in the background after posts are ready
@@ -624,19 +639,60 @@ const SocialAIDashboard = () => {
               <p className="text-white/70 text-sm max-w-lg mb-6 leading-relaxed">
                 One click. Your entire content calendar — written, scheduled, and optimized for maximum engagement. AI handles the strategy, topics, timing, hashtags, and platform selection.
               </p>
+              {/* Saturation Mode Toggle */}
+              <div
+                onClick={() => {
+                  const next = !saturationMode;
+                  setSaturationMode(next);
+                  setSmartCount(next ? 21 : 7);
+                }}
+                className={`cursor-pointer rounded-2xl border px-4 py-3 flex items-start gap-3 transition mb-2 max-w-lg ${
+                  saturationMode
+                    ? 'bg-red-500/10 border-red-500/30'
+                    : 'bg-white/5 border-white/15 hover:bg-white/10'
+                }`}
+              >
+                <div className={`mt-0.5 w-9 h-5 rounded-full flex items-center transition-all flex-shrink-0 ${
+                  saturationMode ? 'bg-red-500 justify-end' : 'bg-white/20 justify-start'
+                }`}>
+                  <div className="w-4 h-4 rounded-full bg-white mx-0.5 shadow" />
+                </div>
+                <div>
+                  <p className={`text-sm font-bold leading-tight ${saturationMode ? 'text-red-300' : 'text-white/80'}`}>
+                    {saturationMode ? '🔥 Saturation Mode ON' : 'Saturation Mode'}
+                  </p>
+                  <p className="text-white/40 text-xs mt-0.5 leading-snug">
+                    {saturationMode
+                      ? '3–5 posts/day · 7-day blitz · anti-fatigue content rotation'
+                      : 'Post as frequently as possible to maximise algorithmic reach'}
+                  </p>
+                </div>
+              </div>
               <div className="flex flex-wrap gap-4 items-end">
                 <div>
                   <label className="text-xs text-white/40 block mb-1.5">How many posts?</label>
-                  <select value={smartCount} onChange={e => setSmartCount(Number(e.target.value))} className="bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-amber-400 backdrop-blur-sm" title="Post count">
-                    <option value={5} className="text-gray-900">5 posts (1 week)</option>
-                    <option value={7} className="text-gray-900">7 posts (1 week)</option>
-                    <option value={10} className="text-gray-900">10 posts (2 weeks)</option>
-                    <option value={14} className="text-gray-900">14 posts (2 weeks)</option>
-                  </select>
+                  {saturationMode ? (
+                    <select value={smartCount} onChange={e => setSmartCount(Number(e.target.value))} className="bg-white/10 border border-red-500/30 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-red-400 backdrop-blur-sm" title="Post count">
+                      <option value={21} className="text-gray-900">21 posts (3/day · 7 days)</option>
+                      <option value={28} className="text-gray-900">28 posts (4/day · 7 days)</option>
+                      <option value={35} className="text-gray-900">35 posts (5/day · 7 days)</option>
+                    </select>
+                  ) : (
+                    <select value={smartCount} onChange={e => setSmartCount(Number(e.target.value))} className="bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-amber-400 backdrop-blur-sm" title="Post count">
+                      <option value={5} className="text-gray-900">5 posts (1 week)</option>
+                      <option value={7} className="text-gray-900">7 posts (1 week)</option>
+                      <option value={10} className="text-gray-900">10 posts (2 weeks)</option>
+                      <option value={14} className="text-gray-900">14 posts (2 weeks)</option>
+                    </select>
+                  )}
                 </div>
-                <button onClick={handleSmartSchedule} disabled={isSmartGenerating} className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold px-8 py-3 rounded-xl transition flex items-center gap-2 text-sm shadow-lg shadow-amber-500/25 disabled:opacity-60">
+                <button onClick={handleSmartSchedule} disabled={isSmartGenerating} className={`text-white font-bold px-8 py-3 rounded-xl transition flex items-center gap-2 text-sm shadow-lg disabled:opacity-60 ${
+                  saturationMode
+                    ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 shadow-red-500/25'
+                    : 'bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 shadow-amber-500/25'
+                }`}>
                   {isSmartGenerating ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
-                  {isSmartGenerating ? 'Generating...' : 'Generate My Schedule'}
+                  {isSmartGenerating ? 'Generating...' : saturationMode ? 'Launch Saturation Campaign' : 'Generate My Schedule'}
                 </button>
               </div>
               {!hasApiKey && (
