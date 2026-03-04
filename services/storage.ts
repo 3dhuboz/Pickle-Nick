@@ -175,24 +175,46 @@ let db: Firestore | null = null;
 let auth: Auth | null = null;
 let initError: string | null = null;
 
+// Build-time Firebase config from Vite env vars (set in Vercel / .env.local)
+const ENV_FIREBASE_CONFIG = (() => {
+  const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+  const authDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+  const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+  const storageBucket = import.meta.env.VITE_FIREBASE_STORAGE_BUCKET;
+  const messagingSenderId = import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID;
+  const appId = import.meta.env.VITE_FIREBASE_APP_ID;
+  if (apiKey && authDomain && projectId) {
+    return { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId };
+  }
+  return null;
+})();
+
 const initFirebase = () => {
   try {
+    // Priority 1: admin-saved config in localStorage
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    let firebaseConfig = null;
     if (savedSettings) {
       const settings: AppSettings = JSON.parse(savedSettings);
-      if (settings.firebaseConfig && settings.firebaseConfig.apiKey) {
-        // Ensure all vital fields are present before attempting
-        const { apiKey, authDomain, projectId } = settings.firebaseConfig;
-        if (!apiKey || !authDomain || !projectId) {
-            throw new Error("Incomplete configuration. API Key, Auth Domain, and Project ID are required.");
-        }
-        
-        app = getApps().length === 0 ? initializeApp(settings.firebaseConfig) : getApp();
-        db = getFirestore(app);
-        auth = getAuth(app);
-        console.log("🔥 Firebase initialized (Live Mode)");
-        initError = null;
+      if (settings.firebaseConfig?.apiKey) {
+        firebaseConfig = settings.firebaseConfig;
       }
+    }
+    // Priority 2: build-time env vars (works on every device without manual setup)
+    if (!firebaseConfig && ENV_FIREBASE_CONFIG) {
+      firebaseConfig = ENV_FIREBASE_CONFIG;
+    }
+
+    if (firebaseConfig) {
+      const { apiKey, authDomain, projectId } = firebaseConfig;
+      if (!apiKey || !authDomain || !projectId) {
+        throw new Error("Incomplete configuration. API Key, Auth Domain, and Project ID are required.");
+      }
+      app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+      db = getFirestore(app);
+      auth = getAuth(app);
+      console.log("🔥 Firebase initialized (Live Mode)");
+      initError = null;
     }
   } catch (e: any) {
     console.error("Firebase init error", e);
