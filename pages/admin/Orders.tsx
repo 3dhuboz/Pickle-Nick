@@ -2,42 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Order, OrderStatus, Product, OrderItem } from '../../types';
 import { Search, Plus, Trash2, X, Download, Truck, Mail, Send, Eye, Server, Loader2, Check, AlertCircle, Save, HelpCircle, ChevronDown, Filter, Users, Package } from 'lucide-react';
-
-// Email Template Helper (Simulated Backend Logic)
-const generateShippingEmailHTML = (order: Order, tracking: string, fromEmail: string, fromName: string) => {
-    return `
-        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px; color: #1f2937;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <div style="text-align: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 20px; margin-bottom: 30px;">
-                    <h1 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0;">Pickle Nick</h1>
-                    <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">Order Update</p>
-                </div>
-
-                <div style="margin-bottom: 24px; font-size: 14px; color: #6b7280;">
-                    <strong>To:</strong> ${order.customerName}<br/>
-                    <strong>Order:</strong> #${order.id.slice(-6)}
-                </div>
-
-                <h2 style="font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 16px;">Your order is on the way!</h2>
-                <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px; color: #374151;">
-                    Hi ${order.customerName.split(' ')[0]},<br/><br/>
-                    Great news! We've packed your order with care and it's now with the carrier.
-                </p>
-
-                ${tracking ? `
-                <div style="background-color: #f3f4f6; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
-                    <p style="margin: 0; font-size: 12px; text-transform: uppercase; font-weight: 600; color: #6b7280;">Tracking Number</p>
-                    <p style="margin: 8px 0 0 0; font-size: 18px; font-weight: 700; letter-spacing: 1px; color: #111827;">${tracking}</p>
-                </div>
-                ` : ''}
-
-                <div style="border-top: 1px solid #e5e7eb; padding-top: 24px; text-align: center; font-size: 14px; color: #9ca3af;">
-                    <p>Thank you for choosing Pickle Nick.</p>
-                </div>
-            </div>
-        </div>
-    `;
-};
+import { EmailService } from '../../services/emailService';
 
 const HelpTip = ({ text }: { text: string }) => (
     <div className="flex items-start gap-3 bg-blue-50 text-blue-700 p-4 text-sm rounded-xl border border-blue-100 mb-4">
@@ -151,9 +116,23 @@ const Orders = () => {
         };
 
         if (isAdding) {
-            placeOrder(finalOrder); // This adds to context state
+            await placeOrder(finalOrder); // This adds to context state
+            // Send order confirmation email to customer
+            if (finalOrder.customerEmail) {
+                EmailService.sendOrderConfirmation(finalOrder, settings).catch(e =>
+                    console.error('Confirmation email failed:', e?.message)
+                );
+            }
         } else {
             await updateOrder(finalOrder);
+            // If status just changed to shipped and has tracking/noTracking, send shipping email
+            if (finalOrder.status === 'shipped' && selectedOrder?.status !== 'shipped' && finalOrder.customerEmail) {
+                if (finalOrder.trackingNumber || finalOrder.noTracking) {
+                    EmailService.sendTrackingUpdate(finalOrder, settings).catch(e =>
+                        console.error('Tracking email failed:', e?.message)
+                    );
+                }
+            }
         }
         
         setSaveStatus('success');
@@ -179,19 +158,17 @@ const Orders = () => {
       setEmailSentStatus(false);
       
       try {
-        import('../../services/emailService').then(async ({ EmailService }) => {
-          const success = await EmailService.sendTrackingUpdate(formData as Order, settings);
-          if (success) {
-              setEmailSentStatus(true);
-              setShowEmailPreview(false);
-              alert(`📧 Shipping notification sent to ${formData.customerEmail}`);
-          } else {
-              alert(`⚠️ Failed to send email. Check your email settings in Admin → Settings → Email Notifications.`);
-          }
-        });
-      } catch (e) {
+        const success = await EmailService.sendTrackingUpdate(formData as Order, settings);
+        if (success) {
+            setEmailSentStatus(true);
+            setShowEmailPreview(false);
+            alert(`📧 Shipping notification sent to ${formData.customerEmail}`);
+        } else {
+            alert(`⚠️ Failed to send email. Check your email settings in Admin → Settings → Email Notifications.`);
+        }
+      } catch (e: any) {
         console.error(e);
-        alert(`⚠️ Failed to send email. Check your email settings in Admin → Settings → Email Notifications.`);
+        alert(`⚠️ Email failed: ${e?.message || 'Check email settings in Admin → Settings.'}`);
       }
   };
 
