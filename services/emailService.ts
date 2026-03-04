@@ -1,4 +1,4 @@
-import { AppSettings, Order } from '../types';
+import { AppSettings, Order, OrderItem } from '../types';
 
 const sendEmail = async (
     endpoint: string,
@@ -55,7 +55,7 @@ const emailWrapper = (content: string, brandName: string) => `<!DOCTYPE html>
 </body>
 </html>`;
 
-const orderConfirmationHtml = (customerName: string, orderId: string, total: string, brandName: string, extras?: { shippingMethod?: string; shippingCost?: string }) =>
+const orderConfirmationHtml = (customerName: string, orderId: string, total: string, brandName: string, items: OrderItem[], extras?: { shippingMethod?: string; shippingCost?: string; subtotal?: string; tax?: string }) =>
   emailWrapper(`
     <!-- Greeting -->
     <tr>
@@ -65,29 +65,53 @@ const orderConfirmationHtml = (customerName: string, orderId: string, total: str
       </td>
     </tr>
 
-    <!-- Order Summary Card -->
+    <!-- Items -->
     <tr>
-      <td style="padding:0 40px 32px;">
+      <td style="padding:0 40px 24px;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8f4ee;border-radius:12px;overflow:hidden;">
           <tr>
-            <td style="padding:20px 24px 12px;">
-              <p style="margin:0;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#a08060;font-weight:700;">Order Summary</p>
+            <td style="padding:20px 24px 8px;">
+              <p style="margin:0;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#a08060;font-weight:700;">Items Ordered</p>
             </td>
           </tr>
           <tr>
-            <td style="padding:0 24px;">
+            <td style="padding:0 24px 8px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                ${items.map((item, i) => `
+                <tr>
+                  <td style="padding:10px 0;color:#1a1a1a;font-size:14px;font-weight:600;${i > 0 ? 'border-top:1px solid #e8e0d4;' : ''}">${item.name}</td>
+                  <td style="padding:10px 0;color:#8a7060;font-size:13px;text-align:center;${i > 0 ? 'border-top:1px solid #e8e0d4;' : ''}">x${item.quantity}</td>
+                  <td style="padding:10px 0;color:#1a1a1a;font-size:14px;font-weight:600;text-align:right;${i > 0 ? 'border-top:1px solid #e8e0d4;' : ''}">$${(item.price * item.quantity).toFixed(2)}</td>
+                </tr>`).join('')}
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Totals -->
+    <tr>
+      <td style="padding:0 40px 32px;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8f4ee;border-radius:12px;">
+          <tr>
+            <td style="padding:16px 24px;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td style="padding:10px 0;color:#6b5744;font-size:14px;border-top:1px solid #e8e0d4;">Order Number</td>
-                  <td style="padding:10px 0;color:#1a1a1a;font-size:14px;font-weight:700;text-align:right;font-family:monospace;border-top:1px solid #e8e0d4;">#${orderId.slice(-8).toUpperCase()}</td>
+                  <td style="padding:6px 0;color:#8a7060;font-size:13px;">Order #</td>
+                  <td style="padding:6px 0;color:#1a1a1a;font-size:13px;font-weight:700;text-align:right;font-family:monospace;">#${orderId.slice(-8).toUpperCase()}</td>
                 </tr>
                 ${extras?.shippingMethod ? `<tr>
-                  <td style="padding:10px 0;color:#6b5744;font-size:14px;border-top:1px solid #e8e0d4;">Shipping</td>
-                  <td style="padding:10px 0;color:#1a1a1a;font-size:14px;font-weight:600;text-align:right;border-top:1px solid #e8e0d4;">${extras.shippingMethod === 'express' ? 'Express' : 'Standard'}${extras.shippingCost ? ' &mdash; ' + extras.shippingCost : ''}</td>
+                  <td style="padding:6px 0;color:#8a7060;font-size:13px;">Shipping</td>
+                  <td style="padding:6px 0;color:#1a1a1a;font-size:13px;font-weight:600;text-align:right;">${extras.shippingMethod === 'express' ? 'Express' : 'Standard'}${extras.shippingCost ? ' &mdash; ' + extras.shippingCost : ''}</td>
+                </tr>` : ''}
+                ${extras?.tax && extras.tax !== '$0.00' ? `<tr>
+                  <td style="padding:6px 0;color:#8a7060;font-size:13px;">GST</td>
+                  <td style="padding:6px 0;color:#1a1a1a;font-size:13px;text-align:right;">${extras.tax}</td>
                 </tr>` : ''}
                 <tr>
-                  <td style="padding:14px 0 16px;color:#6b5744;font-size:15px;font-weight:700;border-top:1px solid #e8e0d4;">Total Paid</td>
-                  <td style="padding:14px 0 16px;color:#bc4b35;font-size:20px;font-weight:700;text-align:right;border-top:1px solid #e8e0d4;">${total}</td>
+                  <td style="padding:12px 0 0;color:#1a1a1a;font-size:16px;font-weight:700;border-top:2px solid #e8e0d4;">Total Paid</td>
+                  <td style="padding:12px 0 0;color:#bc4b35;font-size:20px;font-weight:700;text-align:right;border-top:2px solid #e8e0d4;">${total}</td>
                 </tr>
               </table>
             </td>
@@ -99,7 +123,7 @@ const orderConfirmationHtml = (customerName: string, orderId: string, total: str
     <!-- What's Next -->
     <tr>
       <td style="padding:0 40px 40px;">
-        <p style="margin:0;color:#8a7060;font-size:13px;line-height:1.7;">We'll send you another email with tracking information as soon as your order ships. If you have any questions, just reply to this email.</p>
+        <p style="margin:0;color:#8a7060;font-size:13px;line-height:1.7;">We'll send you another email with your tracking details as soon as your order ships. If you have any questions, just reply to this email.</p>
       </td>
     </tr>
   `, brandName);
@@ -179,9 +203,11 @@ export const EmailService = {
                     order.id,
                     `$${order.total.toFixed(2)}`,
                     brandName,
+                    order.items || [],
                     {
                         shippingMethod: order.shippingMethod,
-                        shippingCost: order.shippingCost != null ? (order.shippingCost === 0 ? 'Free' : `$${order.shippingCost.toFixed(2)}`) : undefined
+                        shippingCost: order.shippingCost != null ? (order.shippingCost === 0 ? 'Free' : `$${order.shippingCost.toFixed(2)}`) : undefined,
+                        tax: order.tax ? `$${order.tax.toFixed(2)}` : undefined
                     }
                 ),
                 fromName: brandName,
