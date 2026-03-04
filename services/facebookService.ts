@@ -68,6 +68,49 @@ export const FacebookService = {
         });
     },
 
+    getPageStats: async (pageId: string, pageAccessToken: string): Promise<{
+        fanCount: number;
+        followersCount: number;
+        reach28d: number;
+        engagedUsers28d: number;
+        engagementRate: number;
+    }> => {
+        const base = 'https://graph.facebook.com/v21.0';
+
+        // Fan + follower count
+        const pageRes = await fetch(`${base}/${pageId}?fields=fan_count,followers_count&access_token=${pageAccessToken}`);
+        const pageData = await pageRes.json();
+        if (pageData.error) throw new Error(pageData.error.message);
+
+        // Insights: reach + engaged users over last 28 days
+        const insightsRes = await fetch(
+            `${base}/${pageId}/insights?metric=page_impressions_unique,page_engaged_users&period=days_28&access_token=${pageAccessToken}`
+        );
+        const insightsData = await insightsRes.json();
+
+        let reach28d = 0;
+        let engagedUsers28d = 0;
+        if (insightsData.data) {
+            for (const item of insightsData.data) {
+                const val = item.values?.[item.values.length - 1]?.value ?? 0;
+                if (item.name === 'page_impressions_unique') reach28d = typeof val === 'number' ? val : 0;
+                if (item.name === 'page_engaged_users') engagedUsers28d = typeof val === 'number' ? val : 0;
+            }
+        }
+
+        const engagementRate = reach28d > 0
+            ? Math.round((engagedUsers28d / reach28d) * 1000) / 10
+            : 0;
+
+        return {
+            fanCount: pageData.fan_count || 0,
+            followersCount: pageData.followers_count || pageData.fan_count || 0,
+            reach28d,
+            engagedUsers28d,
+            engagementRate,
+        };
+    },
+
     postToPage: (pageId: string, pageAccessToken: string, message: string, imageUrl?: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             if (!window.FB) return reject(new Error("Facebook SDK not initialized"));

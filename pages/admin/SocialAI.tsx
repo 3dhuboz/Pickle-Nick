@@ -8,7 +8,8 @@ import { ToastProvider, useToast } from '../../components/Toast';
 import {
   Sparkles, Settings, Calendar, BarChart3, Wand2, Image as ImageIcon,
   Loader2, Trash2, Facebook, Instagram, CheckCircle, Zap, Save, X, Brain,
-  ChevronLeft, ChevronRight, Clock, Edit2, Eye, Plus, Send, Link2, Link2Off
+  ChevronLeft, ChevronRight, Clock, Edit2, Eye, Plus, Send, Link2, Link2Off,
+  RefreshCw, TrendingUp, Users, Activity
 } from 'lucide-react';
 import { FacebookService } from '../../services/facebookService';
 
@@ -89,9 +90,46 @@ const SocialAIDashboard = () => {
   const fbPageName = settings?.fbPageName || '';
   const [isPublishing, setIsPublishing] = useState(false);
 
+  // Live Facebook Stats
+  interface LiveFbStats {
+    fanCount: number;
+    followersCount: number;
+    reach28d: number;
+    engagedUsers28d: number;
+    engagementRate: number;
+  }
+  const [liveStats, setLiveStats] = useState<LiveFbStats | null>(null);
+  const [isPullingStats, setIsPullingStats] = useState(false);
+  const [lastPulled, setLastPulled] = useState<Date | null>(null);
+
   // API Key
   const [apiKeyInput, setApiKeyInput] = useState(() => localStorage.getItem('pn_gemini_key') || '');
   const hasApiKey = !!localStorage.getItem('pn_gemini_key');
+
+  // ── Pull Facebook Live Stats ──
+  const handlePullStats = async () => {
+    if (!settings?.fbPageId || !settings?.fbPageAccessToken) {
+      toast('Connect a Facebook page in Settings first.', 'warning');
+      return;
+    }
+    setIsPullingStats(true);
+    try {
+      const data = await FacebookService.getPageStats(settings.fbPageId, settings.fbPageAccessToken);
+      setLiveStats(data);
+      setLastPulled(new Date());
+      // Sync into AI stats so insights use real numbers
+      setStats(prev => ({
+        ...prev,
+        followers: data.followersCount || data.fanCount,
+        reach: data.reach28d,
+        engagement: data.engagementRate,
+      }));
+      toast('Live stats updated from Facebook!', 'success');
+    } catch (e: any) {
+      toast(`Stats pull failed: ${e?.message?.substring(0, 100) || 'Unknown error'}`, 'error');
+    }
+    setIsPullingStats(false);
+  };
 
   // ── Content Generation ──
   const handleGenerate = async () => {
@@ -258,6 +296,79 @@ const SocialAIDashboard = () => {
             ) : (
               <span className="text-yellow-600 bg-yellow-50 px-3 py-1.5 rounded-full border border-yellow-100">No API Key</span>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Social Command Center */}
+      <div className="bg-native-black rounded-2xl p-5 md:p-6 mb-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_50%,rgba(245,158,11,0.08),transparent_60%)]" />
+        <div className="relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 className="text-white font-display font-bold text-lg tracking-wide">SOCIAL COMMAND CENTER</h2>
+              <p className="text-white/40 text-xs mt-0.5">Manage content, schedule posts, and track growth.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {lastPulled && (
+                <span className="text-white/30 text-[10px]">
+                  Updated {lastPulled.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+              <button
+                onClick={handlePullStats}
+                disabled={isPullingStats || !fbConnected}
+                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold px-4 py-2 rounded-xl text-xs transition disabled:opacity-40"
+                title={!fbConnected ? 'Connect a Facebook page in Settings first' : 'Pull live stats from Facebook'}
+              >
+                <RefreshCw size={14} className={isPullingStats ? 'animate-spin' : ''} />
+                {isPullingStats ? 'Pulling...' : 'Refresh Stats'}
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white/40 text-[10px] font-bold uppercase tracking-widest">Followers</span>
+                <Users size={16} className="text-blue-400 opacity-70" />
+              </div>
+              <p className="text-3xl font-display font-bold text-white">
+                {liveStats ? liveStats.followersCount.toLocaleString() : (stats.followers || '—')}
+              </p>
+              {liveStats ? (
+                <p className="text-[10px] text-white/30 mt-1">Page fans &amp; followers</p>
+              ) : (
+                <p className="text-[10px] text-white/30 mt-1">{fbConnected ? 'Pull stats to get live data' : 'Connect Facebook to see live data'}</p>
+              )}
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white/40 text-[10px] font-bold uppercase tracking-widest">Reach</span>
+                <Activity size={16} className="text-purple-400 opacity-70" />
+              </div>
+              <p className="text-3xl font-display font-bold text-white">
+                {liveStats ? liveStats.reach28d.toLocaleString() : (stats.reach || '—')}
+              </p>
+              {liveStats ? (
+                <p className="text-[10px] text-green-400 mt-1 flex items-center gap-1"><TrendingUp size={10} /> Unique accounts reached (28d)</p>
+              ) : (
+                <p className="text-[10px] text-white/30 mt-1">{fbConnected ? 'Pull stats to get live data' : 'Connect Facebook to see live data'}</p>
+              )}
+            </div>
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white/40 text-[10px] font-bold uppercase tracking-widest">Engagement</span>
+                <TrendingUp size={16} className="text-amber-400 opacity-70" />
+              </div>
+              <p className="text-3xl font-display font-bold text-white">
+                {liveStats ? `${liveStats.engagementRate}%` : (stats.engagement ? `${stats.engagement}%` : '—')}
+              </p>
+              {liveStats ? (
+                <p className="text-[10px] text-white/30 mt-1">{liveStats.engagedUsers28d.toLocaleString()} engaged users (28d)</p>
+              ) : (
+                <p className="text-[10px] text-white/30 mt-1">{fbConnected ? 'Pull stats to get live data' : 'Connect Facebook to see live data'}</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
