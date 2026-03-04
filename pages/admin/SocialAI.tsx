@@ -80,6 +80,21 @@ const SocialAIDashboard = () => {
   const [isSmartGenerating, setIsSmartGenerating] = useState(false);
   const [smartCount, setSmartCount] = useState(7);
 
+  // Smart post image generation
+  const [smartPostImages, setSmartPostImages] = useState<Record<number, string>>({});
+  const [generatingImgIdx, setGeneratingImgIdx] = useState<number | null>(null);
+
+  const handleGenerateSmartImage = async (idx: number, prompt: string) => {
+    if (!hasApiKey) { toast('Set API key first.', 'warning'); return; }
+    setGeneratingImgIdx(idx);
+    try {
+      const img = await generateMarketingImage(prompt);
+      if (img) setSmartPostImages(prev => ({ ...prev, [idx]: img }));
+      else toast('Image generation failed.', 'error');
+    } catch { toast('Image generation failed.', 'error'); }
+    setGeneratingImgIdx(null);
+  };
+
   // Generation ticker
   const TICKER_STEPS = [
     { label: 'Analysing your brand profile...', pct: 8 },
@@ -236,7 +251,8 @@ const SocialAIDashboard = () => {
   };
 
   const handleAcceptSmartPosts = async () => {
-    for (const sp of smartPosts) {
+    for (let i = 0; i < smartPosts.length; i++) {
+      const sp = smartPosts[i];
       const newPost: SocialPost = {
         id: `sp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         platform: sp.platform as SocialPost['platform'],
@@ -244,6 +260,7 @@ const SocialAIDashboard = () => {
         hashtags: sp.hashtags,
         scheduledTime: sp.scheduledFor,
         status: 'scheduled',
+        imageUrl: smartPostImages[i] || undefined,
         imagePrompt: sp.imagePrompt,
         reasoning: sp.reasoning,
         pillar: sp.pillar,
@@ -254,6 +271,7 @@ const SocialAIDashboard = () => {
     toast(`${smartPosts.length} posts added to calendar!`);
     setSmartPosts([]);
     setSmartStrategy('');
+    setSmartPostImages({});
   };
 
   // ── Insights ──
@@ -277,6 +295,12 @@ const SocialAIDashboard = () => {
   const handleDeletePost = async (id: string) => {
     await deletePost(id);
     toast('Post deleted.');
+  };
+
+  // ── Edit Post (upsert) ──
+  const handleEditPost = async (post: SocialPost) => {
+    await addPost(post);
+    toast('Post updated.');
   };
 
   // ── Tab Config ──
@@ -494,7 +518,7 @@ const SocialAIDashboard = () => {
       )}
 
       {/* ═══ CALENDAR TAB ═══ */}
-      {activeTab === 'calendar' && <CalendarView posts={posts} onDelete={handleDeletePost} onCreateClick={() => setActiveTab('create')} />}
+      {activeTab === 'calendar' && <CalendarView posts={posts} onDelete={handleDeletePost} onEdit={handleEditPost} onCreateClick={() => setActiveTab('create')} />}
 
       {/* ═══ SMART AI TAB (HERO) ═══ */}
       {activeTab === 'smart' && (
@@ -633,6 +657,28 @@ const SocialAIDashboard = () => {
                       {sp.hashtags.map((t, j) => <span key={j} className="text-[10px] text-amber-600 font-medium">{t}</span>)}
                     </div>
                     {sp.reasoning && <p className="text-xs text-gray-400 mt-2 italic border-t border-gray-100 pt-2">{sp.reasoning}</p>}
+                    {/* Image generation */}
+                    <div className="border-t border-gray-100 pt-2">
+                      {smartPostImages[i] ? (
+                        <div className="relative">
+                          <img src={smartPostImages[i]} alt="Generated" className="w-full h-32 object-cover rounded-lg border border-gray-200" />
+                          <button
+                            onClick={() => setSmartPostImages(prev => { const c = { ...prev }; delete c[i]; return c; })}
+                            title="Remove image"
+                            className="absolute top-1 right-1 bg-white/90 p-1 rounded-md hover:bg-red-50 border border-gray-200"
+                          ><X size={12} className="text-red-500" /></button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleGenerateSmartImage(i, sp.imagePrompt || `${profile.type}: ${sp.topic}`)}
+                          disabled={generatingImgIdx !== null}
+                          className="flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-700 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+                        >
+                          {generatingImgIdx === i ? <Loader2 size={12} className="animate-spin" /> : <ImageIcon size={12} />}
+                          {generatingImgIdx === i ? 'Generating...' : 'Generate Image'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -788,18 +834,34 @@ const SocialAIDashboard = () => {
     </div>
   );
 };
-
-// Full-Featured Calendar Component
 const DAYS_OF_WEEK = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-const CalendarView = ({ posts, onDelete, onCreateClick }: { posts: SocialPost[]; onDelete: (id: string) => void; onCreateClick: () => void }) => {
+const CalendarView = ({ posts, onDelete, onEdit, onCreateClick }: { posts: SocialPost[]; onDelete: (id: string) => void; onEdit: (post: SocialPost) => void; onCreateClick: () => void }) => {
   const today = new Date();
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Inline edit state
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [editTime, setEditTime] = useState('');
+  const [editStatus, setEditStatus] = useState<SocialPost['status']>('scheduled');
+
+  const startEdit = (post: SocialPost) => {
+    setEditingPostId(post.id);
+    setEditContent(post.content);
+    setEditTime(post.scheduledTime?.slice(0, 16) || '');
+    setEditStatus(post.status);
+  };
+  const cancelEdit = () => setEditingPostId(null);
+  const saveEdit = (post: SocialPost) => {
+    onEdit({ ...post, content: editContent, scheduledTime: editTime || post.scheduledTime, status: editStatus });
+    setEditingPostId(null);
+  };
 
   const goToToday = () => { setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); setSelectedDate(toKey(today)); };
   const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
@@ -1005,9 +1067,14 @@ const CalendarView = ({ posts, onDelete, onCreateClick }: { posts: SocialPost[];
                         </div>
                       )}
                     </div>
-                    <button onClick={() => onDelete(post.id)} className="text-red-400 hover:text-red-600 p-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" title="Delete post">
-                      <Trash2 size={15} />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => startEdit(post)} title="Edit post" className="text-gray-400 hover:text-amber-600 p-1.5 rounded-lg hover:bg-amber-50 transition">
+                        <Edit2 size={14} />
+                      </button>
+                      <button onClick={() => onDelete(post.id)} title="Delete post" className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 ))
             )}
@@ -1061,12 +1128,30 @@ const CalendarView = ({ posts, onDelete, onCreateClick }: { posts: SocialPost[];
                         </div>
 
                         {/* Expandable content */}
-                        <div
-                          className={`text-sm text-gray-700 leading-relaxed cursor-pointer ${expandedPostId === post.id ? 'whitespace-pre-wrap' : 'line-clamp-3'}`}
-                          onClick={() => setExpandedPostId(expandedPostId === post.id ? null : post.id)}
-                        >
-                          {post.content}
-                        </div>
+                        {editingPostId === post.id ? (
+                          <div className="flex flex-col gap-2">
+                            <textarea
+                              value={editContent}
+                              onChange={e => setEditContent(e.target.value)}
+                              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-900 text-sm min-h-[60px] outline-none focus:border-native-black"
+                            />
+                            <div className="flex gap-2">
+                              <button onClick={() => saveEdit(post)} className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                                Save
+                              </button>
+                              <button onClick={cancelEdit} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            className={`text-sm text-gray-700 leading-relaxed cursor-pointer ${expandedPostId === post.id ? 'whitespace-pre-wrap' : 'line-clamp-3'}`}
+                            onClick={() => setExpandedPostId(expandedPostId === post.id ? null : post.id)}
+                          >
+                            {post.content}
+                          </div>
+                        )}
                         {post.content.length > 150 && (
                           <button
                             onClick={() => setExpandedPostId(expandedPostId === post.id ? null : post.id)}
@@ -1089,9 +1174,14 @@ const CalendarView = ({ posts, onDelete, onCreateClick }: { posts: SocialPost[];
                         )}
                       </div>
 
-                      <button onClick={() => onDelete(post.id)} className="text-red-400 hover:text-red-600 p-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" title="Delete post">
-                        <Trash2 size={16} />
-                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => startEdit(post)} title="Edit post" className="text-gray-400 hover:text-amber-600 p-1.5 rounded-lg hover:bg-amber-50 transition">
+                          <Edit2 size={14} />
+                        </button>
+                        <button onClick={() => onDelete(post.id)} title="Delete post" className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1102,7 +1192,6 @@ const CalendarView = ({ posts, onDelete, onCreateClick }: { posts: SocialPost[];
     </div>
   );
 };
-
 const SocialAI = () => (
   <ToastProvider>
     <SocialAIDashboard />
