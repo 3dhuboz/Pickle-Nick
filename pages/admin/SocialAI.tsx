@@ -8,7 +8,7 @@ import { ToastProvider, useToast } from '../../components/Toast';
 import {
   Sparkles, Settings, Calendar, BarChart3, Wand2, Image as ImageIcon,
   Loader2, Trash2, Facebook, Instagram, CheckCircle, Zap, Save, X, Brain,
-  ChevronLeft, ChevronRight, Clock, Edit2, Eye, Plus, Send, Link, LinkOff
+  ChevronLeft, ChevronRight, Clock, Edit2, Eye, Plus, Send, Link2, Link2Off
 } from 'lucide-react';
 import { FacebookService } from '../../services/facebookService';
 
@@ -244,11 +244,11 @@ const SocialAIDashboard = () => {
           <div className="flex items-center gap-2 text-xs flex-wrap justify-end">
             {fbConnected ? (
               <span className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
-                <Link size={13} /> {fbPageName || 'Facebook'} Connected
+                <Link2 size={13} /> {fbPageName || 'Facebook'} Connected
               </span>
             ) : (
               <span className="flex items-center gap-1.5 text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
-                <LinkOff size={13} /> Facebook Not Connected
+                <Link2Off size={13} /> Facebook Not Connected
               </span>
             )}
             {hasApiKey ? (
