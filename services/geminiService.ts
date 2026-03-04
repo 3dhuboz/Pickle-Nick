@@ -44,18 +44,24 @@ const compressImage = (base64Str: string, maxWidth = 800, quality = 0.7): Promis
     });
 };
 
-export const generateSocialContent = async (topic: string, platform: string) => {
+export const generateSocialContent = async (
+  topic: string,
+  platform: string,
+  businessName = 'Pickle Nick',
+  businessType = 'artisan pickle business',
+  tone = 'Witty, elegant, slightly humorous, and appetizing'
+) => {
   const ai = getAIClient();
   const prompt = `
-    You are the social media manager for 'Pickle Nick', a sophisticated yet whimsical artisan pickle business.
-    Write a ${platform} post about: ${topic}.
-    The tone should be witty, elegant, slightly humorous, and appetizing.
-    Include 5-10 relevant hashtags.
-    Return the response as a JSON object with 'content' (the post text) and 'hashtags' (array of strings).
+    You are an expert social media manager for "${businessName}", a ${businessType}.
+    Tone: ${tone}.
+    Write a catchy, engaging ${platform} post about: "${topic}".
+    Include relevant emojis and 5-10 relevant hashtags.
+    Return JSON with "content" (the post text) and "hashtags" (array of strings).
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.5-flash',
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -214,7 +220,7 @@ export const getPostingAdvice = async (platform: string) => {
     const ai = getAIClient();
     const prompt = `Best times to post on ${platform} for a food business to maximize engagement. Keep it brief and return a short 1-sentence tip.`;
     const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-2.5-flash',
         contents: prompt
     });
     return response.text;
@@ -228,7 +234,7 @@ export const researchSocialTopic = async (query: string) => {
     Keep the tone professional yet creative.
   `;
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.5-flash',
     contents: prompt
   });
   return response.text;
@@ -243,7 +249,7 @@ export const analyzeSocialMetrics = async (metricName: string, value: string | n
     Keep the answer concise and encouraging.
   `;
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.5-flash',
     contents: prompt
   });
   return response.text;
@@ -398,7 +404,7 @@ export const generateProductDescription = async (name: string, category: string)
     Keep it under 50 words.
   `;
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.5-flash',
     contents: prompt
   });
   return response.text;

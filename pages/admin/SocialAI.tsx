@@ -8,8 +8,9 @@ import { ToastProvider, useToast } from '../../components/Toast';
 import {
   Sparkles, Settings, Calendar, BarChart3, Wand2, Image as ImageIcon,
   Loader2, Trash2, Facebook, Instagram, CheckCircle, Zap, Save, X, Brain,
-  ChevronLeft, ChevronRight, Clock, Edit2, Eye, Plus
+  ChevronLeft, ChevronRight, Clock, Edit2, Eye, Plus, Send, Link, LinkOff
 } from 'lucide-react';
+import { FacebookService } from '../../services/facebookService';
 
 const DEFAULT_STATS: ContentCalendarStats = {
   followers: 500,
@@ -35,7 +36,7 @@ const DEFAULT_PROFILE: BusinessProfile = {
 };
 
 const SocialAIDashboard = () => {
-  const { posts, addPost, deletePost } = useStore();
+  const { posts, addPost, deletePost, settings } = useStore();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'create' | 'calendar' | 'smart' | 'insights' | 'settings'>('smart');
 
@@ -83,6 +84,11 @@ const SocialAIDashboard = () => {
   const [bestTimes, setBestTimes] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Facebook connection (from global settings)
+  const fbConnected = !!(settings?.fbPageId && settings?.fbPageAccessToken);
+  const fbPageName = settings?.fbPageName || '';
+  const [isPublishing, setIsPublishing] = useState(false);
+
   // API Key
   const [apiKeyInput, setApiKeyInput] = useState(() => localStorage.getItem('pn_gemini_key') || '');
   const hasApiKey = !!localStorage.getItem('pn_gemini_key');
@@ -93,13 +99,32 @@ const SocialAIDashboard = () => {
     if (!hasApiKey) { toast('Set your Gemini API key in Settings first.', 'warning'); return; }
     setIsGenerating(true);
     try {
-      const result = await generateSocialContent(topic, platform);
+      const result = await generateSocialContent(topic, platform, profile.name, profile.type, profile.tone);
       setGeneratedContent(result.content);
       setGeneratedHashtags(result.hashtags || []);
     } catch (e: any) {
       toast(`Generation failed: ${e?.message?.substring(0, 80) || 'Unknown error'}`, 'error');
     }
     setIsGenerating(false);
+  };
+
+  const handlePublishToFacebook = async () => {
+    if (!settings?.fbPageId || !settings?.fbPageAccessToken) {
+      toast('Facebook page not connected. Go to Settings to connect.', 'warning');
+      return;
+    }
+    setIsPublishing(true);
+    try {
+      await FacebookService.init(settings.fbAppId);
+      const fullText = generatedHashtags.length > 0
+        ? `${generatedContent}\n\n${generatedHashtags.join(' ')}`
+        : generatedContent;
+      await FacebookService.postToPage(settings.fbPageId, settings.fbPageAccessToken, fullText, generatedImage || undefined);
+      toast('Published to Facebook!', 'success');
+    } catch (e: any) {
+      toast(`Publish failed: ${e?.message?.substring(0, 100) || 'Unknown error'}`, 'error');
+    }
+    setIsPublishing(false);
   };
 
   const handleGenerateImage = async () => {
@@ -216,7 +241,16 @@ const SocialAIDashboard = () => {
               <p className="text-sm text-gray-400">{profile.name}</p>
             </div>
           </div>
-          <div className="text-xs">
+          <div className="flex items-center gap-2 text-xs flex-wrap justify-end">
+            {fbConnected ? (
+              <span className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                <Link size={13} /> {fbPageName || 'Facebook'} Connected
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-gray-400 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
+                <LinkOff size={13} /> Facebook Not Connected
+              </span>
+            )}
             {hasApiKey ? (
               <span className="flex items-center gap-1.5 text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
                 <CheckCircle size={14} /> AI Active
@@ -311,6 +345,16 @@ const SocialAIDashboard = () => {
                 <button onClick={handleSavePost} className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm shadow-md transition">
                   <Save size={16} /> {scheduleDate ? 'Schedule' : 'Save Draft'}
                 </button>
+                {fbConnected && (
+                  <button
+                    onClick={handlePublishToFacebook}
+                    disabled={isPublishing}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm shadow-md transition disabled:opacity-60"
+                  >
+                    {isPublishing ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                    Publish to Facebook
+                  </button>
+                )}
               </div>
             </div>
           )}
