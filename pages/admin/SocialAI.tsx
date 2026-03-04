@@ -51,6 +51,16 @@ const SocialAIDashboard = () => {
     return saved ? { ...DEFAULT_STATS, ...JSON.parse(saved) } : DEFAULT_STATS;
   });
 
+  // ── Auto-publish polling ──
+  // Fires /api/publish-scheduled every 60s while the admin has this page open.
+  // This guarantees near-real-time delivery regardless of Vercel cron frequency.
+  useEffect(() => {
+    const trigger = () => fetch('/api/publish-scheduled', { method: 'POST' }).catch(() => {});
+    trigger(); // fire immediately on mount
+    const id = setInterval(trigger, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   // Persist profile & stats to cloud + localStorage
   useEffect(() => { StorageService.saveSocialConfig({ profile }); }, [profile]);
   useEffect(() => { StorageService.saveSocialConfig({ stats }); }, [stats]);

@@ -166,7 +166,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const now = Date.now();
 
-    // 4. Filter: scheduled posts whose time has arrived
+    // 4. Filter: scheduled posts whose time has arrived (up to 48h past due for catchup)
+    const MAX_ATTEMPTS = 5;
+    const CATCHUP_WINDOW_MS = 48 * 60 * 60 * 1000;
     type PostDoc = Record<string, any> & { _docName: string };
     const duePosts: PostDoc[] = allDocs
       .map((d: any): PostDoc | null => {
@@ -177,7 +179,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .filter((p): p is PostDoc => {
         if (!p || p['status'] !== 'scheduled') return false;
         if (!p['scheduledTime']) return false;
-        return new Date(p['scheduledTime'] as string).getTime() <= now;
+        const scheduled = new Date(p['scheduledTime'] as string).getTime();
+        if (scheduled > now) return false;                          // not due yet
+        if (now - scheduled > CATCHUP_WINDOW_MS) return false;     // too old, skip
+        if ((p['publishAttempts'] ?? 0) >= MAX_ATTEMPTS) return false; // too many failures
+        return true;
       });
 
     if (duePosts.length === 0) {
@@ -212,7 +218,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           fbPostId = await postTextToFacebook(fbPageId, fbAccessToken, message);
         }
 
-        // 6. Update post status + image URL in Firestore
+        // 6. Update post status + image URL in Firestore (success)
         const docId = post._docName?.split('/').pop();
         if (docId) {
           const updated = toFsDoc({
@@ -221,6 +227,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             status: 'published',
             imageUrl: imageDataUrl || post.imageUrl || null,
             fbPostId,
+            publishAttempts: 0,
+            publishError: null,
             updatedAt: Date.now()
           });
           await fetch(`${base}/posts/${docId}?key=${fbApiKey}`, {
@@ -233,8 +241,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         results.published++;
       } catch (err: any) {
         results.failed++;
-        results.errors.push(`Post ${post.id || 'unknown'}: ${err?.message || 'Unknown error'}`);
+        const errMsg = err?.message || 'Unknown error';
+        results.errors.push(`Post ${post.id || 'unknown'}: ${errMsg}`);
         console.error('Publish error:', err);
+
+        // Persist the failure so admin can see it and we don't retry forever
+        const docId = post._docName?.split('/').pop();
+        if (docId) {
+          const attempts = (post.publishAttempts ?? 0) + 1;
+          const failDoc = toFsDoc({
+            ...post,
+            _docName: undefined,
+            publishAttempts: attempts,
+            publishError: `[${new Date().toISOString()}] ${errMsg}`,
+            updatedAt: Date.now()
+          });
+          await fetch(`${base}/posts/${docId}?key=${fbApiKey}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(failDoc)
+          }).catch(() => {/* ignore secondary write failure */});
+        }
       }
     }
   } catch (err: any) {
