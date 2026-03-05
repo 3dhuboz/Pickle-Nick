@@ -273,6 +273,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: err?.message || 'Handler failed', ...results });
   }
 
+  // ── Email admin if any posts failed ────────────────────────────────
+  if (results.failed > 0) {
+    try {
+      const settingsRes2 = await fetch(`${fsBase(projectId)}/settings/main?key=${fbApiKey}`);
+      const settingsDoc2 = await settingsRes2.json();
+      const s2 = fromFsDoc(settingsDoc2);
+      const resendKey: string = s2?.emailConfig?.resendApiKey || (process.env.RESEND_API_KEY ?? '');
+      const adminEmail: string = s2?.emailConfig?.adminEmail || (process.env.ADMIN_EMAIL ?? '');
+      const fromName: string = s2?.emailConfig?.fromName || 'Pickle Nick';
+      const fromEmail: string = s2?.emailConfig?.fromEmail || 'noreply@picklenick.au';
+      if (resendKey && adminEmail) {
+        const errorList = results.errors.map(e => `<li style="font-size:13px;color:#666;margin:4px 0">${e}</li>`).join('');
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
+          body: JSON.stringify({
+            from: `${fromName} <${fromEmail}>`,
+            to: adminEmail,
+            subject: `⚠ ${results.failed} social post(s) failed to publish`,
+            html: `<div style="font-family:sans-serif;padding:24px;max-width:520px">
+              <h2 style="color:#dc2626;margin:0 0 12px">⚠ Social Post Publish Failure</h2>
+              <p style="color:#374151">${results.failed} scheduled post(s) could not be published to Facebook.</p>
+              <ul style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 12px 12px 28px;margin:16px 0">${errorList}</ul>
+              <p style="color:#6b7280;font-size:13px">Log in to admin → Social Spirit → Calendar to view and retry failed posts.</p>
+              <p style="color:#6b7280;font-size:13px">Published this run: <strong>${results.published}</strong> &nbsp;|&nbsp; Failed: <strong style="color:#dc2626">${results.failed}</strong></p>
+            </div>`
+          })
+        }).catch(() => {});
+      }
+    } catch { /* don't let email failure affect the main response */ }
+  }
+
   return res.status(200).json({
     message: `Published ${results.published} post(s). Images generated: ${results.imageGenerated}. Failed: ${results.failed}.`,
     ...results

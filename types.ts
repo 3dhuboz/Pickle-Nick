@@ -72,6 +72,8 @@ export interface SocialPost {
   reasoning?: string;
   pillar?: string;
   topic?: string;
+  publishError?: string;
+  publishAttempts?: number;
   updatedAt?: number;
 }
 

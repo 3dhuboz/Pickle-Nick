@@ -9,7 +9,7 @@ import {
   Sparkles, Settings, Calendar, BarChart3, Wand2, Image as ImageIcon,
   Loader2, Trash2, Facebook, Instagram, CheckCircle, Zap, Save, X, Brain,
   ChevronLeft, ChevronRight, Clock, Edit2, Eye, Plus, Send, Link2, Link2Off,
-  RefreshCw, TrendingUp, Users, Activity
+  RefreshCw, TrendingUp, Users, Activity, AlertTriangle
 } from 'lucide-react';
 import { FacebookService } from '../../services/facebookService';
 
@@ -199,6 +199,8 @@ const SocialAIDashboard = () => {
   const [liveStats, setLiveStats] = useState<LiveFbStats | null>(null);
   const [isPullingStats, setIsPullingStats] = useState(false);
   const [lastPulled, setLastPulled] = useState<Date | null>(null);
+  const [publisherRunning, setPublisherRunning] = useState(false);
+  const [lastRunResult, setLastRunResult] = useState<{ published: number; failed: number; message: string; errors: string[]; time: Date } | null>(null);
 
   // API Key
   const [apiKeyInput, setApiKeyInput] = useState(() => localStorage.getItem('pn_gemini_key') || '');
@@ -227,6 +229,27 @@ const SocialAIDashboard = () => {
       toast(`Stats pull failed: ${e?.message?.substring(0, 100) || 'Unknown error'}`, 'error');
     }
     setIsPullingStats(false);
+  };
+
+  // ── Run Publisher Now ──
+  const handleRunPublisher = async () => {
+    setPublisherRunning(true);
+    try {
+      const res = await fetch('/api/publish-scheduled', { method: 'POST' });
+      const data = await res.json();
+      const result = { published: data.published ?? 0, failed: data.failed ?? 0, message: data.message || '', errors: data.errors || [], time: new Date() };
+      setLastRunResult(result);
+      if (result.failed > 0) {
+        toast(`${result.failed} post(s) failed to publish. Check Calendar for details.`, 'error');
+      } else if (result.published > 0) {
+        toast(`Published ${result.published} post(s) to Facebook!`, 'success');
+      } else {
+        toast(result.message || 'No posts due right now.', 'info');
+      }
+    } catch (e: any) {
+      toast(`Publisher error: ${e?.message?.substring(0, 80) || 'Unknown'}`, 'error');
+    }
+    setPublisherRunning(false);
   };
 
   // ── Content Generation ──
@@ -469,7 +492,24 @@ const SocialAIDashboard = () => {
                 <RefreshCw size={14} className={isPullingStats ? 'animate-spin' : ''} />
                 {isPullingStats ? 'Pulling...' : 'Refresh Stats'}
               </button>
+              <button
+                onClick={handleRunPublisher}
+                disabled={publisherRunning || !fbConnected}
+                className="flex items-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 font-bold px-4 py-2.5 rounded-xl text-xs transition disabled:opacity-40"
+                title={!fbConnected ? 'Connect a Facebook page first' : 'Manually run the post publisher now'}
+              >
+                <Send size={14} className={publisherRunning ? 'animate-pulse' : ''} />
+                {publisherRunning ? 'Publishing...' : 'Run Publisher'}
+              </button>
             </div>
+            {lastRunResult && (
+              <span className={`text-[10px] flex items-center gap-1 ${
+                lastRunResult.failed > 0 ? 'text-red-400' : lastRunResult.published > 0 ? 'text-green-400' : 'text-white/30'
+              }`}>
+                {lastRunResult.failed > 0 ? <AlertTriangle size={10} /> : <CheckCircle size={10} />}
+                Last run {lastRunResult.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}: {lastRunResult.message}
+              </span>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-white/5 border border-white/10 rounded-xl p-4">
@@ -562,7 +602,7 @@ const SocialAIDashboard = () => {
                 <option value="instagram">Instagram</option>
                 <option value="facebook">Facebook</option>
               </select>
-              <button onClick={handleGenerate} disabled={isGenerating} className="bg-native-black hover:bg-gray-800 text-white font-bold px-6 py-2.5 rounded-xl transition flex items-center gap-2 text-sm shadow-md">
+              <button onClick={handleGenerate} disabled={isGenerating} className="bg-native-black hover:bg-gray-800 text-white font-bold px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm shadow-md transition">
                 {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Wand2 size={16} />}
                 Generate Text
               </button>
@@ -805,7 +845,7 @@ const SocialAIDashboard = () => {
                   <div key={i} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-2 mb-2.5 flex-wrap">
                       <span className="text-xs font-bold text-gray-900">#{i + 1}</span>
-                      {sp.platform === 'instagram' ? <Instagram size={14} className="text-pink-500" /> : <Facebook size={14} className="text-blue-500" />}
+                      {sp.platform === 'instagram' ? <Instagram size={14} className="shrink-0" /> : <Facebook size={14} className="shrink-0" />}
                       <span className="text-xs text-gray-400">{new Date(sp.scheduledFor).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} at {new Date(sp.scheduledFor).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                       {sp.pillar && <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full border border-purple-200 font-semibold">{sp.pillar}</span>}
                     </div>
@@ -1194,7 +1234,8 @@ const CalendarView = ({ posts, onDelete, onEdit, onPublishNow, publishingPostId,
                       <div className="space-y-0.5">
                         {dayPosts.slice(0, 3).map(p => (
                           <div key={p.id} className={`flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium truncate
-                            ${p.status === 'published' ? 'bg-green-100 text-green-700' :
+                            ${p.publishError ? 'bg-red-100 text-red-700' :
+                              p.status === 'published' ? 'bg-green-100 text-green-700' :
                               p.status === 'scheduled' ? 'bg-blue-100 text-blue-700' :
                               'bg-gray-100 text-gray-500'
                             }`}>
@@ -1244,6 +1285,9 @@ const CalendarView = ({ posts, onDelete, onEdit, onPublishNow, publishingPostId,
                         }`}>{post.status}</span>
                         <span className="text-xs text-gray-400 flex items-center gap-1"><Clock size={11} />{new Date(post.scheduledTime).toLocaleDateString()} {new Date(post.scheduledTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         {post.pillar && <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-200 font-medium">{post.pillar}</span>}
+                        {post.publishError && (
+                          <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded border border-red-200 font-medium">Error</span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-600 line-clamp-2">{post.content}</p>
                       {post.hashtags?.length > 0 && (
@@ -1300,12 +1344,13 @@ const CalendarView = ({ posts, onDelete, onEdit, onPublishNow, publishingPostId,
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
                           {post.platform === 'instagram' ? <Instagram size={15} className="text-pink-500" /> : <Facebook size={15} className="text-blue-500" />}
                           <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
-                            post.status === 'published' ? 'bg-green-50 text-green-700 border border-green-200' :
-                            post.status === 'scheduled' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                            'bg-gray-100 text-gray-500 border border-gray-200'
+                            post.publishError ? 'bg-red-100 text-red-700 border border-red-200' :
+                              post.status === 'published' ? 'bg-green-50 text-green-700 border border-green-200' :
+                              post.status === 'scheduled' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                              'bg-gray-100 text-gray-500 border border-gray-200'
                           }`}>{post.status}</span>
                           <span className="text-xs text-gray-400 flex items-center gap-1">
-                            <Clock size={12} />
+                            <Clock size={11} />
                             {new Date(post.scheduledTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                           {post.pillar && <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-200 font-medium">{post.pillar}</span>}
@@ -1335,6 +1380,12 @@ const CalendarView = ({ posts, onDelete, onEdit, onPublishNow, publishingPostId,
                         )}
                         {post.reasoning && (
                           <p className="text-xs text-gray-400 mt-2 italic flex items-center gap-1"><Brain size={11} /> {post.reasoning}</p>
+                        )}
+                        {post.publishError && (
+                          <div className="mt-1 flex items-center gap-1 text-[10px] text-red-600">
+                            <AlertTriangle size={11} />
+                            <span className="font-semibold">Failed:</span> {post.publishError.substring(0, 80)}
+                          </div>
                         )}
                       </div>
 
