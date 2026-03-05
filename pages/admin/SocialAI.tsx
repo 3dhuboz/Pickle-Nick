@@ -1084,7 +1084,14 @@ const CalendarView = ({ posts, onDelete, onEdit, onPublishNow, publishingPostId,
   };
   const cancelEdit = () => setEditingPostId(null);
   const saveEdit = (post: SocialPost) => {
-    onEdit({ ...post, content: editContent, scheduledTime: editTime || post.scheduledTime, status: editStatus });
+    const reset = editStatus === 'scheduled';
+    onEdit({
+      ...post,
+      content: editContent,
+      scheduledTime: editTime || post.scheduledTime,
+      status: editStatus,
+      ...(reset ? { publishAttempts: 0, publishError: undefined } : {})
+    });
     setEditingPostId(null);
   };
 
