@@ -64,7 +64,7 @@ const DashboardHome = () => {
           firebaseError: StorageService.getConnectionError(),
           payment: !!settings.squareApplicationId && !!settings.squareAccessToken,
           facebook: !!settings.fbAppId,
-          ai: !!process.env.API_KEY
+          ai: !!localStorage.getItem('pn_gemini_key')
       });
   }, [settings]);
   

@@ -115,6 +115,56 @@ async function postPhotoToFacebook(
   return data.post_id || data.id;
 }
 
+// ── Facebook token health check ───────────────────────────────────
+
+async function checkFbToken(pageId: string, accessToken: string): Promise<{ valid: boolean; errorCode?: number; errorMsg?: string }> {
+  try {
+    const res = await fetch(`${FB_BASE}/${pageId}?fields=id&access_token=${accessToken}`);
+    const data = await res.json();
+    if (data.error) {
+      return { valid: false, errorCode: data.error.code, errorMsg: data.error.message };
+    }
+    return { valid: true };
+  } catch (err: any) {
+    return { valid: false, errorMsg: err?.message || 'Network error checking token' };
+  }
+}
+
+async function sendTokenExpiredAlert(
+  resendKey: string,
+  adminEmail: string,
+  fromName: string,
+  fromEmail: string,
+  errorMsg: string
+): Promise<void> {
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
+    body: JSON.stringify({
+      from: `${fromName} <${fromEmail}>`,
+      to: adminEmail,
+      subject: '⚠ Facebook token expired — scheduled posts paused',
+      html: `<div style="font-family:sans-serif;padding:24px;max-width:560px">
+        <h2 style="color:#dc2626;margin:0 0 12px">⚠ Facebook Token Expired</h2>
+        <p style="color:#374151">Your Facebook Page Access Token has expired. <strong>All scheduled posts are paused</strong> until you reconnect.</p>
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;margin:16px 0">
+          <p style="margin:0;font-size:13px;color:#991b1b"><strong>Error:</strong> ${errorMsg}</p>
+        </div>
+        <h3 style="color:#111827;font-size:15px;margin:20px 0 8px">How to fix (2 minutes):</h3>
+        <ol style="color:#374151;font-size:14px;line-height:1.7;padding-left:20px">
+          <li>Go to <a href="https://developers.facebook.com/tools/explorer" style="color:#2563eb">developers.facebook.com/tools/explorer</a></li>
+          <li>Select your App → click <strong>Generate Access Token</strong></li>
+          <li>Switch the dropdown from User to your <strong>Page</strong></li>
+          <li>Copy the token</li>
+          <li>In admin: <strong>Settings → Social Media API → Paste token manually</strong></li>
+          <li>Save, then click <strong>Run Publisher</strong> in Social Spirit to retry</li>
+        </ol>
+        <p style="color:#6b7280;font-size:12px;margin-top:20px">Your scheduled posts are untouched and will publish automatically once a valid token is saved.</p>
+      </div>`
+    })
+  }).catch(() => {});
+}
+
 // ── Main Handler ────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -161,14 +211,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // 3. Query all posts from Firestore
+    // 3. Health-check the token BEFORE touching any posts
+    const tokenCheck = await checkFbToken(fbPageId, fbAccessToken);
+    if (!tokenCheck.valid) {
+      console.error('FB token invalid:', tokenCheck.errorMsg);
+      // Send immediate email alert so admin can fix it without checking logs
+      const resendKey: string = settings?.emailConfig?.resendApiKey || (process.env.RESEND_API_KEY ?? '');
+      const adminEmail: string = settings?.emailConfig?.adminEmail || (process.env.ADMIN_EMAIL ?? '');
+      if (resendKey && adminEmail) {
+        await sendTokenExpiredAlert(
+          resendKey, adminEmail,
+          settings?.emailConfig?.fromName || 'Pickle Nick',
+          settings?.emailConfig?.fromEmail || 'noreply@picklenick.au',
+          tokenCheck.errorMsg || 'Token validation failed'
+        );
+      }
+      return res.status(200).json({
+        message: 'Facebook token expired or invalid. Posts NOT marked as failed — they will retry once a new token is saved. Admin alert sent.',
+        tokenError: tokenCheck.errorMsg,
+        ...results
+      });
+    }
+
+    // 4. Query all posts from Firestore (token is valid — safe to proceed)
     const postsRes = await fetch(`${base}/posts?key=${fbApiKey}&pageSize=200`);
     const postsData = await postsRes.json();
     const allDocs: any[] = postsData?.documents || [];
 
     const now = Date.now();
 
-    // 4. Filter: scheduled posts whose time has arrived (up to 48h past due for catchup)
+    // 5. Filter: scheduled posts whose time has arrived (up to 48h past due for catchup)
     const MAX_ATTEMPTS = 5;
     const CATCHUP_WINDOW_MS = 48 * 60 * 60 * 1000;
     type PostDoc = Record<string, any> & { _docName: string };
