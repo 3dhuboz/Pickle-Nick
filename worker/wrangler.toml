@@ -1,0 +1,21 @@
+name = "pickle-nick-publisher"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+
+# Hourly cron trigger — replaces Vercel cron
+[triggers]
+crons = ["0 * * * *"]
+
+# Set these secrets with: wrangler secret put VARIABLE_NAME
+# Or in Cloudflare Dashboard → Workers → pickle-nick-publisher → Settings → Variables
+#
+# Required:
+#   FIREBASE_PROJECT_ID   (or VITE_FIREBASE_PROJECT_ID)
+#   FIREBASE_API_KEY      (or VITE_FIREBASE_API_KEY)
+#
+# Optional (fallbacks — app reads these from Firestore settings/main):
+#   FB_PAGE_ID
+#   FB_PAGE_ACCESS_TOKEN
+#   GEMINI_API_KEY
+#   RESEND_API_KEY
+#   ADMIN_EMAIL
