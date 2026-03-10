@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+﻿import { GoogleGenAI, Type } from "@google/genai";
 
 const getApiKey = () => {
   if (typeof window !== 'undefined') {
@@ -24,12 +24,10 @@ const compressImage = (base64Str: string, maxWidth = 800, quality = 0.7): Promis
             const canvas = document.createElement('canvas');
             let width = img.width;
             let height = img.height;
-
             if (width > maxWidth) {
                 height = Math.round((height * maxWidth) / width);
                 width = maxWidth;
             }
-
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
@@ -59,7 +57,6 @@ export const generateSocialContent = async (
     Include relevant emojis and 5-10 relevant hashtags.
     Return JSON with "content" (the post text) and "hashtags" (array of strings).
   `;
-
   const response = await ai.models.generateContent({
     model: 'gemini-1.5-flash',
     contents: prompt,
@@ -77,32 +74,23 @@ export const generateSocialContent = async (
       }
     }
   });
-
   return response.text ? JSON.parse(response.text) : { content: '', hashtags: [] };
 };
 
 export const generateSocialImage = async (prompt: string): Promise<string> => {
   const ai = getAIClient();
   const imagePrompt = `Professional food photography of artisan pickles, ${prompt}, highly detailed, cinematic lighting, appetizing, elegant styling, dark green branding tones.`;
-
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [{ text: imagePrompt }]
-      },
-      config: {
-        imageConfig: {
-          aspectRatio: "1:1"
-        }
-      }
+      contents: { parts: [{ text: imagePrompt }] },
+      config: { imageConfig: { aspectRatio: "1:1" } }
     });
-    
     for (const part of response.candidates?.[0]?.content?.parts || []) {
-       if (part.inlineData) {
-          const rawBase64 = `data:image/png;base64,${part.inlineData.data}`;
-          return await compressImage(rawBase64);
-       }
+      if (part.inlineData) {
+        const rawBase64 = `data:image/png;base64,${part.inlineData.data}`;
+        return await compressImage(rawBase64);
+      }
     }
     throw new Error("No image generated");
   } catch (e) {
@@ -112,74 +100,58 @@ export const generateSocialImage = async (prompt: string): Promise<string> => {
 };
 
 export const generateSiteImage = async (prompt: string): Promise<string> => {
-    const ai = getAIClient();
-    const imagePrompt = `
-      Cinematic, high-quality photography for an artisan brand website.
-      Subject: ${prompt}.
-      Style: Rustic, authentic, sophisticated, tattoo-culture influence but elegant, warm lighting, high detail, 8k.
-      No text overlays.
-    `;
-  
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [{ text: imagePrompt }]
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: "16:9" // Wider for site banners
-          }
-        }
-      });
-      
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-         if (part.inlineData) {
-            const rawBase64 = `data:image/png;base64,${part.inlineData.data}`;
-            return await compressImage(rawBase64, 1200);
-         }
+  const ai = getAIClient();
+  const imagePrompt = `
+    Cinematic, high-quality photography for an artisan brand website.
+    Subject: ${prompt}.
+    Style: Rustic, authentic, sophisticated, tattoo-culture influence but elegant, warm lighting, high detail, 8k.
+    No text overlays.
+  `;
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: { parts: [{ text: imagePrompt }] },
+      config: { imageConfig: { aspectRatio: "16:9" } }
+    });
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        const rawBase64 = `data:image/png;base64,${part.inlineData.data}`;
+        return await compressImage(rawBase64, 1200);
       }
-      throw new Error("No image generated");
-    } catch (e) {
-      console.error("Site image generation failed", e);
-      throw e;
     }
-  };
+    throw new Error("No image generated");
+  } catch (e) {
+    console.error("Site image generation failed", e);
+    throw e;
+  }
+};
 
 export const generateCategoryImage = async (categoryName: string): Promise<string> => {
-    const ai = getAIClient();
-    const imagePrompt = `
-      Wide cinematic banner photography for a product category named "${categoryName}".
-      Style: Artisan food branding, dark rustic wood backgrounds, dramatic lighting, high detail, photorealistic.
-      Subject: An artistic arrangement of ingredients and jars related to ${categoryName}.
-      No text overlays.
-    `;
-  
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [{ text: imagePrompt }]
-        },
-        config: {
-          imageConfig: {
-            aspectRatio: "16:9"
-          }
-        }
-      });
-      
-      for (const part of response.candidates?.[0]?.content?.parts || []) {
-         if (part.inlineData) {
-            const rawBase64 = `data:image/png;base64,${part.inlineData.data}`;
-            return await compressImage(rawBase64, 1200);
-         }
+  const ai = getAIClient();
+  const imagePrompt = `
+    Wide cinematic banner photography for a product category named "${categoryName}".
+    Style: Artisan food branding, dark rustic wood backgrounds, dramatic lighting, high detail, photorealistic.
+    Subject: An artistic arrangement of ingredients and jars related to ${categoryName}.
+    No text overlays.
+  `;
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: { parts: [{ text: imagePrompt }] },
+      config: { imageConfig: { aspectRatio: "16:9" } }
+    });
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        const rawBase64 = `data:image/png;base64,${part.inlineData.data}`;
+        return await compressImage(rawBase64, 1200);
       }
-      throw new Error("No image generated");
-    } catch (e) {
-      console.error("Category image generation failed", e);
-      throw e;
     }
-  };
+    throw new Error("No image generated");
+  } catch (e) {
+    console.error("Category image generation failed", e);
+    throw e;
+  }
+};
 
 export const generateProductImage = async (name: string, category: string, description: string): Promise<string> => {
   const ai = getAIClient();
@@ -189,25 +161,17 @@ export const generateProductImage = async (name: string, category: string, descr
     Setting: Rustic, artisanal style, sitting on a weathered dark oak table, dramatic natural lighting coming from a window, condensation on glass if applicable.
     Style: Photorealistic, 8k, highly detailed, appetizing food photography, elegant branding.
   `;
-
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [{ text: imagePrompt }]
-      },
-      config: {
-        imageConfig: {
-          aspectRatio: "1:1"
-        }
-      }
+      contents: { parts: [{ text: imagePrompt }] },
+      config: { imageConfig: { aspectRatio: "1:1" } }
     });
-    
     for (const part of response.candidates?.[0]?.content?.parts || []) {
-       if (part.inlineData) {
-          const rawBase64 = `data:image/png;base64,${part.inlineData.data}`;
-          return await compressImage(rawBase64);
-       }
+      if (part.inlineData) {
+        const rawBase64 = `data:image/png;base64,${part.inlineData.data}`;
+        return await compressImage(rawBase64);
+      }
     }
     throw new Error("No image generated");
   } catch (e) {
@@ -217,14 +181,14 @@ export const generateProductImage = async (name: string, category: string, descr
 };
 
 export const getPostingAdvice = async (platform: string) => {
-    const ai = getAIClient();
-    const prompt = `Best times to post on ${platform} for a food business to maximize engagement. Keep it brief and return a short 1-sentence tip.`;
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
-        contents: prompt
-    });
-    return response.text;
-}
+  const ai = getAIClient();
+  const prompt = `Best times to post on ${platform} for a food business to maximize engagement. Keep it brief and return a short 1-sentence tip.`;
+  const response = await ai.models.generateContent({
+    model: 'gemini-1.5-flash',
+    contents: prompt
+  });
+  return response.text;
+};
 
 export const researchSocialTopic = async (query: string) => {
   const ai = getAIClient();
@@ -263,9 +227,7 @@ export const generateMarketingImage = async (prompt: string): Promise<string | n
       const response = await ai.models.generateContent({
         model,
         contents: `Professional marketing image: ${prompt}. High quality, vibrant, cinematic lighting, no text or watermarks.`,
-        config: {
-          responseModalities: ['IMAGE', 'TEXT'],
-        } as any,
+        config: { responseModalities: ['IMAGE', 'TEXT'] } as any,
       });
       const parts = (response as any)?.candidates?.[0]?.content?.parts;
       if (parts) {
@@ -273,7 +235,6 @@ export const generateMarketingImage = async (prompt: string): Promise<string | n
           if (part.inlineData?.data) {
             const mimeType = part.inlineData.mimeType || 'image/png';
             const raw = `data:${mimeType};base64,${part.inlineData.data}`;
-            // Compress to stay well under Firestore's 1 MB field limit
             return await compressImage(raw, 700, 0.65);
           }
         }
@@ -290,7 +251,7 @@ export const analyzePostTimes = async (businessType: string, location: string) =
   const ai = getAIClient();
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-1.5-flash',
       contents: `What are the best times to post on Instagram and Facebook for a ${businessType} in ${location}? Give a concise bulleted list of 3 best time slots for the upcoming week.`
     });
     return response.text;
@@ -303,7 +264,7 @@ export const generateRecommendations = async (businessName: string, businessType
   const ai = getAIClient();
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-1.5-flash',
       contents: `
         You are a social media strategist for "${businessName}", a ${businessType}.
         Stats: Followers: ${stats.followers}, Reach: ${stats.reach}, Engagement: ${stats.engagement}%, Posts: ${stats.postsLast30Days}.
@@ -345,11 +306,9 @@ export const generateSmartSchedule = async (
   const ai = getAIClient();
   try {
     const now = new Date();
-    // Saturation = 7-day blitz window; normal = 14-day spread
     const windowDays = saturationMode ? 7 : 14;
     const windowEnd = new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000);
 
-    // ── Phase 1: Research ──────────────────────────────────────────
     const researchPrompt = saturationMode ? `
 You are an expert social media growth hacker specialising in HIGH-FREQUENCY SATURATION posting strategies.
 Research the optimal saturation posting plan for:
@@ -368,8 +327,8 @@ Respond with ONLY a raw JSON object — no markdown, no code fences:
   "hashtagThemes": ["theme1", "theme2", "theme3", "theme4"],
   "imageStyle": "description of ideal image aesthetic",
   "platformSplit": { "facebook": 40, "instagram": 60 },
-  "saturationTactics": "2-sentence tactical description of how to sustain volume without burning out the audience",
-  "bestContentMix": "ratio/description of promo vs value vs entertainment vs story posts for saturation"
+  "saturationTactics": "2-sentence tactical description",
+  "bestContentMix": "ratio/description of promo vs value vs entertainment vs story posts"
 }` : `
 You are an expert social media researcher. Research the optimal social media strategy for:
 - Business: "${businessName}" — ${businessType}
@@ -377,7 +336,7 @@ You are an expert social media researcher. Research the optimal social media str
 - Audience: local customers and online shoppers
 - Current stats: ${stats.followers} followers, ${stats.engagement}% engagement
 
-Research and provide a concise JSON object with exactly these fields:
+Respond with ONLY a raw JSON object — no markdown, no code fences:
 {
   "bestPostingTimes": ["HH:MM", "HH:MM", "HH:MM"],
   "bestDays": ["Monday", "Wednesday", "Friday"],
@@ -386,9 +345,7 @@ Research and provide a concise JSON object with exactly these fields:
   "imageStyle": "description of ideal image aesthetic for this business type",
   "platformSplit": { "facebook": 40, "instagram": 60 },
   "engagementTips": "one sentence of the most impactful tactic for this business type"
-}
-
-Respond with ONLY the raw JSON object — no markdown, no code fences.`;
+}`;
 
     const saturationFallback = {
       dailyPostingWindows: ['07:00', '10:00', '12:30', '16:00', '19:30'],
@@ -397,7 +354,7 @@ Respond with ONLY the raw JSON object — no markdown, no code fences.`;
       hashtagThemes: ['artisan food', 'local business', 'foodie culture', 'daily specials'],
       imageStyle: 'vibrant, appetizing, clean background with natural lighting',
       platformSplit: { facebook: 40, instagram: 60 },
-      saturationTactics: 'Post at every peak window daily, alternating content types so each post feels fresh. Vary formats: static images, carousels, reels-style captions, polls, and behind-the-scenes.',
+      saturationTactics: 'Post at every peak window daily, alternating content types so each post feels fresh.',
       bestContentMix: '30% promotional, 30% value/educational, 20% entertainment, 20% behind-the-scenes/story'
     };
     const normalFallback = {
@@ -413,7 +370,7 @@ Respond with ONLY the raw JSON object — no markdown, no code fences.`;
     let research: any = {};
     try {
       const researchRes = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-1.5-flash',
         contents: researchPrompt,
       });
       const researchRaw = (researchRes.text || '').trim()
@@ -423,8 +380,6 @@ Respond with ONLY the raw JSON object — no markdown, no code fences.`;
       research = saturationMode ? saturationFallback : normalFallback;
     }
 
-    // ── Phase 2: Generate Schedule ─────────────────────────────────
-    // Override AI platform split with the admin's actual connected platforms
     let fbCount: number;
     let igCount: number;
     if (platforms.facebook && !platforms.instagram) {
@@ -462,21 +417,21 @@ SATURATION RULES:
 2. Spread ~${postsPerDay} posts per day across the ${windowDays}-day window.
 3. Use ALL ${postingWindows.length} daily time windows — never schedule two posts at the same time on the same day.
 4. Each day must have DIFFERENT content pillars — NO two consecutive posts from the same pillar.
-5. Vary the format: some posts are punchy 1-liners, some are storytelling, some are questions/polls, some are product-focused, some are behind-the-scenes.
+5. Vary the format: some posts are punchy 1-liners, some are storytelling, some are questions/polls.
 6. Hashtags must be highly relevant and varied per post (8-12 per post, mix broad and niche).
 7. Every post needs a unique, specific imagePrompt for AI image generation.
 
 Respond with ONLY a valid JSON object — no markdown, no code fences, no explanation:
 {
-  "strategy": "2-sentence saturation strategy summary explaining the volume approach and content variety",
+  "strategy": "2-sentence saturation strategy summary",
   "posts": [
     {
       "platform": "facebook",
       "scheduledFor": "${now.toISOString().split('T')[0]}T07:00:00",
       "topic": "short topic label",
-      "content": "full post caption with emojis and personality matching tone",
-      "hashtags": ["#tag1", "#tag2", "#tag3"],
-      "imagePrompt": "detailed image description matching the researched aesthetic",
+      "content": "full post caption with emojis",
+      "hashtags": ["#tag1", "#tag2"],
+      "imagePrompt": "detailed image description",
       "reasoning": "which content pillar + time window this uses and why",
       "pillar": "content pillar name"
     }
@@ -509,9 +464,9 @@ Respond with ONLY a valid JSON object — no markdown, no code fences, no explan
       "platform": "facebook",
       "scheduledFor": "${now.toISOString().split('T')[0]}T09:00:00",
       "topic": "short topic label",
-      "content": "full post caption with emojis and personality matching tone",
-      "hashtags": ["#tag1", "#tag2", "#tag3"],
-      "imagePrompt": "detailed image description matching the researched aesthetic",
+      "content": "full post caption with emojis",
+      "hashtags": ["#tag1", "#tag2"],
+      "imagePrompt": "detailed image description",
       "reasoning": "why this content pillar + time was chosen based on research",
       "pillar": "content pillar name from the researched list"
     }
@@ -519,7 +474,7 @@ Respond with ONLY a valid JSON object — no markdown, no code fences, no explan
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-1.5-flash',
       contents: prompt,
     });
 
