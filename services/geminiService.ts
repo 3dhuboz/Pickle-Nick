@@ -220,7 +220,7 @@ export const getPostingAdvice = async (platform: string) => {
     const ai = getAIClient();
     const prompt = `Best times to post on ${platform} for a food business to maximize engagement. Keep it brief and return a short 1-sentence tip.`;
     const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents: prompt
     });
     return response.text;
@@ -290,7 +290,7 @@ export const analyzePostTimes = async (businessType: string, location: string) =
   const ai = getAIClient();
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: `What are the best times to post on Instagram and Facebook for a ${businessType} in ${location}? Give a concise bulleted list of 3 best time slots for the upcoming week.`
     });
     return response.text;
@@ -303,7 +303,7 @@ export const generateRecommendations = async (businessName: string, businessType
   const ai = getAIClient();
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: `
         You are a social media strategist for "${businessName}", a ${businessType}.
         Stats: Followers: ${stats.followers}, Reach: ${stats.reach}, Engagement: ${stats.engagement}%, Posts: ${stats.postsLast30Days}.
@@ -413,7 +413,7 @@ Respond with ONLY the raw JSON object — no markdown, no code fences.`;
     let research: any = {};
     try {
       const researchRes = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents: researchPrompt,
       });
       const researchRaw = (researchRes.text || '').trim()
@@ -519,7 +519,7 @@ Respond with ONLY a valid JSON object — no markdown, no code fences, no explan
 }`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: prompt,
     });
 
