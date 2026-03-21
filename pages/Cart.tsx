@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Trash2, CreditCard, Lock, ShieldCheck, CheckCircle2, ChevronRight, Truck, AlertCircle, Loader2, MapPin, Zap, Package } from 'lucide-react';
 
@@ -34,7 +34,7 @@ const validatePostcode = (postcode: string, state: string): string | null => {
   return null;
 };
 import { Link, useNavigate } from 'react-router-dom';
-import { PaymentService } from '../services/paymentService';
+import { mountSquareCard, processPayment } from '../services/paymentService';
 
 type CheckoutStep = 'cart' | 'shipping' | 'payment' | 'success';
 
@@ -54,12 +54,15 @@ const Cart = () => {
     suburb: '',
     state: '',
     postcode: '',
-    cardNumber: '',
-    expiry: '',
-    cvc: ''
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');
+
+  // Square card element
+  const squareTokenizeRef = useRef<(() => Promise<string>) | null>(null);
+  const squareDestroyRef = useRef<(() => void) | null>(null);
+  const [squareReady, setSquareReady] = useState(false);
+  const [squareError, setSquareError] = useState<string | null>(null);
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const tax = settings.gstEnabled ? (subtotal * (settings.gstRate / 100)) : 0;
@@ -101,6 +104,33 @@ const Cart = () => {
       }
   }, [currentUser]);
 
+  // Mount Square card element when payment step is active
+  useEffect(() => {
+    if (step !== 'payment') return;
+    let cancelled = false;
+    setSquareReady(false);
+    setSquareError(null);
+    squareDestroyRef.current?.();
+    squareDestroyRef.current = null;
+    squareTokenizeRef.current = null;
+
+    mountSquareCard('square-card-container', settings)
+      .then(({ tokenize, destroy }) => {
+        if (cancelled) { destroy(); return; }
+        squareTokenizeRef.current = tokenize;
+        squareDestroyRef.current = destroy;
+        setSquareReady(true);
+      })
+      .catch(err => {
+        if (!cancelled) setSquareError(err.message || 'Failed to load payment form');
+      });
+
+    return () => {
+      cancelled = true;
+      squareDestroyRef.current?.();
+    };
+  }, [step, settings.squareApplicationId, settings.squareLocationId]);
+
   const handleShippingSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const errors: Record<string, string> = {};
@@ -127,61 +157,52 @@ const Cart = () => {
   const handlePaymentSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
-      
-      // Basic client-side validation
-      if (formData.cardNumber.replace(/\s/g, '').length < 13) {
-          setError("Please enter a valid card number.");
+      if (!squareTokenizeRef.current) {
+          setError('Payment form is not ready. Please wait a moment and try again.');
           return;
       }
-
       setIsProcessing(true);
-
       try {
-          // 1. Call Secure Payment Service (Simulates API)
-          const paymentResult = await PaymentService.processPayment(
-              total, 
-              'USD', 
-              { name: formData.name, number: formData.cardNumber }, 
-              settings
-          );
+          // 1. Tokenize card via Square Web Payments SDK
+          const sourceId = await squareTokenizeRef.current();
 
+          // 2. Charge via Worker → Square Payments API
+          const paymentResult = await processPayment(sourceId, total, 'AUD');
           if (!paymentResult.success) {
-              throw new Error(paymentResult.error || "Payment failed.");
+              throw new Error(paymentResult.error || 'Payment failed.');
           }
 
-          // 2. Place Order in Database
+          // 3. Place order in D1
           const orderId = `ORD-${Date.now()}`;
           const newOrder = {
-            id: orderId,
-            userId: currentUser ? currentUser.id : 'guest',
-            customerName: formData.name,
-            customerEmail: formData.email,
-            shippingAddress: `${formData.address}, ${formData.suburb} ${formData.state} ${formData.postcode}`,
-            items: cart,
-            subtotal,
-            tax,
-            shippingCost,
-            shippingMethod,
-            total,
-            status: 'pending' as const,
-            paymentStatus: 'paid' as const,
-            transactionId: paymentResult.transactionId,
-            paymentMethod: 'credit_card',
-            createdAt: new Date().toISOString()
+              id: orderId,
+              userId: currentUser ? currentUser.id : 'guest',
+              customerName: formData.name,
+              customerEmail: formData.email,
+              shippingAddress: `${formData.address}, ${formData.suburb} ${formData.state} ${formData.postcode}`,
+              items: cart,
+              subtotal,
+              tax,
+              shippingCost,
+              shippingMethod,
+              total,
+              status: 'pending' as const,
+              paymentStatus: 'paid' as const,
+              transactionId: paymentResult.transactionId,
+              paymentMethod: 'square',
+              createdAt: new Date().toISOString()
           };
-          
           await placeOrder(newOrder);
 
-          // 3. Send Email Confirmation
+          // 4. Fire-and-forget confirmation email
           import('../services/emailService').then(({ EmailService }) => {
               EmailService.sendOrderConfirmation(newOrder, settings);
           });
 
           setStep('success');
-          window.scrollTo(0,0);
-
+          window.scrollTo(0, 0);
       } catch (err: any) {
-          setError(err.message || "An unexpected error occurred during payment.");
+          setError(err.message || 'An unexpected error occurred during payment.');
       } finally {
           setIsProcessing(false);
       }
@@ -453,63 +474,38 @@ const Cart = () => {
                                 <div className="bg-native-sand/20 p-6 rounded-2xl border border-native-black/5 shadow-inner">
                                     <div className="flex justify-between items-center mb-6">
                                         <span className="font-bold text-sm text-native-black/60 uppercase tracking-widest">Credit / Debit Card</span>
-                                        <div className="flex gap-2">
-                                           <div className="h-6 w-10 bg-white/80 rounded border border-black/5"></div>
-                                           <div className="h-6 w-10 bg-white/80 rounded border border-black/5"></div>
-                                           <div className="h-6 w-10 bg-white/80 rounded border border-black/5"></div>
-                                        </div>
+                                        <span className="text-xs text-native-earth/50 font-medium">Powered by Square</span>
                                     </div>
-                                    
-                                    <div className="space-y-6">
+
+                                    {squareError ? (
+                                        <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-4 rounded-xl border border-red-100">
+                                            <AlertCircle size={16} className="shrink-0" />
+                                            <span>{squareError}</span>
+                                        </div>
+                                    ) : (
                                         <div className="relative">
-                                            <CreditCard className="absolute left-4 top-4 text-native-earth/30" size={20} />
-                                            <input 
-                                                required
-                                                value={formData.cardNumber}
-                                                onChange={e => setFormData({...formData, cardNumber: e.target.value})}
-                                                placeholder="0000 0000 0000 0000"
-                                                maxLength={19}
-                                                className="w-full pl-12 p-4 bg-white rounded-xl border border-native-black/5 focus:border-native-turquoise/50 outline-none font-mono text-lg shadow-sm"
-                                            />
+                                            {!squareReady && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-xl z-10">
+                                                    <Loader2 size={20} className="animate-spin text-native-earth/40" />
+                                                </div>
+                                            )}
+                                            <div id="square-card-container" className="min-h-[88px]" />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-6">
-                                            <input 
-                                                required
-                                                placeholder="MM / YY"
-                                                maxLength={5}
-                                                className="w-full p-4 bg-white rounded-xl border border-native-black/5 focus:border-native-turquoise/50 outline-none font-mono text-center shadow-sm"
-                                                value={formData.expiry}
-                                                onChange={e => setFormData({...formData, expiry: e.target.value})}
-                                            />
-                                            <input 
-                                                required
-                                                placeholder="CVC"
-                                                maxLength={4}
-                                                type="password"
-                                                className="w-full p-4 bg-white rounded-xl border border-native-black/5 focus:border-native-turquoise/50 outline-none font-mono text-center shadow-sm"
-                                                value={formData.cvc}
-                                                onChange={e => setFormData({...formData, cvc: e.target.value})}
-                                            />
-                                        </div>
-                                        <input 
-                                            required
-                                            placeholder="Cardholder Name"
-                                            className="w-full p-4 bg-white rounded-xl border border-native-black/5 focus:border-native-turquoise/50 outline-none font-sans uppercase text-sm font-bold tracking-widest shadow-sm"
-                                            defaultValue={formData.name}
-                                        />
-                                    </div>
+                                    )}
                                 </div>
                             </div>
 
                             <div className="flex justify-between mt-12 pt-8 border-t border-native-black/5 items-center">
                                 <button type="button" onClick={() => setStep('shipping')} disabled={isProcessing} className="text-native-earth font-bold uppercase tracking-wider text-sm hover:text-native-black transition-colors">Back</button>
-                                <button 
-                                    type="submit" 
-                                    disabled={isProcessing}
+                                <button
+                                    type="submit"
+                                    disabled={isProcessing || !squareReady || !!squareError}
                                     className="bg-native-turquoise text-white px-12 py-5 font-display text-xl uppercase tracking-widest hover:bg-native-black transition-all shadow-ink rounded-full flex items-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     {isProcessing ? (
-                                        <><Loader2 className="animate-spin" /> Processing...</>
+                                        <><Loader2 className="animate-spin" size={20} /> Processing...</>
+                                    ) : !squareReady && !squareError ? (
+                                        <><Loader2 className="animate-spin" size={20} /> Loading...</>
                                     ) : (
                                         <>Pay ${total.toFixed(2)}</>
                                     )}

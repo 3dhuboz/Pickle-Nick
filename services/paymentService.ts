@@ -1,66 +1,91 @@
-import { AppSettings } from "../types";
-
-// This service is designed to be the bridge between the UI and Square Payment APIs.
-// Currently it simulates a secure transaction flow.
+import { AppSettings } from '../types';
 
 export interface PaymentResult {
-    success: boolean;
-    transactionId?: string;
-    error?: string;
+  success: boolean;
+  transactionId?: string;
+  error?: string;
 }
 
-export const PaymentService = {
-    /**
-     * validCardCheck
-     * Quick Luhn algorithm check or regex to validate card format on client side
-     * before sending to API to reduce latency/errors.
-     */
-    validateCardFormat: (number: string): boolean => {
-        const cleaned = number.replace(/\s+/g, '');
-        return cleaned.length >= 13 && cleaned.length <= 19 && /^\d+$/.test(cleaned);
+declare global {
+  interface Window {
+    Square?: any;
+  }
+}
+
+// Loads the Square Web Payments SDK script once
+let squareScriptPromise: Promise<void> | null = null;
+const loadSquareSDK = (sandbox: boolean): Promise<void> => {
+  if (squareScriptPromise) return squareScriptPromise;
+  squareScriptPromise = new Promise((resolve, reject) => {
+    if (window.Square) { resolve(); return; }
+    const src = sandbox
+      ? 'https://sandbox.web.squarecdn.com/v1/square.js'
+      : 'https://web.squarecdn.com/v1/square.js';
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Failed to load Square SDK'));
+    document.head.appendChild(script);
+  });
+  return squareScriptPromise;
+};
+
+// Mounts a Square card element into the given container div.
+// Returns a cleanup function and a tokenize function.
+export const mountSquareCard = async (
+  containerId: string,
+  settings: AppSettings
+): Promise<{ tokenize: () => Promise<string>; destroy: () => void }> => {
+  const appId = settings.squareApplicationId;
+  const locationId = settings.squareLocationId;
+  const isSandbox = !appId || appId.startsWith('sandbox');
+
+  if (!appId || !locationId) {
+    throw new Error('Square is not configured. Please set Application ID and Location ID in Settings.');
+  }
+
+  await loadSquareSDK(isSandbox);
+
+  const payments = window.Square.payments(appId, locationId);
+  const card = await payments.card({
+    style: {
+      '.input-container': { borderRadius: '12px', borderColor: 'rgba(0,0,0,0.08)' },
+      '.input-container.is-focus': { borderColor: '#6CBEBC' },
+      input: { fontFamily: 'Inter, sans-serif', fontSize: '16px', color: '#1a1a1a' },
     },
+  });
+  await card.attach(`#${containerId}`);
 
-    /**
-     * processPayment
-     * In a real implementation, this would:
-     * 1. Call Square Web Payments SDK to tokenize card.
-     * 2. Send token to backend to call Payments API.
-     */
-    processPayment: async (
-        amount: number, 
-        currency: string, 
-        cardData: any, 
-        settings: AppSettings
-    ): Promise<PaymentResult> => {
-        console.log(`Connecting to Square Gateway... Amount: ${currency} ${amount}`);
-        
-        // SIMULATE SECURE API CALL LATENCY
-        await new Promise(resolve => setTimeout(resolve, 2500));
+  return {
+    tokenize: async () => {
+      const result = await card.tokenize();
+      if (result.status === 'OK') return result.token;
+      const msg = result.errors?.[0]?.message || 'Card tokenization failed';
+      throw new Error(msg);
+    },
+    destroy: () => { try { card.destroy(); } catch { /* ignore */ } },
+  };
+};
 
-        // Check if Square is actually configured
-        const isLive = !!(settings.squareApplicationId && settings.squareAccessToken);
-        
-        if (isLive) {
-            console.log("Using Square Application ID:", settings.squareApplicationId);
-            // INTEGRATION POINT: 
-            // 1. window.Square.payments(appId, locationId)
-            // 2. card.tokenize() -> token
-            // 3. Backend charge(token, amount)
-        } else {
-            console.log("Mode: Square Sandbox Simulation");
-        }
+// Sends the Square source token to the Worker to charge the card
+export const processPayment = async (
+  sourceId: string,
+  amount: number,
+  currency = 'AUD'
+): Promise<PaymentResult> => {
+  const idempotencyKey = `pn_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
-        // Simulating a card decline for demonstration if name is "Decline"
-        if (cardData.name.toLowerCase().includes('decline')) {
-             return {
-                 success: false,
-                 error: "Payment Declined by Issuer. Please check card details."
-             };
-        }
+  const res = await fetch('/api/payments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sourceId, amount, currency, idempotencyKey }),
+  });
 
-        return {
-            success: true,
-            transactionId: `sq_txn_${Date.now()}_${Math.random().toString(36).substring(7)}`
-        };
-    }
+  const data = await res.json() as any;
+
+  if (!res.ok) {
+    return { success: false, error: data.error || 'Payment failed' };
+  }
+
+  return { success: true, transactionId: data.transactionId };
 };

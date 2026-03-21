@@ -585,6 +585,64 @@ async function handlePublish(request: Request, env: Env): Promise<Response> {
   return jsonResponse(result);
 }
 
+// ── Square Payments ────────────────────────────────────────────────────────────
+
+async function handlePayment(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') return jsonError('Method not allowed', 405);
+
+  const body: { sourceId: string; amount: number; currency?: string; idempotencyKey: string } = await request.json();
+  if (!body.sourceId || !body.amount || !body.idempotencyKey) {
+    return jsonError('sourceId, amount, and idempotencyKey are required', 400);
+  }
+
+  // Read Square credentials from D1 app_settings
+  const settingsRow = await env.DB.prepare('SELECT data FROM app_settings WHERE key=?').bind('main').first<{ data: string }>();
+  const appSettings = settingsRow ? JSON.parse(settingsRow.data) : {};
+  const accessToken: string = appSettings.squareAccessToken || '';
+  const locationId: string = appSettings.squareLocationId || '';
+
+  if (!accessToken || !locationId) {
+    return jsonError('Square is not configured. Set access token and location ID in Settings.', 503);
+  }
+
+  const isSandbox = accessToken.startsWith('EAAAl') === false && accessToken.startsWith('EAAA') && accessToken.length < 60;
+  const squareBase = (accessToken.startsWith('sandbox') || accessToken.startsWith('EAAAl'))
+    ? 'https://connect.squareupsandbox.com'
+    : 'https://connect.squareup.com';
+
+  const amountCents = Math.round(body.amount * 100);
+  const currency = body.currency || 'AUD';
+
+  const res = await fetch(`${squareBase}/v2/payments`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Square-Version': '2024-01-18',
+    },
+    body: JSON.stringify({
+      source_id: body.sourceId,
+      idempotency_key: body.idempotencyKey,
+      amount_money: { amount: amountCents, currency },
+      location_id: locationId,
+      autocomplete: true,
+    }),
+  });
+
+  const data: any = await res.json();
+
+  if (!res.ok || data.errors) {
+    const msg = data.errors?.[0]?.detail || data.errors?.[0]?.code || 'Payment failed';
+    return jsonError(msg, 402);
+  }
+
+  return jsonResponse({
+    success: true,
+    transactionId: data.payment?.id,
+    status: data.payment?.status,
+  });
+}
+
 // ── Main Router ───────────────────────────────────────────────────────────────
 
 export default {
@@ -609,6 +667,7 @@ export default {
       if (path.startsWith('/api/ai/'))       return handleAI(request, env, path);
       if (path.startsWith('/api/r2/upload')) return handleR2Upload(request, env);
       if (path.startsWith('/api/publish'))   return handlePublish(request, env);
+      if (path.startsWith('/api/payments'))  return handlePayment(request, env);
       return jsonError('Not found', 404);
     } catch (err: any) {
       console.error('Worker error:', err);
