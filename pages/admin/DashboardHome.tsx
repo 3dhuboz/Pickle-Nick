@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { DollarSign, ShoppingBag, Users, TrendingUp, Wifi, CreditCard, Share2, Sparkles, AlertCircle, CheckCircle2, Package, Trash2, AlertTriangle, RefreshCw, HelpCircle, ArrowUpRight, ArrowDownRight, Lightbulb, Circle, Mail, Cloud, Settings as SettingsIcon } from 'lucide-react';
-import { StorageService } from '../../services/storage';
+import { useUser } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
 
 const StatCard = ({ title, value, icon: Icon, trend, trendUp }: any) => (
@@ -42,31 +42,29 @@ const ConnectionStatus = ({ label, icon: Icon, active, message }: any) => (
 
 const DashboardHome = () => {
   const { orders, products, users, settings, resetStore, reseedStore } = useStore();
+  const { user } = useUser();
   const [systemStatus, setSystemStatus] = useState({
-      firebase: false,
-      firebaseError: null as string | null,
+      cloudflare: true,
       payment: false,
       facebook: false,
-      ai: false
+      clerk: false,
   });
-  
+
   const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
-  
+
   // Low Stock Logic
   const threshold = settings.lowStockThreshold || 10;
   const lowStockItems = products.filter(p => p.stock <= threshold);
 
   useEffect(() => {
-      // Check Connections
       setSystemStatus({
-          firebase: StorageService.isFirebaseReady(),
-          firebaseError: StorageService.getConnectionError(),
+          cloudflare: true,
           payment: !!settings.squareApplicationId && !!settings.squareAccessToken,
           facebook: !!settings.fbAppId,
-          ai: !!localStorage.getItem('pn_gemini_key')
+          clerk: !!user,
       });
-  }, [settings]);
+  }, [settings, user]);
   
   // Build chart data from real orders (last 7 days)
   const data = (() => {
@@ -89,11 +87,7 @@ const DashboardHome = () => {
     return result;
   })();
 
-  const getFirebaseMessage = () => {
-      if (systemStatus.firebase) return "Synced";
-      if (systemStatus.firebaseError) return "Error";
-      return "Local";
-  };
+  const getCloudflareMessage = () => "Cloudflare D1";
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -120,7 +114,7 @@ const DashboardHome = () => {
         const checks = [
           { label: 'Set up payments', done: systemStatus.payment, icon: CreditCard, hint: 'Connect Square to accept orders', link: '/admin/settings' },
           { label: 'Configure email', done: !!(settings.emailConfig?.enabled && settings.emailConfig?.adminEmail), icon: Mail, hint: 'Get order confirmations', link: '/admin/settings' },
-          { label: 'Connect database', done: systemStatus.firebase, icon: Cloud, hint: 'Save data to the cloud', link: '/admin/settings' },
+          { label: 'Connect database', done: systemStatus.cloudflare, icon: Cloud, hint: 'Save data to the cloud', link: '/admin/settings' },
           { label: 'Link social media', done: systemStatus.facebook, icon: Share2, hint: 'Auto-post to Facebook & Instagram', link: '/admin/settings' },
         ];
         const doneCount = checks.filter(c => c.done).length;
@@ -202,17 +196,17 @@ const DashboardHome = () => {
             <div className="bg-white p-6 shadow-sm rounded-2xl border border-gray-100 h-full">
                 <h3 className="font-display text-xl text-native-black mb-6">System Status</h3>
                 <div className="space-y-3">
-                    <ConnectionStatus 
-                        label="Database" 
-                        icon={Users} 
-                        active={systemStatus.firebase} 
-                        message={getFirebaseMessage()} 
+                    <ConnectionStatus
+                        label="Database"
+                        icon={Users}
+                        active={systemStatus.cloudflare}
+                        message={getCloudflareMessage()}
                     />
-                    <ConnectionStatus 
-                        label="AI Services" 
-                        icon={Sparkles} 
-                        active={systemStatus.ai} 
-                        message={systemStatus.ai ? "Operational" : "Key Missing"} 
+                    <ConnectionStatus
+                        label="AI Services"
+                        icon={Sparkles}
+                        active={true}
+                        message="OpenRouter (Worker)"
                     />
                     <ConnectionStatus 
                         label="Payments" 

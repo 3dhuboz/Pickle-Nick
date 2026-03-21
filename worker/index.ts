@@ -1,310 +1,622 @@
-/**
- * Cloudflare Worker — Hourly scheduled post publisher for Pickle Nick.
- * Replaces Vercel cron: { path: "/api/publish-scheduled", schedule: "0 * * * *" }
- *
- * Deploy with: wrangler deploy
- * Cron trigger is configured in wrangler.toml
- */
+import { Env, requireAdmin, optionalAuth, jsonResponse, jsonError, corsHeaders } from './auth';
 
-interface Env {
-  FIREBASE_PROJECT_ID: string;
-  VITE_FIREBASE_PROJECT_ID: string;
-  FIREBASE_API_KEY: string;
-  VITE_FIREBASE_API_KEY: string;
-  FB_PAGE_ID?: string;
-  FB_PAGE_ACCESS_TOKEN?: string;
-  GEMINI_API_KEY?: string;
-  RESEND_API_KEY?: string;
-  ADMIN_EMAIL?: string;
-}
+export type { Env };
 
-const FB_BASE = 'https://graph.facebook.com/v21.0';
-const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
-// ── Firestore REST helpers ──────────────────────────────────────────
+const stamp = (data: any) => ({ ...data, updated_at: Date.now() });
 
-const fsBase = (projectId: string) =>
-  `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+const uid = () => crypto.randomUUID();
 
-const fromFsVal = (v: any): any => {
-  if (!v) return null;
-  if ('stringValue' in v) return v.stringValue;
-  if ('integerValue' in v) return Number(v.integerValue);
-  if ('doubleValue' in v) return v.doubleValue;
-  if ('booleanValue' in v) return v.booleanValue;
-  if ('nullValue' in v) return null;
-  if ('arrayValue' in v) return (v.arrayValue?.values || []).map(fromFsVal);
-  if ('mapValue' in v) {
-    const obj: Record<string, any> = {};
-    for (const [k, val] of Object.entries(v.mapValue?.fields || {})) obj[k] = fromFsVal(val);
-    return obj;
-  }
-  return null;
-};
+const rowToProduct = (r: any) => ({
+  id: r.id, name: r.name, description: r.description, price: r.price,
+  stock: r.stock, image: r.image, category: r.category, featured: !!r.featured,
+  weight: r.weight, updatedAt: r.updated_at,
+});
 
-const fromFsDoc = (doc: any): Record<string, any> | null => {
-  if (!doc?.fields) return null;
-  const obj: Record<string, any> = {};
-  for (const [k, v] of Object.entries(doc.fields)) obj[k] = fromFsVal(v);
-  return obj;
-};
+const rowToCategory = (r: any) => ({
+  id: r.id, name: r.name, image: r.image, description: r.description, updatedAt: r.updated_at,
+});
 
-const toFsVal = (v: any): any => {
-  if (v === null || v === undefined) return { nullValue: null };
-  if (typeof v === 'boolean') return { booleanValue: v };
-  if (typeof v === 'number') return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
-  if (typeof v === 'string') return { stringValue: v };
-  if (Array.isArray(v)) return { arrayValue: { values: v.map(toFsVal) } };
-  if (typeof v === 'object') {
-    const fields: Record<string, any> = {};
-    for (const [k, val] of Object.entries(v)) { if (val !== undefined) fields[k] = toFsVal(val); }
-    return { mapValue: { fields } };
-  }
-  return { nullValue: null };
-};
+const rowToOrder = (r: any, items: any[]) => ({
+  id: r.id, userId: r.user_id, customerName: r.customer_name, customerEmail: r.customer_email,
+  shippingAddress: r.shipping_address, subtotal: r.subtotal, tax: r.tax,
+  shippingCost: r.shipping_cost, shippingMethod: r.shipping_method, total: r.total,
+  status: r.status, paymentStatus: r.payment_status, paymentMethod: r.payment_method,
+  transactionId: r.transaction_id, createdAt: r.created_at, trackingNumber: r.tracking_number,
+  noTracking: !!r.no_tracking, updatedAt: r.updated_at,
+  items: items.map(i => ({ productId: i.product_id, quantity: i.quantity, price: i.price, name: i.name })),
+});
 
-const toFsDoc = (obj: Record<string, any>) => {
-  const fields: Record<string, any> = {};
-  for (const [k, v] of Object.entries(obj)) { if (v !== undefined) fields[k] = toFsVal(v); }
-  return { fields };
-};
+const rowToUser = (r: any) => ({
+  id: r.id, email: r.email, name: r.name, role: r.role, orders: [], updatedAt: r.updated_at,
+});
 
-// ── Gemini image generation ─────────────────────────────────────────
+const rowToPost = (r: any) => ({
+  id: r.id, platform: r.platform, content: r.content, imageUrl: r.image_url,
+  scheduledTime: r.scheduled_time, status: r.status,
+  hashtags: JSON.parse(r.hashtags || '[]'), imagePrompt: r.image_prompt,
+  reasoning: r.reasoning, pillar: r.pillar, topic: r.topic,
+  publishError: r.publish_error, publishAttempts: r.publish_attempts, updatedAt: r.updated_at,
+});
 
-async function generateImage(prompt: string, apiKey: string): Promise<string | null> {
-  const models = ['gemini-2.5-flash-image', 'gemini-2.0-flash-exp-image-generation'];
-  for (const model of models) {
-    try {
-      const res = await fetch(`${GEMINI_BASE}/models/${model}:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: `Professional marketing photo for an artisan food brand. ${prompt}. Clean background, vibrant colors, appetizing presentation.` }] }],
-          generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
-        })
-      });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const parts: any[] = data?.candidates?.[0]?.content?.parts || [];
-      for (const part of parts) {
-        if (part.inlineData?.mimeType?.startsWith('image/')) {
-          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-        }
-      }
-    } catch { continue; }
-  }
-  return null;
-}
+const rowToMessage = (r: any) => ({
+  id: r.id, name: r.name, email: r.email, message: r.message,
+  read: !!r.read, createdAt: r.created_at, updatedAt: r.updated_at,
+});
 
-// ── Facebook posting ────────────────────────────────────────────────
+const getOrderItems = async (db: D1Database, orderId: string) =>
+  (await db.prepare('SELECT * FROM order_items WHERE order_id = ?').bind(orderId).all()).results;
 
-async function postTextToFacebook(pageId: string, accessToken: string, message: string): Promise<string> {
-  const res = await fetch(`${FB_BASE}/${pageId}/feed`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, access_token: accessToken })
-  });
-  const data: any = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.id;
-}
+const getOrdersWithItems = async (db: D1Database, rows: any[]) =>
+  Promise.all(rows.map(async r => rowToOrder(r, await getOrderItems(db, r.id))));
 
-async function postPhotoToFacebook(pageId: string, accessToken: string, message: string, imageBase64: string): Promise<string> {
-  const [header, b64data] = imageBase64.split(',');
-  const mimeMatch = header.match(/data:(image\/[^;]+)/);
-  const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-  // CF Workers: use Uint8Array instead of Buffer
-  const imageBytes = Uint8Array.from(atob(b64data), c => c.charCodeAt(0));
+// ── Product Handlers ──────────────────────────────────────────────────────────
 
-  const form = new FormData();
-  const blob = new Blob([imageBytes], { type: mimeType });
-  form.append('source', blob, 'post-image.jpg');
-  form.append('message', message);
-  form.append('access_token', accessToken);
-  form.append('published', 'true');
+async function handleProducts(request: Request, env: Env, path: string): Promise<Response> {
+  const id = path.replace('/api/products', '').replace(/^\//, '') || null;
 
-  const res = await fetch(`${FB_BASE}/${pageId}/photos`, { method: 'POST', body: form });
-  const data: any = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.post_id || data.id;
-}
-
-async function checkFbToken(pageId: string, accessToken: string): Promise<{ valid: boolean; errorCode?: number; errorMsg?: string }> {
-  try {
-    const res = await fetch(`${FB_BASE}/${pageId}?fields=id&access_token=${accessToken}`);
-    const data: any = await res.json();
-    if (data.error) return { valid: false, errorCode: data.error.code, errorMsg: data.error.message };
-    return { valid: true };
-  } catch (err: any) {
-    return { valid: false, errorMsg: err?.message || 'Network error checking token' };
-  }
-}
-
-async function sendTokenExpiredAlert(resendKey: string, adminEmail: string, fromName: string, fromEmail: string, errorMsg: string): Promise<void> {
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
-    body: JSON.stringify({
-      from: `${fromName} <${fromEmail}>`,
-      to: adminEmail,
-      subject: '⚠ Facebook token expired — scheduled posts paused',
-      html: `<div style="font-family:sans-serif;padding:24px;max-width:560px">
-        <h2 style="color:#dc2626;margin:0 0 12px">⚠ Facebook Token Expired</h2>
-        <p>Your Facebook Page Access Token has expired. <strong>All scheduled posts are paused</strong> until you reconnect.</p>
-        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;margin:16px 0">
-          <p style="margin:0;font-size:13px;color:#991b1b"><strong>Error:</strong> ${errorMsg}</p>
-        </div>
-        <p style="color:#6b7280;font-size:12px;margin-top:20px">Your scheduled posts are untouched and will publish automatically once a valid token is saved.</p>
-      </div>`
-    })
-  }).catch(() => {});
-}
-
-// ── Core publish logic (shared between scheduled and HTTP triggers) ──
-
-async function runPublisher(env: Env): Promise<{ message: string; published: number; failed: number; imageGenerated: number; errors: string[] }> {
-  const projectId = env.FIREBASE_PROJECT_ID || env.VITE_FIREBASE_PROJECT_ID;
-  const fbApiKey = env.FIREBASE_API_KEY || env.VITE_FIREBASE_API_KEY;
-
-  if (!projectId || !fbApiKey) {
-    throw new Error('Missing Firebase env vars: FIREBASE_PROJECT_ID and FIREBASE_API_KEY required.');
+  if (request.method === 'GET') {
+    if (id) {
+      const row = await env.DB.prepare('SELECT * FROM products WHERE id = ?').bind(id).first();
+      return row ? jsonResponse(rowToProduct(row)) : jsonError('Not found', 404);
+    }
+    const { results } = await env.DB.prepare('SELECT * FROM products ORDER BY updated_at DESC').all();
+    return jsonResponse(results.map(rowToProduct));
   }
 
-  const base = fsBase(projectId);
-  const results = { published: 0, failed: 0, imageGenerated: 0, errors: [] as string[] };
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
 
-  const settingsRes = await fetch(`${base}/settings/main?key=${fbApiKey}`);
-  const settingsDoc = await settingsRes.json();
-  const settings = fromFsDoc(settingsDoc);
+  const body: any = await request.json();
 
-  const fbPageId: string = settings?.fbPageId || (env.FB_PAGE_ID ?? '');
-  const fbAccessToken: string = settings?.fbPageAccessToken || (env.FB_PAGE_ACCESS_TOKEN ?? '');
-
-  const socialRes = await fetch(`${base}/settings/social?key=${fbApiKey}`);
-  const socialDoc = await socialRes.json();
-  const socialConfig = fromFsDoc(socialDoc);
-  const geminiKey: string = socialConfig?.geminiKey || (env.GEMINI_API_KEY ?? '');
-
-  if (!fbPageId || !fbAccessToken) {
-    return { message: 'Facebook page not configured.', ...results };
+  if (request.method === 'POST') {
+    const p = stamp(body);
+    await env.DB.prepare(
+      'INSERT INTO products (id,name,description,price,stock,image,category,featured,weight,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)'
+    ).bind(p.id || uid(), p.name, p.description || '', p.price, p.stock || 0, p.image || '', p.category || '', p.featured ? 1 : 0, p.weight ?? null, p.updated_at).run();
+    return jsonResponse({ success: true });
   }
 
-  const tokenCheck = await checkFbToken(fbPageId, fbAccessToken);
-  if (!tokenCheck.valid) {
-    const resendKey: string = settings?.emailConfig?.resendApiKey || (env.RESEND_API_KEY ?? '');
-    const adminEmail: string = settings?.emailConfig?.adminEmail || (env.ADMIN_EMAIL ?? '');
-    if (resendKey && adminEmail) {
-      await sendTokenExpiredAlert(resendKey, adminEmail,
-        settings?.emailConfig?.fromName || 'Pickle Nick',
-        settings?.emailConfig?.fromEmail || 'noreply@picklenick.au',
-        tokenCheck.errorMsg || 'Token validation failed'
+  if (request.method === 'PUT' && id) {
+    const p = stamp(body);
+    await env.DB.prepare(
+      'INSERT OR REPLACE INTO products (id,name,description,price,stock,image,category,featured,weight,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)'
+    ).bind(id, p.name, p.description || '', p.price, p.stock || 0, p.image || '', p.category || '', p.featured ? 1 : 0, p.weight ?? null, p.updated_at).run();
+    return jsonResponse({ success: true });
+  }
+
+  if (request.method === 'DELETE' && id) {
+    await env.DB.prepare('DELETE FROM products WHERE id = ?').bind(id).run();
+    return jsonResponse({ success: true });
+  }
+
+  return jsonError('Method not allowed', 405);
+}
+
+// ── Category Handlers ─────────────────────────────────────────────────────────
+
+async function handleCategories(request: Request, env: Env, path: string): Promise<Response> {
+  const id = path.replace('/api/categories', '').replace(/^\//, '') || null;
+
+  if (request.method === 'GET') {
+    if (id) {
+      const row = await env.DB.prepare('SELECT * FROM categories WHERE id = ?').bind(id).first();
+      return row ? jsonResponse(rowToCategory(row)) : jsonError('Not found', 404);
+    }
+    const { results } = await env.DB.prepare('SELECT * FROM categories ORDER BY name ASC').all();
+    return jsonResponse(results.map(rowToCategory));
+  }
+
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+
+  const body: any = await request.json();
+
+  if (request.method === 'POST') {
+    const c = stamp(body);
+    await env.DB.prepare(
+      'INSERT INTO categories (id,name,image,description,updated_at) VALUES (?,?,?,?,?)'
+    ).bind(c.id || uid(), c.name, c.image || '', c.description || '', c.updated_at).run();
+    return jsonResponse({ success: true });
+  }
+
+  if (request.method === 'PUT' && id) {
+    const c = stamp(body);
+    await env.DB.prepare(
+      'INSERT OR REPLACE INTO categories (id,name,image,description,updated_at) VALUES (?,?,?,?,?)'
+    ).bind(id, c.name, c.image || '', c.description || '', c.updated_at).run();
+    return jsonResponse({ success: true });
+  }
+
+  if (request.method === 'DELETE' && id) {
+    await env.DB.prepare('DELETE FROM categories WHERE id = ?').bind(id).run();
+    return jsonResponse({ success: true });
+  }
+
+  return jsonError('Method not allowed', 405);
+}
+
+// ── Order Handlers ────────────────────────────────────────────────────────────
+
+async function handleOrders(request: Request, env: Env, path: string): Promise<Response> {
+  const subPath = path.replace('/api/orders', '');
+  const id = subPath.replace(/^\//, '') || null;
+
+  // GET /api/orders/mine — customer's own orders
+  if (request.method === 'GET' && subPath === '/mine') {
+    const userId = await optionalAuth(request, env);
+    if (!userId) return jsonError('Unauthorized', 401);
+    const { results } = await env.DB.prepare(
+      'SELECT o.* FROM orders o JOIN user_orders uo ON o.id = uo.order_id WHERE uo.user_id = ? ORDER BY o.created_at DESC'
+    ).bind(userId).all();
+    return jsonResponse(await getOrdersWithItems(env.DB, results));
+  }
+
+  if (request.method === 'GET') {
+    const auth = await requireAdmin(request, env);
+    if (auth instanceof Response) return auth;
+    if (id && id !== 'mine') {
+      const row = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(id).first();
+      if (!row) return jsonError('Not found', 404);
+      return jsonResponse(rowToOrder(row, await getOrderItems(env.DB, id)));
+    }
+    const { results } = await env.DB.prepare('SELECT * FROM orders ORDER BY created_at DESC').all();
+    return jsonResponse(await getOrdersWithItems(env.DB, results));
+  }
+
+  // POST /api/orders — place order (public, guest or user)
+  if (request.method === 'POST') {
+    const userId = await optionalAuth(request, env);
+    const body: any = await request.json();
+    const order = { ...body, id: body.id || uid(), userId: userId || body.userId || 'guest' };
+    const now = Date.now();
+
+    const stmts: D1PreparedStatement[] = [
+      env.DB.prepare(
+        'INSERT INTO orders (id,user_id,customer_name,customer_email,shipping_address,subtotal,tax,shipping_cost,shipping_method,total,status,payment_status,payment_method,transaction_id,created_at,tracking_number,no_tracking,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+      ).bind(
+        order.id, order.userId, order.customerName, order.customerEmail, order.shippingAddress,
+        order.subtotal, order.tax || 0, order.shippingCost || 0, order.shippingMethod ?? null,
+        order.total, order.status || 'pending', order.paymentStatus || 'unpaid',
+        order.paymentMethod ?? null, order.transactionId ?? null,
+        order.createdAt || new Date().toISOString(), order.trackingNumber ?? null,
+        order.noTracking ? 1 : 0, now
+      ),
+      ...((order.items || []) as any[]).map((item: any) =>
+        env.DB.prepare('INSERT INTO order_items (order_id,product_id,quantity,price,name) VALUES (?,?,?,?,?)')
+          .bind(order.id, item.productId, item.quantity, item.price, item.name)
+      ),
+      ...((order.items || []) as any[]).map((item: any) =>
+        env.DB.prepare('UPDATE products SET stock = MAX(0, stock - ?), updated_at = ? WHERE id = ?')
+          .bind(item.quantity, now, item.productId)
+      ),
+    ];
+
+    if (userId && userId !== 'guest') {
+      stmts.push(
+        env.DB.prepare('INSERT OR IGNORE INTO users (id,email,name,role,updated_at) VALUES (?,?,?,?,?)')
+          .bind(userId, order.customerEmail, order.customerName, 'customer', now),
+        env.DB.prepare('INSERT OR IGNORE INTO user_orders (user_id,order_id) VALUES (?,?)')
+          .bind(userId, order.id)
       );
     }
-    return { message: 'Facebook token expired. Admin alert sent.', ...results };
+
+    await env.DB.batch(stmts);
+    return jsonResponse({ success: true, id: order.id });
   }
 
-  const postsRes = await fetch(`${base}/posts?key=${fbApiKey}&pageSize=200`);
-  const postsData: any = await postsRes.json();
-  const allDocs: any[] = postsData?.documents || [];
-
-  const now = Date.now();
-  const MAX_ATTEMPTS = 5;
-  const CATCHUP_WINDOW_MS = 48 * 60 * 60 * 1000;
-
-  const duePosts = allDocs
-    .map((d: any) => { const f = fromFsDoc(d); return f ? { ...f, _docName: d.name as string } : null; })
-    .filter((p): p is Record<string, any> & { _docName: string } => {
-      if (!p || p['status'] !== 'scheduled' || !p['scheduledTime']) return false;
-      const scheduled = new Date(p['scheduledTime'] as string).getTime();
-      if (scheduled > now || now - scheduled > CATCHUP_WINDOW_MS) return false;
-      return (p['publishAttempts'] ?? 0) < MAX_ATTEMPTS;
-    });
-
-  if (duePosts.length === 0) {
-    return { message: 'No posts due for publishing.', ...results };
+  // PUT /api/orders/:id — admin update
+  if (request.method === 'PUT' && id) {
+    const auth = await requireAdmin(request, env);
+    if (auth instanceof Response) return auth;
+    const body: any = await request.json();
+    await env.DB.prepare(
+      'UPDATE orders SET status=?,payment_status=?,payment_method=?,transaction_id=?,tracking_number=?,no_tracking=?,shipping_method=?,updated_at=? WHERE id=?'
+    ).bind(
+      body.status, body.paymentStatus, body.paymentMethod ?? null, body.transactionId ?? null,
+      body.trackingNumber ?? null, body.noTracking ? 1 : 0, body.shippingMethod ?? null, Date.now(), id
+    ).run();
+    return jsonResponse({ success: true });
   }
 
-  for (const post of duePosts) {
-    try {
-      let imageDataUrl: string | null = post.imageUrl || null;
-      if (!imageDataUrl && post.imagePrompt && geminiKey) {
-        const generated = await generateImage(post.imagePrompt, geminiKey);
-        if (generated) { imageDataUrl = generated; results.imageGenerated++; }
-      }
-
-      const hashtags = Array.isArray(post.hashtags) && post.hashtags.length > 0 ? '\n\n' + post.hashtags.join(' ') : '';
-      const message = `${post.content}${hashtags}`;
-
-      let fbPostId: string;
-      if (imageDataUrl && imageDataUrl.startsWith('data:image/')) {
-        fbPostId = await postPhotoToFacebook(fbPageId, fbAccessToken, message, imageDataUrl);
-      } else {
-        fbPostId = await postTextToFacebook(fbPageId, fbAccessToken, message);
-      }
-
-      const docId = post._docName?.split('/').pop();
-      if (docId) {
-        const updated = toFsDoc({ ...post, _docName: undefined, status: 'published', imageUrl: null, fbPostId, publishAttempts: 0, publishError: null, updatedAt: Date.now() });
-        await fetch(`${base}/posts/${docId}?key=${fbApiKey}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
-      }
-      results.published++;
-    } catch (err: any) {
-      results.failed++;
-      results.errors.push(`Post ${post.id || 'unknown'}: ${err?.message || 'Unknown error'}`);
-      const docId = post._docName?.split('/').pop();
-      if (docId) {
-        const attempts = (post.publishAttempts ?? 0) + 1;
-        const failDoc = toFsDoc({ ...post, _docName: undefined, publishAttempts: attempts, publishError: `[${new Date().toISOString()}] ${err?.message}`, updatedAt: Date.now() });
-        await fetch(`${base}/posts/${docId}?key=${fbApiKey}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(failDoc) }).catch(() => {});
-      }
-    }
-  }
-
-  if (results.failed > 0) {
-    const s2 = fromFsDoc(await (await fetch(`${base}/settings/main?key=${fbApiKey}`)).json());
-    const resendKey: string = s2?.emailConfig?.resendApiKey || (env.RESEND_API_KEY ?? '');
-    const adminEmail: string = s2?.emailConfig?.adminEmail || (env.ADMIN_EMAIL ?? '');
-    if (resendKey && adminEmail) {
-      const errorList = results.errors.map(e => `<li style="font-size:13px;color:#666;margin:4px 0">${e}</li>`).join('');
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${resendKey}` },
-        body: JSON.stringify({
-          from: `${s2?.emailConfig?.fromName || 'Pickle Nick'} <${s2?.emailConfig?.fromEmail || 'noreply@picklenick.au'}>`,
-          to: adminEmail,
-          subject: `⚠ ${results.failed} social post(s) failed to publish`,
-          html: `<div style="font-family:sans-serif;padding:24px;max-width:520px"><h2 style="color:#dc2626">⚠ Publish Failure</h2><ul style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 12px 12px 28px">${errorList}</ul></div>`
-        })
-      }).catch(() => {});
-    }
-  }
-
-  return { message: `Published ${results.published}. Images generated: ${results.imageGenerated}. Failed: ${results.failed}.`, ...results };
+  return jsonError('Method not allowed', 405);
 }
 
-// ── Cloudflare Worker exports ───────────────────────────────────────
+// ── User Handlers ─────────────────────────────────────────────────────────────
+
+async function handleUsers(request: Request, env: Env, path: string): Promise<Response> {
+  const id = path.replace('/api/users', '').replace(/^\//, '') || null;
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+
+  if (request.method === 'GET') {
+    if (id) {
+      const row = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
+      return row ? jsonResponse(rowToUser(row)) : jsonError('Not found', 404);
+    }
+    const { results } = await env.DB.prepare('SELECT * FROM users ORDER BY updated_at DESC').all();
+    return jsonResponse(results.map(rowToUser));
+  }
+
+  if (request.method === 'PUT' && id) {
+    const body: any = await request.json();
+    await env.DB.prepare(
+      'INSERT OR REPLACE INTO users (id,email,name,role,updated_at) VALUES (?,?,?,?,?)'
+    ).bind(id, body.email, body.name, body.role || 'customer', Date.now()).run();
+    return jsonResponse({ success: true });
+  }
+
+  if (request.method === 'DELETE' && id) {
+    await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(id).run();
+    return jsonResponse({ success: true });
+  }
+
+  return jsonError('Method not allowed', 405);
+}
+
+// ── Post Handlers ─────────────────────────────────────────────────────────────
+
+async function handlePosts(request: Request, env: Env, path: string): Promise<Response> {
+  const id = path.replace('/api/posts', '').replace(/^\//, '') || null;
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+
+  if (request.method === 'GET') {
+    const { results } = await env.DB.prepare('SELECT * FROM posts ORDER BY scheduled_time ASC').all();
+    return jsonResponse(results.map(rowToPost));
+  }
+
+  if (request.method === 'POST') {
+    const body: any = await request.json();
+    const p = stamp(body);
+    await env.DB.prepare(
+      'INSERT OR REPLACE INTO posts (id,platform,content,image_url,scheduled_time,status,hashtags,image_prompt,reasoning,pillar,topic,publish_error,publish_attempts,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    ).bind(
+      p.id || uid(), p.platform, p.content || '', p.imageUrl ?? null, p.scheduledTime,
+      p.status || 'draft', JSON.stringify(p.hashtags || []), p.imagePrompt ?? null,
+      p.reasoning ?? null, p.pillar ?? null, p.topic ?? null, p.publishError ?? null,
+      p.publishAttempts || 0, p.updated_at
+    ).run();
+    return jsonResponse({ success: true });
+  }
+
+  if (request.method === 'DELETE' && id) {
+    await env.DB.prepare('DELETE FROM posts WHERE id = ?').bind(id).run();
+    return jsonResponse({ success: true });
+  }
+
+  return jsonError('Method not allowed', 405);
+}
+
+// ── Message Handlers ──────────────────────────────────────────────────────────
+
+async function handleMessages(request: Request, env: Env, path: string): Promise<Response> {
+  const id = path.replace('/api/messages', '').replace(/^\//, '') || null;
+
+  // POST /api/messages — public contact form submission
+  if (request.method === 'POST') {
+    const body: any = await request.json();
+    const now = new Date().toISOString();
+    await env.DB.prepare(
+      'INSERT INTO messages (id,name,email,message,read,created_at,updated_at) VALUES (?,?,?,?,0,?,?)'
+    ).bind(body.id || uid(), body.name, body.email, body.message, now, Date.now()).run();
+    return jsonResponse({ success: true });
+  }
+
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+
+  if (request.method === 'GET') {
+    const { results } = await env.DB.prepare('SELECT * FROM messages ORDER BY created_at DESC').all();
+    return jsonResponse(results.map(rowToMessage));
+  }
+
+  if (request.method === 'PUT' && id) {
+    const body: any = await request.json();
+    await env.DB.prepare('UPDATE messages SET read=?,updated_at=? WHERE id=?')
+      .bind(body.read ? 1 : 0, Date.now(), id).run();
+    return jsonResponse({ success: true });
+  }
+
+  if (request.method === 'DELETE' && id) {
+    await env.DB.prepare('DELETE FROM messages WHERE id = ?').bind(id).run();
+    return jsonResponse({ success: true });
+  }
+
+  return jsonError('Method not allowed', 405);
+}
+
+// ── Content Handler ───────────────────────────────────────────────────────────
+
+async function handleContent(request: Request, env: Env): Promise<Response> {
+  if (request.method === 'GET') {
+    const row = await env.DB.prepare("SELECT data FROM site_content WHERE key='main'").first<{ data: string }>();
+    return jsonResponse(row ? JSON.parse(row.data) : {});
+  }
+
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+
+  if (request.method === 'PUT') {
+    const body = await request.json();
+    await env.DB.prepare(
+      "INSERT OR REPLACE INTO site_content (key,data,updated_at) VALUES ('main',?,?)"
+    ).bind(JSON.stringify(body), Date.now()).run();
+    return jsonResponse({ success: true });
+  }
+
+  return jsonError('Method not allowed', 405);
+}
+
+// ── Settings Handler ──────────────────────────────────────────────────────────
+
+async function handleSettings(request: Request, env: Env): Promise<Response> {
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+
+  if (request.method === 'GET') {
+    const row = await env.DB.prepare("SELECT data FROM app_settings WHERE key='main'").first<{ data: string }>();
+    return jsonResponse(row ? JSON.parse(row.data) : {});
+  }
+
+  if (request.method === 'PUT') {
+    const body = await request.json();
+    await env.DB.prepare(
+      "INSERT OR REPLACE INTO app_settings (key,data,updated_at) VALUES ('main',?,?)"
+    ).bind(JSON.stringify(body), Date.now()).run();
+    return jsonResponse({ success: true });
+  }
+
+  return jsonError('Method not allowed', 405);
+}
+
+// ── Email Handler ─────────────────────────────────────────────────────────────
+
+async function handleSendEmail(request: Request, env: Env): Promise<Response> {
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+
+  const body: any = await request.json();
+  const { to, subject, html, fromName, fromEmail, bcc, resendApiKey } = body;
+  const apiKey = resendApiKey || env.RESEND_API_KEY;
+
+  const payload: any = {
+    from: `${fromName || 'Pickle Nick'} <${fromEmail || 'noreply@picklenick.au'}>`,
+    to: Array.isArray(to) ? to : [to],
+    subject,
+    html,
+  };
+  if (bcc) payload.bcc = Array.isArray(bcc) ? bcc : [bcc];
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  const data: any = await res.json();
+  if (!res.ok) return jsonError(data.message || 'Email failed', res.status);
+  return jsonResponse({ success: true, id: data.id });
+}
+
+// ── AI Handler ────────────────────────────────────────────────────────────────
+
+async function handleAI(request: Request, env: Env, path: string): Promise<Response> {
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+
+  const body: any = await request.json();
+
+  // Text generation via OpenRouter
+  if (path.endsWith('/text')) {
+    const { prompt, model = 'google/gemini-2.5-flash', jsonMode = false } = body;
+
+    const payload: any = {
+      model,
+      messages: [{ role: 'user', content: prompt }],
+    };
+    if (jsonMode) payload.response_format = { type: 'json_object' };
+
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://picklenick.au',
+        'X-Title': 'Pickle Nick',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data: any = await res.json();
+    if (!res.ok) return jsonError(data.error?.message || 'AI request failed', res.status);
+    return jsonResponse({ text: data.choices?.[0]?.message?.content ?? '' });
+  }
+
+  // Image generation via Cloudflare Workers AI → R2
+  if (path.endsWith('/image')) {
+    const { prompt } = body;
+    const imagePrompt = `Professional food photography of artisan pickles, ${prompt}, highly detailed, cinematic lighting, appetizing, elegant styling, dark green branding tones.`;
+
+    try {
+      const response = await (env.AI as any).run('@cf/bytedance/stable-diffusion-xl-lightning', {
+        prompt: imagePrompt,
+      });
+
+      const buffer = response instanceof ReadableStream
+        ? await new Response(response).arrayBuffer()
+        : response;
+
+      const key = `ai-images/${uid()}.png`;
+      await env.STORAGE.put(key, buffer, { httpMetadata: { contentType: 'image/png' } });
+      return jsonResponse({ url: `${env.R2_PUBLIC_URL}/${key}` });
+    } catch (e: any) {
+      return jsonError(`Image generation failed: ${e.message}`, 500);
+    }
+  }
+
+  return jsonError('Unknown AI endpoint', 404);
+}
+
+// ── R2 Upload Handler ─────────────────────────────────────────────────────────
+
+async function handleR2Upload(request: Request, env: Env): Promise<Response> {
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+
+  const formData = await request.formData();
+  const file = formData.get('file') as unknown as File | null;
+  const prefix = (formData.get('prefix') as string) || 'uploads';
+
+  if (!file) return jsonError('No file provided', 400);
+
+  const ext = file.name.split('.').pop() || 'jpg';
+  const key = `${prefix}/${uid()}.${ext}`;
+
+  await env.STORAGE.put(key, file.stream(), {
+    httpMetadata: { contentType: file.type || 'image/jpeg' },
+  });
+
+  return jsonResponse({ url: `${env.R2_PUBLIC_URL}/${key}`, key });
+}
+
+// ── Publish Handler ───────────────────────────────────────────────────────────
+
+async function runPublisher(env: Env): Promise<{ published: number; failed: number }> {
+  let published = 0;
+  let failed = 0;
+
+  const settingsRow = await env.DB.prepare("SELECT data FROM app_settings WHERE key='main'").first<{ data: string }>();
+  const settings = settingsRow ? JSON.parse(settingsRow.data) : {};
+
+  const fbPageId = settings.fbPageId || env.FB_PAGE_ID;
+  const fbAccessToken = settings.fbPageAccessToken || env.FB_PAGE_ACCESS_TOKEN;
+  const adminEmail = settings.emailConfig?.adminEmail || env.ADMIN_EMAIL;
+  const resendKey = settings.emailConfig?.resendApiKey || env.RESEND_API_KEY;
+
+  if (!fbPageId || !fbAccessToken) {
+    console.log('Publisher: No Facebook credentials configured, skipping.');
+    return { published, failed };
+  }
+
+  const now = new Date().toISOString();
+  const { results: duePosts } = await env.DB.prepare(
+    "SELECT * FROM posts WHERE status='scheduled' AND scheduled_time <= ?"
+  ).bind(now).all();
+
+  const failedIds: string[] = [];
+
+  for (const postRow of duePosts) {
+    const post = rowToPost(postRow);
+    try {
+      let imageUrl = post.imageUrl;
+      if (!imageUrl && post.imagePrompt) {
+        try {
+          const imgRes = await (env.AI as any).run('@cf/bytedance/stable-diffusion-xl-lightning', {
+            prompt: `Professional food photography: ${post.imagePrompt}. Artisan food brand style, no text.`,
+          });
+          const buffer = imgRes instanceof ReadableStream ? await new Response(imgRes).arrayBuffer() : imgRes;
+          const key = `social-images/${uid()}.png`;
+          await env.STORAGE.put(key, buffer, { httpMetadata: { contentType: 'image/png' } });
+          imageUrl = `${env.R2_PUBLIC_URL}/${key}`;
+        } catch (e) {
+          console.warn('Image generation failed for post', post.id, e);
+        }
+      }
+
+      const message = post.content + (post.hashtags?.length ? '\n\n' + post.hashtags.join(' ') : '');
+      const fbBase = `https://graph.facebook.com/v21.0/${fbPageId}`;
+      let fbOk = false;
+
+      if (imageUrl) {
+        const fd = new FormData();
+        fd.append('url', imageUrl);
+        fd.append('caption', message);
+        fd.append('access_token', fbAccessToken);
+        const fbRes = await fetch(`${fbBase}/photos`, { method: 'POST', body: fd });
+        fbOk = fbRes.ok;
+      } else {
+        const fbRes = await fetch(`${fbBase}/feed`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, access_token: fbAccessToken }),
+        });
+        fbOk = fbRes.ok;
+      }
+
+      if (fbOk) {
+        await env.DB.prepare("UPDATE posts SET status='published',image_url=?,publish_error=NULL,updated_at=? WHERE id=?")
+          .bind(imageUrl ?? null, Date.now(), post.id).run();
+        published++;
+      } else {
+        throw new Error('Facebook API returned error');
+      }
+    } catch (e: any) {
+      failed++;
+      failedIds.push(post.id);
+      await env.DB.prepare(
+        'UPDATE posts SET publish_attempts=publish_attempts+1,publish_error=?,updated_at=? WHERE id=?'
+      ).bind(e.message || 'Unknown error', Date.now(), post.id).run();
+    }
+  }
+
+  if (failedIds.length > 0 && adminEmail && resendKey) {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Pickle Nick <noreply@picklenick.au>',
+        to: [adminEmail],
+        subject: `\u26a0\ufe0f ${failedIds.length} post(s) failed to publish`,
+        html: `<p>${failedIds.length} scheduled post(s) failed: ${failedIds.join(', ')}</p>`,
+      }),
+    });
+  }
+
+  console.log(`Publisher: published=${published}, failed=${failed}`);
+  return { published, failed };
+}
+
+async function handlePublish(request: Request, env: Env): Promise<Response> {
+  const auth = await requireAdmin(request, env);
+  if (auth instanceof Response) return auth;
+  const result = await runPublisher(env);
+  return jsonResponse(result);
+}
+
+// ── Main Router ───────────────────────────────────────────────────────────────
 
 export default {
-  // Scheduled cron trigger (replaces Vercel cron)
-  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    const url = new URL(request.url);
+    const path = url.pathname;
+
     try {
-      const result = await runPublisher(env);
-      console.log('[CRON]', result.message);
+      if (path.startsWith('/api/products'))  return handleProducts(request, env, path);
+      if (path.startsWith('/api/categories')) return handleCategories(request, env, path);
+      if (path.startsWith('/api/orders'))    return handleOrders(request, env, path);
+      if (path.startsWith('/api/users'))     return handleUsers(request, env, path);
+      if (path.startsWith('/api/posts'))     return handlePosts(request, env, path);
+      if (path.startsWith('/api/messages'))  return handleMessages(request, env, path);
+      if (path.startsWith('/api/content'))   return handleContent(request, env);
+      if (path.startsWith('/api/settings'))  return handleSettings(request, env);
+      if (path.startsWith('/api/email/send')) return handleSendEmail(request, env);
+      if (path.startsWith('/api/ai/'))       return handleAI(request, env, path);
+      if (path.startsWith('/api/r2/upload')) return handleR2Upload(request, env);
+      if (path.startsWith('/api/publish'))   return handlePublish(request, env);
+      return jsonError('Not found', 404);
     } catch (err: any) {
-      console.error('[CRON ERROR]', err?.message);
+      console.error('Worker error:', err);
+      return jsonError(err.message || 'Internal server error', 500);
     }
   },
 
-  // HTTP handler for manual triggers from the admin UI
-  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
-    if (request.method !== 'GET' && request.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
-    }
-    try {
-      const result = await runPublisher(env);
-      return new Response(JSON.stringify(result), { status: 200, headers: { 'Content-Type': 'application/json' } });
-    } catch (err: any) {
-      return new Response(JSON.stringify({ error: err?.message || 'Handler failed' }), { status: 500 });
-    }
-  }
+  async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
+    await runPublisher(env);
+  },
 };

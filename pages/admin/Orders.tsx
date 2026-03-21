@@ -4,6 +4,20 @@ import { Order, OrderStatus, Product, OrderItem } from '../../types';
 import { Search, Plus, Trash2, X, Download, Truck, Mail, Send, Eye, Server, Loader2, Check, AlertCircle, Save, HelpCircle, ChevronDown, Filter, Users, Package } from 'lucide-react';
 import { EmailService } from '../../services/emailService';
 
+const generateShippingEmailHTML = (order: Order, trackingNumber: string, fromEmail: string, brandName: string): string => `
+<div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
+  <div style="background:#1a1a1a;padding:24px 32px;">
+    <h1 style="color:#fff;margin:0;font-size:20px;">${brandName}</h1>
+  </div>
+  <div style="padding:32px;">
+    <h2 style="font-size:18px;color:#1a1a1a;margin-top:0;">Your order has shipped! 🎉</h2>
+    <p style="color:#6b7280;">Hi ${order.customerName}, your order <strong>#${order.id.slice(-8).toUpperCase()}</strong> is on its way.</p>
+    ${trackingNumber ? `<div style="background:#f9fafb;border-radius:8px;padding:16px;margin:20px 0;"><p style="margin:0;font-size:13px;color:#6b7280;">Tracking number</p><p style="margin:4px 0 0;font-size:16px;font-weight:700;color:#1a1a1a;">${trackingNumber}</p></div>` : ''}
+    <table style="width:100%;border-collapse:collapse;margin:20px 0;">${order.items.map(i => `<tr><td style="padding:8px 0;color:#374151;border-bottom:1px solid #f3f4f6;">${i.name} × ${i.quantity}</td><td style="padding:8px 0;text-align:right;color:#374151;border-bottom:1px solid #f3f4f6;">$${(i.price * i.quantity).toFixed(2)}</td></tr>`).join('')}<tr><td style="padding:12px 0;font-weight:700;color:#1a1a1a;">Total</td><td style="padding:12px 0;text-align:right;font-weight:700;color:#1a1a1a;">$${order.total.toFixed(2)}</td></tr></table>
+    <p style="color:#6b7280;font-size:13px;">Questions? Reply to this email or contact us at ${fromEmail}.</p>
+  </div>
+</div>`;
+
 const HelpTip = ({ text }: { text: string }) => (
     <div className="flex items-start gap-3 bg-blue-50 text-blue-700 p-4 text-sm rounded-xl border border-blue-100 mb-4">
         <HelpCircle size={18} className="shrink-0 mt-0.5" />

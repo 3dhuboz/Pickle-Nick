@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { generateSocialContent, generateMarketingImage, analyzePostTimes, generateRecommendations, generateSmartSchedule } from '../../services/geminiService';
-import type { SmartScheduledPostResult } from '../../services/geminiService';
+import { generateSocialContent, generateMarketingImage, analyzePostTimes, generateRecommendations, generateSmartSchedule } from '../../services/aiService';
+import type { SmartScheduledPostResult } from '../../services/aiService';
 import { SocialPost, ContentCalendarStats } from '../../types';
-import { StorageService } from '../../services/storage';
+import { useAuth } from '@clerk/clerk-react';
 import { ToastProvider, useToast } from '../../components/Toast';
 import {
   Sparkles, Settings, Calendar, BarChart3, Wand2, Image as ImageIcon,
@@ -39,6 +39,8 @@ const DEFAULT_PROFILE: BusinessProfile = {
 const SocialAIDashboard = () => {
   const { posts, addPost, deletePost, settings } = useStore();
   const { toast } = useToast();
+  const { getToken } = useAuth();
+  const tok = () => getToken().then(t => t ?? '');
   const [activeTab, setActiveTab] = useState<'create' | 'calendar' | 'smart' | 'insights' | 'settings'>('smart');
 
   // Profile & Stats
@@ -51,28 +53,9 @@ const SocialAIDashboard = () => {
     return saved ? { ...DEFAULT_STATS, ...JSON.parse(saved) } : DEFAULT_STATS;
   });
 
-  // ── Auto-publish polling ──
-  // Fires /api/publish-scheduled every 60s while the admin has this page open.
-  // This guarantees near-real-time delivery regardless of Vercel cron frequency.
-  useEffect(() => {
-    const trigger = () => fetch('/api/publish-scheduled', { method: 'POST' }).catch(() => {});
-    trigger(); // fire immediately on mount
-    const id = setInterval(trigger, 60_000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Persist profile & stats to cloud + localStorage
-  useEffect(() => { StorageService.saveSocialConfig({ profile }); }, [profile]);
-  useEffect(() => { StorageService.saveSocialConfig({ stats }); }, [stats]);
-
-  // Load social config from cloud on mount
-  useEffect(() => {
-    StorageService.getSocialConfig().then(config => {
-      if (config.profile) setProfile(prev => ({ ...DEFAULT_PROFILE, ...prev, ...config.profile }));
-      if (config.stats) setStats(prev => ({ ...DEFAULT_STATS, ...prev, ...config.stats }));
-      if (config.geminiKey) setApiKeyInput(config.geminiKey);
-    });
-  }, []);
+  // Persist profile & stats to localStorage
+  useEffect(() => { localStorage.setItem('pn_social_profile', JSON.stringify(profile)); }, [profile]);
+  useEffect(() => { localStorage.setItem('pn_social_stats', JSON.stringify(stats)); }, [stats]);
 
   // Content Generator State
   const [topic, setTopic] = useState('');
@@ -100,8 +83,7 @@ const SocialAIDashboard = () => {
   const [uploadTargetIdx, setUploadTargetIdx] = useState<number | null>(null);
 
   const autoGenerateAllImages = async (posts: SmartScheduledPostResult[]) => {
-    if (!localStorage.getItem('pn_gemini_key')) return;
-    // Mark ALL posts as queued upfront so every card shows a spinner immediately
+    const token = await tok();
     const allIdxs = new Set(posts.map((_, i) => i));
     setAutoGenSet(allIdxs);
     setImgGenDone(0);
@@ -114,7 +96,7 @@ const SocialAIDashboard = () => {
         continue;
       }
       try {
-        const img = await generateMarketingImage(prompt);
+        const img = await generateMarketingImage(prompt, token);
         if (img) setSmartPostImages(prev => ({ ...prev, [i]: img }));
       } catch { /* silently skip failed images */ }
       setAutoGenSet(prev => { const s = new Set(prev); s.delete(i); return s; });
@@ -202,9 +184,8 @@ const SocialAIDashboard = () => {
   const [publisherRunning, setPublisherRunning] = useState(false);
   const [lastRunResult, setLastRunResult] = useState<{ published: number; failed: number; message: string; errors: string[]; time: Date } | null>(null);
 
-  // API Key
-  const [apiKeyInput, setApiKeyInput] = useState(() => localStorage.getItem('pn_gemini_key') || '');
-  const hasApiKey = !!localStorage.getItem('pn_gemini_key');
+  // AI is proxied through Cloudflare Worker — no client-side API key needed
+  const hasApiKey = true;
 
   // ── Pull Facebook Live Stats ──
   const handlePullStats = async () => {
@@ -235,7 +216,8 @@ const SocialAIDashboard = () => {
   const handleRunPublisher = async () => {
     setPublisherRunning(true);
     try {
-      const res = await fetch('/api/publish-scheduled', { method: 'POST' });
+      const token = await tok();
+      const res = await fetch('/api/publish', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       const result = { published: data.published ?? 0, failed: data.failed ?? 0, message: data.message || '', errors: data.errors || [], time: new Date() };
       setLastRunResult(result);
@@ -255,10 +237,10 @@ const SocialAIDashboard = () => {
   // ── Content Generation ──
   const handleGenerate = async () => {
     if (!topic.trim()) { toast('Enter a topic first.', 'warning'); return; }
-    if (!hasApiKey) { toast('Set your Gemini API key in Settings first.', 'warning'); return; }
     setIsGenerating(true);
     try {
-      const result = await generateSocialContent(topic, platform, profile.name, profile.type, profile.tone);
+      const token = await tok();
+      const result = await generateSocialContent(topic, platform, token, profile.name, profile.type, profile.tone);
       setGeneratedContent(result.content);
       setGeneratedHashtags(result.hashtags || []);
     } catch (e: any) {
@@ -288,10 +270,10 @@ const SocialAIDashboard = () => {
 
   const handleGenerateImage = async () => {
     if (!topic.trim()) { toast('Enter a topic first.', 'warning'); return; }
-    if (!hasApiKey) { toast('Set your Gemini API key in Settings first.', 'warning'); return; }
     setIsGeneratingImage(true);
     try {
-      const img = await generateMarketingImage(`${profile.type}: ${topic}`);
+      const token = await tok();
+      const img = await generateMarketingImage(`${profile.type}: ${topic}`, token);
       if (img) setGeneratedImage(img);
       else toast('Image generation failed. Try again.', 'error');
     } catch {
@@ -323,10 +305,8 @@ const SocialAIDashboard = () => {
 
   // ── Smart Schedule ──
   const handleSmartSchedule = async () => {
-    if (!hasApiKey) { toast('Set your Gemini API key in Settings first.', 'warning'); return; }
     const fbActive = !!(settings?.fbPageId && settings?.fbPageAccessToken);
     const igActive = !!(settings?.instaAppId);
-    // Only use platforms that are actually configured; fall back to both if neither is set
     const activePlatforms = (fbActive || igActive)
       ? { facebook: fbActive, instagram: igActive }
       : { facebook: true, instagram: true };
@@ -334,7 +314,8 @@ const SocialAIDashboard = () => {
     setSmartPostImages({});
     setAutoGenSet(new Set());
     try {
-      const result = await generateSmartSchedule(profile.name, profile.type, profile.tone, stats, smartCount, profile.location || 'Australia', activePlatforms, saturationMode);
+      const token = await tok();
+      const result = await generateSmartSchedule(profile.name, profile.type, profile.tone, stats, token, smartCount, profile.location || 'Australia', activePlatforms, saturationMode);
       setSmartPosts(result.posts);
       setSmartStrategy(result.strategy);
       // Auto-generate images in the background after posts are ready
@@ -379,12 +360,12 @@ const SocialAIDashboard = () => {
 
   // ── Insights ──
   const handleAnalyze = async () => {
-    if (!hasApiKey) { toast('Set your Gemini API key in Settings first.', 'warning'); return; }
     setIsAnalyzing(true);
     try {
+      const token = await tok();
       const [recs, times] = await Promise.all([
-        generateRecommendations(profile.name, profile.type, stats),
-        analyzePostTimes(profile.type, profile.location)
+        generateRecommendations(profile.name, profile.type, stats, token),
+        analyzePostTimes(profile.type, profile.location, token)
       ]);
       setRecommendations(recs || '');
       setBestTimes(times || '');
@@ -958,29 +939,11 @@ const SocialAIDashboard = () => {
         <div className="space-y-6">
           <h2 className="text-2xl font-display font-semibold flex items-center gap-2"><Settings className="text-amber-500" size={22} /> Settings</h2>
 
-          {/* API Key */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-            <h3 className="font-display font-semibold text-gray-900 flex items-center gap-2"><Sparkles size={18} className="text-amber-500" /> Gemini API Key</h3>
-            <p className="text-xs text-gray-500">Powers all AI features. Get a free key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-amber-600 hover:underline">Google AI Studio</a>.</p>
-            <div className="flex gap-2 max-w-lg">
-              <input
-                type="password"
-                value={apiKeyInput}
-                onChange={e => setApiKeyInput(e.target.value)}
-                placeholder="Paste your API key..."
-                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-900 font-mono text-sm outline-none focus:border-native-black"
-              />
-              <button
-                onClick={() => {
-                  StorageService.saveSocialConfig({ geminiKey: apiKeyInput });
-                  toast('API Key saved! AI features are now active.');
-                }}
-                className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg text-sm transition"
-              >
-                Save
-              </button>
-            </div>
-            {hasApiKey && <p className="text-xs text-green-600 flex items-center gap-1"><CheckCircle size={12} /> Key configured</p>}
+          {/* AI Info */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-3">
+            <h3 className="font-display font-semibold text-gray-900 flex items-center gap-2"><Sparkles size={18} className="text-amber-500" /> AI Services</h3>
+            <p className="text-sm text-gray-600">AI is powered by <strong>OpenRouter</strong> (text) and <strong>Cloudflare Workers AI</strong> (images), proxied securely through the Worker. No API key required here — configure <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">OPENROUTER_API_KEY</code> via <code className="text-xs bg-gray-100 px-1 py-0.5 rounded">wrangler secret put</code>.</p>
+            <p className="text-xs text-green-600 flex items-center gap-1"><CheckCircle size={12} /> AI features active</p>
           </div>
 
           {/* Business Profile */}

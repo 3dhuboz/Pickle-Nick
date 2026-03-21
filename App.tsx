@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { ClerkProvider, useUser } from '@clerk/clerk-react';
 import { StoreProvider, useStore } from './context/StoreContext';
+
+const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
 // Pages
 import Home from './pages/Home';
@@ -31,13 +34,16 @@ const ScrollToTop = () => {
 };
 
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAdmin } = useStore();
+  const { user, isLoaded } = useUser();
+  if (!isLoaded) return null;
+  const isAdmin = (user?.publicMetadata as any)?.role === 'admin';
   return isAdmin ? <>{children}</> : <Navigate to="/admin/login" replace />;
 };
 
 const ProtectedCustomerRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser } = useStore();
-  return currentUser ? <>{children}</> : <Navigate to="/login" replace />;
+  const { user, isLoaded } = useUser();
+  if (!isLoaded) return null;
+  return user ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -189,9 +195,11 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <StoreProvider>
-      <AppContent />
-    </StoreProvider>
+    <ClerkProvider publishableKey={CLERK_KEY}>
+      <StoreProvider>
+        <AppContent />
+      </StoreProvider>
+    </ClerkProvider>
   );
 };
 

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useUser, useAuth, useClerk } from '@clerk/clerk-react';
 import { Product, Order, User, SocialPost, OrderItem, AppSettings, SiteContent, ContactMessage, Category } from '../types';
-import { StorageService } from '../services/storage';
-import { onAuthStateChanged } from 'firebase/auth';
+import { ApiService, INITIAL_SETTINGS } from '../services/api';
 
 interface StoreContextType {
   products: Product[];
@@ -22,7 +22,7 @@ interface StoreContextType {
   addCategory: (c: Category) => Promise<void>;
   updateCategory: (c: Category) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
-  placeOrder: (order: Order) => void;
+  placeOrder: (order: Order) => Promise<void>;
   updateOrderStatus: (id: string, status: Order['status'], tracking?: string) => void;
   updateOrder: (order: Order) => Promise<void>;
   addToCart: (product: Product, quantity: number) => void;
@@ -49,7 +49,19 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Initialize with empty state (or loading state ideally)
+  const { user, isLoaded: userLoaded } = useUser();
+  const { getToken } = useAuth();
+  const { signOut } = useClerk();
+
+  const isAdmin = userLoaded && (user?.publicMetadata as any)?.role === 'admin';
+  const currentUser: User | null = user ? {
+    id: user.id,
+    email: user.primaryEmailAddress?.emailAddress || '',
+    name: user.fullName || user.firstName || 'Customer',
+    role: (user.publicMetadata as any)?.role || 'customer',
+    orders: [],
+  } : null;
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -57,161 +69,124 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
-  
-  // Settings are essential for booting, so we fetch them synchronously from local
-  const [settings, setSettings] = useState<AppSettings>(StorageService.getSettings());
-  
+  const [settings, setSettings] = useState<AppSettings>(INITIAL_SETTINGS);
   const [cart, setCart] = useState<OrderItem[]>([]);
-  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('pn_admin_session') === 'true');
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  const tok = async (): Promise<string> => {
+    const t = await getToken();
+    if (!t) throw new Error('Not authenticated');
+    return t;
+  };
 
   const refreshData = async () => {
     try {
-      // Parallelize all data fetching
-      const [p, cat, o, u, post, content, msgs] = await Promise.all([
-        StorageService.getProducts(),
-        StorageService.getCategories(),
-        StorageService.getOrders(),
-        StorageService.getUsers(),
-        StorageService.getPosts(),
-        StorageService.getContent(),
-        StorageService.getMessages()
+      const [p, cat, content] = await Promise.all([
+        ApiService.getProducts(),
+        ApiService.getCategories(),
+        ApiService.getContent(),
       ]);
-      
       setProducts(p);
       setCategories(cat);
-      setOrders(o);
-      setUsers(u);
-      setPosts(post);
-      setSiteContent(content);
-      setMessages(msgs);
-
-      // Sync settings from cloud (cloud wins, but keep local firebaseConfig for bootstrap)
-      const cloudSettings = await StorageService.getSettingsFromCloud();
-      if (cloudSettings) {
-        const localSettings = StorageService.getSettings();
-        const merged = { ...localSettings, ...cloudSettings, firebaseConfig: localSettings.firebaseConfig };
-        localStorage.setItem('pn_settings', JSON.stringify(merged));
-        setSettings(merged);
-      }
+      if (content && Object.keys(content).length > 0) setSiteContent(content as SiteContent);
     } catch (e) {
-      console.error("Failed to refresh data", e);
+      console.error('Failed to refresh public data', e);
+    }
+
+    if (isAdmin) {
+      try {
+        const token = await tok();
+        const [o, u, post, msgs, s] = await Promise.all([
+          ApiService.getOrders(token),
+          ApiService.getUsers(token),
+          ApiService.getPosts(token),
+          ApiService.getMessages(token),
+          ApiService.getSettings(token),
+        ]);
+        setOrders(o);
+        setUsers(u);
+        setPosts(post);
+        setMessages(msgs);
+        setSettings(s);
+      } catch (e) {
+        console.error('Failed to refresh admin data', e);
+      }
     }
   };
 
   useEffect(() => {
+    if (!userLoaded) return;
     refreshData();
-    
-    const auth = StorageService.getAuth();
-    if (auth) {
-      onAuthStateChanged(auth, async (firebaseUser) => {
-        if (firebaseUser) {
-          const user: User = {
-            id: firebaseUser.uid,
-            name: firebaseUser.displayName || 'Customer',
-            email: firebaseUser.email || '',
-            role: 'customer',
-            orders: []
-          };
-          setCurrentUser(user);
-          // Ensure user exists in DB
-          try { await StorageService.saveUser(user); } catch(e) { console.warn("User sync failed", e); }
-        } else {
-          setCurrentUser(null);
-        }
-      });
-    }
 
-    const handler = (e: any) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-    };
+    const handler = (e: any) => { e.preventDefault(); setInstallPrompt(e); };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
+  }, [userLoaded, isAdmin]);
 
   // Products
   const addProduct = async (p: Product) => {
-    await StorageService.saveProduct(p);
+    await ApiService.saveProduct(p, await tok());
     setProducts(prev => [...prev, p]);
   };
   const updateProduct = async (p: Product) => {
-    await StorageService.saveProduct(p);
-    setProducts(prev => prev.map((prod) => (prod.id === p.id ? p : prod)));
+    await ApiService.saveProduct(p, await tok());
+    setProducts(prev => prev.map(prod => prod.id === p.id ? p : prod));
   };
   const deleteProduct = async (id: string) => {
-    await StorageService.deleteProduct(id);
+    await ApiService.deleteProduct(id, await tok());
     setProducts(prev => prev.filter(p => p.id !== id));
   };
 
   // Categories
   const addCategory = async (c: Category) => {
-    await StorageService.saveCategory(c);
+    await ApiService.saveCategory(c, await tok());
     setCategories(prev => [...prev, c]);
   };
   const updateCategory = async (c: Category) => {
-    await StorageService.saveCategory(c);
+    await ApiService.saveCategory(c, await tok());
     setCategories(prev => prev.map(cat => cat.id === c.id ? c : cat));
   };
   const deleteCategory = async (id: string) => {
-    await StorageService.deleteCategory(id);
+    await ApiService.deleteCategory(id, await tok());
     setCategories(prev => prev.filter(c => c.id !== id));
   };
 
   // Orders
   const placeOrder = async (order: Order) => {
-    await StorageService.saveOrder(order);
+    const token = await getToken();
+    await ApiService.saveOrder(order, token);
     setOrders(prev => [order, ...prev]);
-    
-    // Deduct stock
-    const newProducts = [...products];
-    for (const item of order.items) {
-      const pIndex = newProducts.findIndex(p => p.id === item.productId);
-      if (pIndex > -1) {
-        newProducts[pIndex] = {
-            ...newProducts[pIndex],
-            stock: Math.max(0, newProducts[pIndex].stock - item.quantity)
-        };
-        await StorageService.saveProduct(newProducts[pIndex]);
-      }
-    }
-    setProducts(newProducts);
     clearCart();
   };
 
   const updateOrderStatus = async (id: string, status: Order['status'], tracking?: string) => {
     const order = orders.find(o => o.id === id);
     if (order) {
-        const updated = { ...order, status, trackingNumber: tracking || order.trackingNumber };
-        await StorageService.saveOrder(updated);
-        setOrders(prev => prev.map(o => o.id === id ? updated : o));
+      const updated = { ...order, status, trackingNumber: tracking || order.trackingNumber };
+      await ApiService.updateOrder(updated, await tok());
+      setOrders(prev => prev.map(o => o.id === id ? updated : o));
     }
   };
 
   const updateOrder = async (order: Order) => {
-    await StorageService.saveOrder(order);
+    await ApiService.updateOrder(order, await tok());
     setOrders(prev => prev.map(o => o.id === order.id ? order : o));
   };
 
   // Users
   const updateUser = async (u: User) => {
-    await StorageService.saveUser(u);
+    await ApiService.saveUser(u, await tok());
     setUsers(prev => {
-      const index = prev.findIndex(user => user.id === u.id);
-      if (index > -1) {
-        return prev.map(user => user.id === u.id ? u : user);
-      }
-      return [...prev, u];
+      const i = prev.findIndex(x => x.id === u.id);
+      return i > -1 ? prev.map(x => x.id === u.id ? u : x) : [...prev, u];
     });
   };
-
   const deleteUser = async (id: string) => {
-      await StorageService.deleteUser(id);
-      setUsers(prev => prev.filter(u => u.id !== id));
+    await ApiService.deleteUser(id, await tok());
+    setUsers(prev => prev.filter(u => u.id !== id));
   };
 
-  // Cart (Local Only)
+  // Cart
   const addToCart = (product: Product, quantity: number) => {
     setCart(prev => {
       const existing = prev.find(item => item.productId === product.id);
@@ -221,107 +196,72 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return [...prev, { productId: product.id, quantity, price: product.price, name: product.name }];
     });
   };
-
-  const removeFromCart = (productId: string) => {
-    setCart(prev => prev.filter(item => item.productId !== productId));
-  };
-
+  const removeFromCart = (productId: string) => setCart(prev => prev.filter(item => item.productId !== productId));
   const clearCart = () => setCart([]);
 
-  // Admin Auth
-  const loginAdmin = () => {
-    setIsAdmin(true);
-    localStorage.setItem('pn_admin_session', 'true');
-  };
-
-  const logoutAdmin = () => {
-    setIsAdmin(false);
-    localStorage.removeItem('pn_admin_session');
-  };
-
-  // Customer Auth
-  const loginCustomer = async () => {
-    try {
-      await StorageService.signInGoogle();
-    } catch (e) {
-      console.error("Login failed", e);
-      alert("Login unavailable. Ensure Firebase is configured.");
-    }
-  };
-
-  const logoutCustomer = async () => {
-    await StorageService.logout();
-    setCurrentUser(null);
-  };
+  // Auth — Clerk handles the UI; these are kept for API compatibility
+  const loginAdmin = () => {};
+  const logoutAdmin = async () => { await signOut(); };
+  const loginCustomer = async () => {};
+  const logoutCustomer = async () => { await signOut(); };
 
   // Social
   const addPost = async (post: SocialPost) => {
-    await StorageService.savePost(post);
+    await ApiService.savePost(post, await tok());
     setPosts(prev => {
-        const index = prev.findIndex(p => p.id === post.id);
-        if (index > -1) {
-            const copy = [...prev];
-            copy[index] = post;
-            return copy;
-        }
-        return [post, ...prev];
+      const i = prev.findIndex(p => p.id === post.id);
+      return i > -1 ? prev.map(p => p.id === post.id ? post : p) : [post, ...prev];
     });
   };
-
   const deletePost = async (id: string) => {
-    await StorageService.deletePost(id);
+    await ApiService.deletePost(id, await tok());
     setPosts(prev => prev.filter(p => p.id !== id));
   };
 
+  // Messages
+  const sendMessage = async (msg: ContactMessage) => {
+    await ApiService.saveMessage(msg);
+    setMessages(prev => [msg, ...prev]);
+  };
   const deleteMessage = async (id: string) => {
-    await StorageService.deleteMessage(id);
+    await ApiService.deleteMessage(id, await tok());
     setMessages(prev => prev.filter(m => m.id !== id));
   };
 
   // Settings & Content
   const updateSettings = async (s: AppSettings) => {
     setSettings(s);
-    await StorageService.saveSettings(s);
+    await ApiService.saveSettings(s, await tok());
   };
-
   const updateSiteContent = async (c: SiteContent) => {
-    await StorageService.saveContent(c);
+    await ApiService.saveContent(c, await tok());
     setSiteContent(c);
   };
 
-  const sendMessage = async (msg: ContactMessage) => {
-    await StorageService.saveMessage(msg);
-    setMessages(prev => [msg, ...prev]);
-  };
-
-  // System Tools
+  // System
   const resetStore = async () => {
-      if(window.confirm("WARNING: This will delete ALL data from the connected database and reset settings. This cannot be undone.")) {
-          await StorageService.factoryReset();
-      }
-  };
-
-  const reseedStore = async () => {
-    if(window.confirm("CONFIRM RESEED: This will wipe your cloud database and overwrite it with default seed data.")) {
-        await StorageService.reseedDatabase();
+    if (window.confirm('WARNING: This will delete ALL data. This cannot be undone.')) {
+      alert('Factory reset is not available in the new stack. Use the Cloudflare D1 dashboard to wipe tables.');
     }
   };
-
+  const reseedStore = async () => {
+    alert('Reseed is not available in the new stack. Use the seed SQL file via wrangler d1 execute.');
+  };
   const triggerInstall = async () => {
     if (!installPrompt) return;
     installPrompt.prompt();
     const { outcome } = await installPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setInstallPrompt(null);
-    }
+    if (outcome === 'accepted') setInstallPrompt(null);
   };
 
   return (
     <StoreContext.Provider value={{
       products, categories, orders, users, posts, cart, isAdmin, settings, siteContent, messages, currentUser, installPrompt,
-      addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, placeOrder, updateOrderStatus, updateOrder,
-      addToCart, removeFromCart, clearCart, loginAdmin, logoutAdmin, loginCustomer, logoutCustomer, 
-      addPost, deletePost, updateSettings, updateSiteContent, sendMessage, deleteMessage, refreshData, updateUser, deleteUser, resetStore, reseedStore, triggerInstall
+      addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory,
+      placeOrder, updateOrderStatus, updateOrder, addToCart, removeFromCart, clearCart,
+      loginAdmin, logoutAdmin, loginCustomer, logoutCustomer,
+      addPost, deletePost, updateSettings, updateSiteContent, sendMessage, deleteMessage,
+      refreshData, updateUser, deleteUser, resetStore, reseedStore, triggerInstall,
     }}>
       {children}
     </StoreContext.Provider>
@@ -330,6 +270,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useStore = () => {
   const context = useContext(StoreContext);
-  if (!context) throw new Error("useStore must be used within StoreProvider");
+  if (!context) throw new Error('useStore must be used within StoreProvider');
   return context;
 };

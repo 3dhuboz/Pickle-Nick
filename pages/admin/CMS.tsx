@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Save, Layout, Info, Phone, Link, Image as ImageIcon, Upload, Wand2, Loader2, Sparkles, User, Palette, X, Edit, Maximize2, Check, AlertCircle, HelpCircle } from 'lucide-react';
 import { SiteContent } from '../../types';
-import { generateSiteImage } from '../../services/geminiService';
-import { StorageService } from '../../services/storage';
+import { generateSiteImage } from '../../services/aiService';
+import { useAuth } from '@clerk/clerk-react';
 
 const HelpTip = ({ text }: { text: string }) => (
     <div className="flex items-start gap-2 bg-yellow-50 text-yellow-800 p-2 text-xs font-sans rounded border border-yellow-200 mb-6">
@@ -14,6 +14,7 @@ const HelpTip = ({ text }: { text: string }) => (
 
 // --- Modal Image Editor ---
 const ImageEditorModal = ({ label, value, onClose, onSave }: { label: string, value: string, onClose: () => void, onSave: (val: string) => void }) => {
+    const { getToken } = useAuth();
     const [mode, setMode] = useState<'url' | 'upload' | 'ai'>('url');
     const [tempValue, setTempValue] = useState(value);
     const [prompt, setPrompt] = useState('');
@@ -34,11 +35,12 @@ const ImageEditorModal = ({ label, value, onClose, onSave }: { label: string, va
         if (!prompt) return;
         setLoading(true);
         try {
-            const img = await generateSiteImage(prompt);
+            const token = await getToken() || '';
+            const img = await generateSiteImage(prompt, token);
             setTempValue(img);
         } catch (e: any) {
             console.error(e);
-            alert(e.message || "Spirits failed to conjure image. Check API Key.");
+            alert(e.message || "Image generation failed.");
         }
         setLoading(false);
     };
@@ -241,7 +243,7 @@ const CMS = () => {
         { label: "Mascot: Top Right", path: "general.mascotUrl2", value: content.general.mascotUrl2 },
     ];
 
-    const isConnected = StorageService.isFirebaseReady();
+    const isConnected = true; // Always connected via Cloudflare Worker
 
     return (
         <div className="max-w-6xl mx-auto pb-20">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Save, Cloud, Database, AlertCircle, DollarSign, Mail, Server, Send, Loader2, Check, HelpCircle, Truck, Share2, Instagram, Facebook, Link as LinkIcon, Settings as SettingsIcon, ChevronDown, ChevronRight, Lightbulb, CheckCircle2, Circle, ExternalLink, Zap, BookOpen } from 'lucide-react';
-import { AppSettings, FirebaseConfig, EmailConfig, ShippingConfig } from '../../types';
+import { AppSettings, EmailConfig, ShippingConfig } from '../../types';
 import { FacebookService, FacebookPage } from '../../services/facebookService';
 import { EmailService } from '../../services/emailService';
 
@@ -62,9 +62,8 @@ const SectionHeader = ({ title, icon: Icon, description, configured }: { title: 
 const Settings = () => {
   const { settings, updateSettings } = useStore();
   const [form, setForm] = useState<AppSettings>(settings);
-  const [fbConfig, setFbConfig] = useState<Partial<FirebaseConfig>>(settings.firebaseConfig || {});
   const [emailConfig, setEmailConfig] = useState<EmailConfig>(settings.emailConfig || {
-    enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/send-email'
+    enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/email/send'
   });
   const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(settings.shippingConfig || {
       carrierName: 'Australia Post',
@@ -91,9 +90,8 @@ const Settings = () => {
 
   useEffect(() => {
     setForm(settings);
-    setFbConfig(settings.firebaseConfig || {});
     setEmailConfig(settings.emailConfig || {
-       enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/send-email'
+       enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/email/send'
     });
     setShippingConfig(settings.shippingConfig || {
         carrierName: 'Australia Post',
@@ -117,7 +115,6 @@ const Settings = () => {
         try {
             const newSettings: AppSettings = {
               ...form,
-              firebaseConfig: fbConfig as FirebaseConfig,
               emailConfig: emailConfig,
               shippingConfig: shippingConfig
             };
@@ -248,7 +245,7 @@ const Settings = () => {
           { label: 'Payments configured', done: !!(form.squareApplicationId && form.squareAccessToken && form.squareLocationId), section: 'Square Payments' },
           { label: 'Shipping rates set', done: (shippingConfig.rates || []).length > 0, section: 'Shipping & Postage' },
           { label: 'Email notifications', done: !!(emailConfig.enabled && emailConfig.adminEmail && emailConfig.fromEmail), section: 'Email Notifications' },
-          { label: 'Firebase database', done: !!(fbConfig.apiKey && fbConfig.projectId), section: 'Firebase Persistence' },
+          { label: 'Resend email key set', done: !!(emailConfig.resendApiKey), section: 'Email Notifications' },
         ];
         const doneCount = checks.filter(c => c.done).length;
         const allDone = doneCount === checks.length;
@@ -798,80 +795,11 @@ const Settings = () => {
             </div>
         </div>
 
-        {/* Firebase Persistence */}
+        {/* Infrastructure Info */}
         <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-          <SectionHeader title="Firebase Persistence" icon={Cloud} description="Connect Google Firebase for cloud data storage." configured={!!(fbConfig.apiKey && fbConfig.projectId)} />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-0 md:pl-14 max-w-3xl">
-            <div>
-               <label className="block text-sm font-medium text-gray-700 mb-2">API Key</label>
-               <input 
-                 value={fbConfig.apiKey || ''} 
-                 onChange={e => setFbConfig({...fbConfig, apiKey: e.target.value})}
-                 className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                 placeholder="AIzaSy..."
-               />
-            </div>
-            <div>
-               <label className="block text-sm font-medium text-gray-700 mb-2">Auth Domain</label>
-               <input 
-                 value={fbConfig.authDomain || ''} 
-                 onChange={e => setFbConfig({...fbConfig, authDomain: e.target.value})}
-                 className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                 placeholder="project-id.firebaseapp.com"
-               />
-            </div>
-            <div>
-               <label className="block text-sm font-medium text-gray-700 mb-2">Project ID</label>
-               <input 
-                 value={fbConfig.projectId || ''} 
-                 onChange={e => setFbConfig({...fbConfig, projectId: e.target.value})}
-                 className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                 placeholder="project-id"
-               />
-            </div>
-            <div>
-               <label className="block text-sm font-medium text-gray-700 mb-2">Storage Bucket</label>
-               <input 
-                 value={fbConfig.storageBucket || ''} 
-                 onChange={e => setFbConfig({...fbConfig, storageBucket: e.target.value})}
-                 className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                 placeholder="project-id.appspot.com"
-               />
-            </div>
-            <div>
-               <label className="block text-sm font-medium text-gray-700 mb-2">Messaging Sender ID</label>
-               <input 
-                 value={fbConfig.messagingSenderId || ''} 
-                 onChange={e => setFbConfig({...fbConfig, messagingSenderId: e.target.value})}
-                 className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                 placeholder="123456789"
-               />
-            </div>
-            <div>
-               <label className="block text-sm font-medium text-gray-700 mb-2">App ID</label>
-               <input 
-                 value={fbConfig.appId || ''} 
-                 onChange={e => setFbConfig({...fbConfig, appId: e.target.value})}
-                 className="w-full p-2.5 border border-gray-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-native-black/5 focus:border-native-black outline-none transition-all" 
-                 placeholder="1:123456:web:abcdef"
-               />
-            </div>
-          </div>
+          <SectionHeader title="Infrastructure" icon={Cloud} description="This store runs on Cloudflare D1 (database), R2 (storage), and Clerk (auth). Secrets are managed via Cloudflare Worker environment variables — not stored here." configured={true} />
           <div className="pl-0 md:pl-14 max-w-3xl">
-            <HelpGuide
-                title="How do I set up Firebase?"
-                steps={[
-                    'Go to <strong>console.firebase.google.com</strong> and sign in with your Google account.',
-                    'Click <strong>Add Project</strong>, give it a name (e.g. "pickle-nick"), and follow the prompts.',
-                    'Once your project is created, click the <strong>Web</strong> icon (&lt;/&gt;) to add a web app.',
-                    'Firebase will show your config object — copy each value into the matching fields above.',
-                    'In the left sidebar, go to <strong>Build → Firestore Database</strong> and click <strong>Create Database</strong>.',
-                    'Choose <strong>Start in production mode</strong> and pick the closest server region.',
-                    'Click <strong>Save Changes</strong> at the bottom of this page — your data will sync to the cloud automatically!'
-                ]}
-                tip="Without Firebase, your store data is saved in the browser only. Firebase keeps your products, orders, and settings safe in the cloud."
-            />
+            <HelpTip text="To update secrets (OpenRouter key, Resend key, Clerk key, Facebook tokens), use: wrangler secret put <NAME> from your terminal. These are never exposed to the browser." />
           </div>
         </div>
 
