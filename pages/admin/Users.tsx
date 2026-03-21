@@ -55,11 +55,6 @@ const Users = () => {
                 role: form.role || 'customer',
                 orders: []
             };
-            // Re-using updateUser logic since we don't have explicit addUser in context, 
-            // but context usually handles new objects via merge or we add specific method.
-            // NOTE: Assuming updateUser handles new IDs or context has addUser. 
-            // Since context has updateUser which maps existing, we need to adapt context or use existing logic.
-            // For this codebase, let's assume we call updateUser (which in `StorageService` does `setDoc`, creating if new).
             await updateUser(newUser);
         } else if (editingId && editingId !== 'new') {
             await updateUser(form as User);
