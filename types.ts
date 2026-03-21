@@ -102,15 +102,6 @@ export interface SocialMetrics {
   clicks: number;
 }
 
-export interface FirebaseConfig {
-  apiKey: string;
-  authDomain: string;
-  projectId: string;
-  storageBucket: string;
-  messagingSenderId: string;
-  appId: string;
-}
-
 export interface EmailConfig {
   enabled: boolean;
   adminEmail: string;
@@ -156,8 +147,7 @@ export interface AppSettings {
   squareLocationId: string;
 
   lowStockThreshold: number;
-  firebaseConfig?: FirebaseConfig;
-  
+
   // Financials
   gstEnabled: boolean;
   gstRate: number; // Percentage

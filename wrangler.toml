@@ -1,0 +1,29 @@
+name = "pickle-nick-worker"
+main = "worker/index.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+R2_PUBLIC_URL = "https://r2.picklenick.au"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pickle-nick-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "pickle-nick-assets"
+
+[ai]
+binding = "AI"
+
+[triggers]
+crons = ["0 * * * *"]
+
+# Secrets — set via: wrangler secret put <NAME>
+# CLERK_SECRET_KEY
+# RESEND_API_KEY
+# OPENROUTER_API_KEY
+# ADMIN_EMAIL
+# FB_PAGE_ID          (optional — Facebook integration)
+# FB_PAGE_ACCESS_TOKEN (optional — Facebook integration)

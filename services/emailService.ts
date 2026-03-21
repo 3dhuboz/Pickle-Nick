@@ -199,7 +199,7 @@ export const EmailService = {
             return false;
         }
 
-        const endpoint = config.emailProvider === 'smtp' ? (config.smtpEndpoint || '/api/send-email') : '/api/send-email';
+        const endpoint = '/api/email/send';
         const brandName = config.fromName || 'Pickle Nick';
         try {
             return await sendEmail(endpoint, {
@@ -241,7 +241,7 @@ export const EmailService = {
             ? `${settings.shippingConfig?.trackingBaseUrl || ''}${trackingNumber}`
             : null;
 
-        const endpoint = config.emailProvider === 'smtp' ? (config.smtpEndpoint || '/api/send-email') : '/api/send-email';
+        const endpoint = '/api/email/send';
         const brandName = config.fromName || 'Pickle Nick';
         try {
         return await sendEmail(endpoint, {
@@ -271,7 +271,7 @@ export const EmailService = {
         const config = settings.emailConfig;
         if (!config?.adminEmail) return false;
 
-        const endpoint = config.emailProvider === 'smtp' ? (config.smtpEndpoint || '/api/send-email') : '/api/send-email';
+        const endpoint = '/api/email/send';
         return sendEmail(endpoint, {
             to: config.adminEmail,
             subject: `${config.fromName || 'Pickle Nick'} — Email Test`,

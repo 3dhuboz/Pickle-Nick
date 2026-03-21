@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useStore } from '../../context/StoreContext';
 import { Product, Category } from '../../types';
 import { Plus, Edit2, Trash2, Save, X, Image as ImageIcon, Sparkles, Loader2, Wand2, AlertTriangle, RotateCcw, Check, Package, Grid, AlertCircle, HelpCircle, Search, Filter } from 'lucide-react';
-import { generateProductDescription, generateProductImage, generateCategoryImage } from '../../services/geminiService';
+import { generateProductDescription, generateProductImage, generateCategoryImage } from '../../services/aiService';
+import { useAuth } from '@clerk/clerk-react';
 
 const HelpTip = ({ text }: { text: string }) => (
     <div className="flex items-start gap-3 bg-blue-50 text-blue-700 p-4 text-sm rounded-xl border border-blue-100 mb-6">
@@ -378,6 +379,7 @@ const Inventory = () => {
 };
 
 const ProductForm = ({ form, setForm, categories }: any) => {
+    const { getToken } = useAuth();
     const [loadingAI, setLoadingAI] = useState(false);
     const [loadingImage, setLoadingImage] = useState(false);
 
@@ -385,7 +387,8 @@ const ProductForm = ({ form, setForm, categories }: any) => {
         if (!form.name) return alert("Please enter a product name first.");
         setLoadingAI(true);
         try {
-            const desc = await generateProductDescription(form.name, form.category || 'Pickles');
+            const token = await getToken() || '';
+            const desc = await generateProductDescription(form.name, form.category || 'Pickles', token);
             setForm({...form, description: desc});
         } catch(e) { console.error(e); }
         setLoadingAI(false);
@@ -394,10 +397,10 @@ const ProductForm = ({ form, setForm, categories }: any) => {
     const handleGenerateImage = async () => {
         if (!form.name) return alert("Please enter a product name first.");
         const descPrompt = form.description ? form.description : form.name;
-        
         setLoadingImage(true);
         try {
-            const image = await generateProductImage(form.name, form.category || 'Pickles', descPrompt);
+            const token = await getToken() || '';
+            const image = await generateProductImage(form.name, form.category || 'Pickles', descPrompt, token);
             setForm({...form, image});
         } catch(e) { console.error(e); }
         setLoadingImage(false);
@@ -464,13 +467,15 @@ const ProductForm = ({ form, setForm, categories }: any) => {
 };
 
 const CategoryForm = ({ form, setForm }: any) => {
+    const { getToken } = useAuth();
     const [loadingImage, setLoadingImage] = useState(false);
 
     const handleGenerateImage = async () => {
         if (!form.name) return alert("Enter category name first.");
         setLoadingImage(true);
         try {
-            const image = await generateCategoryImage(form.name);
+            const token = await getToken() || '';
+            const image = await generateCategoryImage(form.name, token);
             setForm({...form, image});
         } catch(e) { console.error(e); }
         setLoadingImage(false);
