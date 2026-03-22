@@ -70,9 +70,9 @@ const Home = () => {
                  {/* Main Logo Image */}
                  <div className="relative bg-native-sand p-4 rounded-full border border-native-black/10 shadow-2xl transform transition-transform duration-700 group-hover:scale-105">
                     <div className="rounded-full overflow-hidden border-4 border-native-clay h-80 w-80 md:h-96 md:w-96 relative bg-white flex items-center justify-center shadow-inner">
-                       <img 
-                           src={siteContent.general.logoUrl}
-                           alt="Pickle Nick Logo" 
+                       <img
+                           src={siteContent.general.logoUrl || "/logo.jpg"}
+                           alt="Pickle Nick Logo"
                            className="w-full h-full object-cover sepia-[.15]"
                        />
                     </div>
@@ -100,11 +100,17 @@ const Home = () => {
             <div className="relative order-2 md:order-1">
                <div className="absolute top-4 left-4 w-full h-full border-2 border-native-turquoise rounded-2xl z-0"></div>
                <div className="relative z-10 bg-white p-2 shadow-xl rounded-2xl transform -rotate-2 hover:rotate-0 transition-transform duration-500">
-                  <img 
-                    src={siteContent.home.founderImage} 
-                    alt="Nick The Founder" 
-                    className="w-full h-[500px] object-cover grayscale hover:grayscale-0 transition-all duration-700 rounded-xl"
-                  />
+                  {siteContent.home.founderImage ? (
+                    <img
+                      src={siteContent.home.founderImage}
+                      alt="Nick The Founder"
+                      className="w-full h-[500px] object-cover grayscale hover:grayscale-0 transition-all duration-700 rounded-xl"
+                    />
+                  ) : (
+                    <div className="w-full h-[500px] bg-native-sand/60 rounded-xl flex items-center justify-center">
+                      <span className="font-display text-2xl text-native-earth/30 uppercase tracking-widest">Photo Coming Soon</span>
+                    </div>
+                  )}
                   <div className="bg-white p-4 text-center rounded-b-xl">
                      <p className="font-display text-2xl text-native-black uppercase">Nick "The Brine" Keeper</p>
                   </div>
@@ -155,11 +161,15 @@ const Home = () => {
          {/* Parallax / Wide Banner */}
          <div className="w-full h-[500px] relative overflow-hidden mb-16 border-y-4 border-native-clay/50 group">
             <div className="absolute inset-0 bg-gradient-to-b from-native-black/60 via-transparent to-native-black/60 z-10 pointer-events-none"></div>
-            <img 
-               src={siteContent.home.galleryImage1} 
-               alt="Lineup on Gravel" 
-               className="w-full h-full object-cover object-center fixed-attachment-hack transform group-hover:scale-105 transition-transform duration-[2000ms]"
-            />
+            {siteContent.home.galleryImage1 ? (
+              <img
+                src={siteContent.home.galleryImage1}
+                alt="Lineup on Gravel"
+                className="w-full h-full object-cover object-center fixed-attachment-hack transform group-hover:scale-105 transition-transform duration-[2000ms]"
+              />
+            ) : (
+              <div className="w-full h-full bg-native-earth/20" />
+            )}
             <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
                <h3 className="font-display text-6xl md:text-9xl text-white/90 uppercase tracking-widest drop-shadow-2xl text-center leading-none opacity-80 mix-blend-overlay">
                   Born In<br/>The Fire
@@ -171,7 +181,11 @@ const Home = () => {
          <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 -mt-24 relative z-30">
             <div className="bg-white p-2 shadow-2xl transform rotate-1 hover:-rotate-1 transition-transform duration-500 rounded-2xl">
                <div className="relative h-96 overflow-hidden rounded-xl">
-                  <img src={siteContent.home.galleryImage2} alt="Production Rows" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+                  {siteContent.home.galleryImage2 ? (
+                    <img src={siteContent.home.galleryImage2} alt="Production Rows" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+                  ) : (
+                    <div className="w-full h-full bg-native-earth/20" />
+                  )}
                   <div className="absolute bottom-4 left-4 bg-native-clay text-white px-6 py-2 font-tribal uppercase tracking-widest text-sm rounded-full shadow-lg">
                      The Arsenal
                   </div>
@@ -179,7 +193,11 @@ const Home = () => {
             </div>
             <div className="bg-white p-2 shadow-2xl transform -rotate-1 hover:rotate-1 transition-transform duration-500 md:mt-12 rounded-2xl">
                <div className="relative h-96 overflow-hidden rounded-xl">
-                  <img src={siteContent.home.galleryImage3} alt="Sauce Detail" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+                  {siteContent.home.galleryImage3 ? (
+                    <img src={siteContent.home.galleryImage3} alt="Sauce Detail" className="w-full h-full object-cover hover:scale-110 transition-transform duration-700" />
+                  ) : (
+                    <div className="w-full h-full bg-native-earth/20" />
+                  )}
                   <div className="absolute bottom-4 right-4 bg-native-turquoise text-white px-6 py-2 font-tribal uppercase tracking-widest text-sm rounded-full shadow-lg">
                      Liquid Gold
                   </div>

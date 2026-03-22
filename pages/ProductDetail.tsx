@@ -36,7 +36,10 @@ const ProductDetail = () => {
             <div className="relative group">
                <div className="absolute inset-0 border border-native-turquoise/20 rounded-[2.5rem] translate-x-4 translate-y-4 transition-transform group-hover:translate-x-6 group-hover:translate-y-6"></div>
                <div className="relative bg-gray-50 border border-native-black/5 rounded-[2rem] h-[550px] overflow-hidden shadow-sm">
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover sepia-[.1] group-hover:sepia-0 group-hover:scale-105 transition-all duration-700" />
+                  {product.image
+                    ? <img src={product.image} alt={product.name} className="w-full h-full object-cover sepia-[.1] group-hover:sepia-0 group-hover:scale-105 transition-all duration-700" />
+                    : <div className="w-full h-full flex items-center justify-center bg-native-sand/50"><span className="font-display text-[10rem] opacity-10">🥒</span></div>
+                  }
                </div>
                <div className="absolute top-8 right-8 bg-native-turquoise text-white p-4 rounded-2xl shadow-ink border border-white/10 animate-in fade-in zoom-in duration-500">
                   <Star fill="currentColor" size={24} className="drop-shadow-sm" />
