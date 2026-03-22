@@ -113,6 +113,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } catch (e) {
         console.error('Failed to refresh admin data', e);
       }
+    } else if (user) {
+      // Load the logged-in customer's own orders for Account page
+      try {
+        const token = await tok();
+        const myOrders = await ApiService.getMyOrders(token);
+        setOrders(myOrders);
+      } catch (e) {
+        console.error('Failed to load customer orders', e);
+      }
     }
   };
 
