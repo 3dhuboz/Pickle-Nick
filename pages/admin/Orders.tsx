@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '@clerk/clerk-react';
 import { Order, OrderStatus, Product, OrderItem } from '../../types';
 import { Search, Plus, Trash2, X, Download, Truck, Mail, Send, Eye, Server, Loader2, Check, AlertCircle, Save, HelpCircle, ChevronDown, Filter, Users, Package } from 'lucide-react';
 import { EmailService } from '../../services/emailService';
@@ -27,6 +28,7 @@ const HelpTip = ({ text }: { text: string }) => (
 
 const Orders = () => {
   const { orders, updateOrder, products, placeOrder, settings } = useStore();
+  const { getToken } = useAuth();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -129,20 +131,20 @@ const Orders = () => {
             createdAt: formData.createdAt || new Date().toISOString()
         };
 
+        const token = await getToken() || '';
         if (isAdding) {
-            await placeOrder(finalOrder); // This adds to context state
-            // Send order confirmation email to customer
+            await placeOrder(finalOrder);
             if (finalOrder.customerEmail) {
-                EmailService.sendOrderConfirmation(finalOrder, settings).catch(e =>
+                EmailService.sendOrderConfirmation(finalOrder, settings, token).catch(e =>
                     console.error('Confirmation email failed:', e?.message)
                 );
             }
         } else {
             await updateOrder(finalOrder);
-            // If status just changed to shipped and has tracking/noTracking, send shipping email
+            // Worker auto-sends tracking email on status → 'shipped', but also try from client for immediate feedback
             if (finalOrder.status === 'shipped' && selectedOrder?.status !== 'shipped' && finalOrder.customerEmail) {
                 if (finalOrder.trackingNumber || finalOrder.noTracking) {
-                    EmailService.sendTrackingUpdate(finalOrder, settings).catch(e =>
+                    EmailService.sendTrackingUpdate(finalOrder, settings, token).catch(e =>
                         console.error('Tracking email failed:', e?.message)
                     );
                 }
@@ -172,7 +174,8 @@ const Orders = () => {
       setEmailSentStatus(false);
       
       try {
-        const success = await EmailService.sendTrackingUpdate(formData as Order, settings);
+        const token = await getToken() || '';
+        const success = await EmailService.sendTrackingUpdate(formData as Order, settings, token);
         if (success) {
             setEmailSentStatus(true);
             setShowEmailPreview(false);

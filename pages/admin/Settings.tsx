@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '@clerk/clerk-react';
 import { Save, Cloud, Database, AlertCircle, DollarSign, Mail, Server, Send, Loader2, Check, HelpCircle, Truck, Share2, Instagram, Facebook, Link as LinkIcon, Settings as SettingsIcon, ChevronDown, ChevronRight, Lightbulb, CheckCircle2, Circle, ExternalLink, Zap, BookOpen } from 'lucide-react';
 import { AppSettings, EmailConfig, ShippingConfig } from '../../types';
 import { FacebookService, FacebookPage } from '../../services/facebookService';
@@ -61,6 +62,7 @@ const SectionHeader = ({ title, icon: Icon, description, configured }: { title: 
 
 const Settings = () => {
   const { settings, updateSettings } = useStore();
+  const { getToken } = useAuth();
   const [form, setForm] = useState<AppSettings>(settings);
   const [emailConfig, setEmailConfig] = useState<EmailConfig>(settings.emailConfig || {
     enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/email/send'
@@ -136,7 +138,8 @@ const Settings = () => {
       setIsTestingEmail(true);
       try {
           const testSettings = { ...settings, emailConfig };
-          const success = await EmailService.sendTestEmail(testSettings);
+          const token = await getToken() || '';
+          const success = await EmailService.sendTestEmail(testSettings, token);
           if (success) {
               alert(`✔ Test email sent to ${emailConfig.adminEmail}\n\nIf you don't receive it within 2 minutes, check your spam folder.`);
           } else {

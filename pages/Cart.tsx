@@ -193,12 +193,6 @@ const Cart = () => {
               createdAt: new Date().toISOString()
           };
           await placeOrder(newOrder);
-
-          // 4. Fire-and-forget confirmation email
-          import('../services/emailService').then(({ EmailService }) => {
-              EmailService.sendOrderConfirmation(newOrder, settings);
-          });
-
           setStep('success');
           window.scrollTo(0, 0);
       } catch (err: any) {
