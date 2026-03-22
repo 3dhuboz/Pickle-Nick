@@ -140,6 +140,9 @@ export const ApiService = {
     apiFetch('/content', { method: 'PUT', body: JSON.stringify(content) }, token),
 
   // ── Settings ─────────────────────────────────────────────────────────────────
+  getPublicSettings: (): Promise<Partial<AppSettings>> =>
+    apiFetch('/settings/public'),
+
   getSettings: (token: string): Promise<AppSettings> =>
     apiFetch('/settings', {}, token).then(data => ({ ...INITIAL_SETTINGS, ...data })),
 

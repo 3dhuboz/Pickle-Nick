@@ -351,7 +351,20 @@ async function handleContent(request: Request, env: Env): Promise<Response> {
 
 // ── Settings Handler ──────────────────────────────────────────────────────────
 
-async function handleSettings(request: Request, env: Env): Promise<Response> {
+async function handleSettings(request: Request, env: Env, path: string): Promise<Response> {
+  // Public subset — safe for any visitor (no secrets exposed)
+  if (request.method === 'GET' && path === '/api/settings/public') {
+    const row = await env.DB.prepare("SELECT data FROM app_settings WHERE key='main'").first<{ data: string }>();
+    const full = row ? JSON.parse(row.data) : {};
+    return jsonResponse({
+      gstEnabled: full.gstEnabled ?? false,
+      gstRate: full.gstRate ?? 10,
+      shippingConfig: full.shippingConfig ?? null,
+      squareApplicationId: full.squareApplicationId ?? '',
+      squareLocationId: full.squareLocationId ?? '',
+    });
+  }
+
   const auth = await requireAdmin(request, env);
   if (auth instanceof Response) return auth;
 
@@ -662,7 +675,7 @@ export default {
       if (path.startsWith('/api/posts'))     return handlePosts(request, env, path);
       if (path.startsWith('/api/messages'))  return handleMessages(request, env, path);
       if (path.startsWith('/api/content'))   return handleContent(request, env);
-      if (path.startsWith('/api/settings'))  return handleSettings(request, env);
+      if (path.startsWith('/api/settings'))  return handleSettings(request, env, path);
       if (path.startsWith('/api/email/send')) return handleSendEmail(request, env);
       if (path.startsWith('/api/ai/'))       return handleAI(request, env, path);
       if (path.startsWith('/api/r2/upload')) return handleR2Upload(request, env);
