@@ -40,9 +40,49 @@ const ConnectionStatus = ({ label, icon: Icon, active, message }: any) => (
     </div>
 );
 
+type ChartPeriod = '7d' | '30d' | 'year';
+
+const buildChartData = (orders: any[], period: ChartPeriod) => {
+  const now = new Date();
+  if (period === '7d') {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - (6 - i));
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      const dayEnd = dayStart + 86400000;
+      const sales = orders
+        .filter(o => { const t = new Date(o.createdAt).getTime(); return t >= dayStart && t < dayEnd; })
+        .reduce((s, o) => s + o.total, 0);
+      return { name: days[d.getDay()], sales: Math.round(sales * 100) / 100 };
+    });
+  }
+  if (period === '30d') {
+    // Group into ~5-day buckets (6 buckets)
+    return Array.from({ length: 6 }, (_, i) => {
+      const end = new Date(now); end.setDate(end.getDate() - i * 5);
+      const start = new Date(end); start.setDate(start.getDate() - 5);
+      const sales = orders
+        .filter(o => { const t = new Date(o.createdAt).getTime(); return t >= start.getTime() && t < end.getTime(); })
+        .reduce((s, o) => s + o.total, 0);
+      return { name: `${start.getMonth()+1}/${start.getDate()}`, sales: Math.round(sales * 100) / 100 };
+    }).reverse();
+  }
+  // year — group by month
+  return Array.from({ length: 12 }, (_, i) => {
+    const month = new Date(now.getFullYear(), i, 1);
+    const monthEnd = new Date(now.getFullYear(), i + 1, 1);
+    const sales = orders
+      .filter(o => { const t = new Date(o.createdAt).getTime(); return t >= month.getTime() && t < monthEnd.getTime(); })
+      .reduce((s, o) => s + o.total, 0);
+    return { name: month.toLocaleString('default', { month: 'short' }), sales: Math.round(sales * 100) / 100 };
+  });
+};
+
 const DashboardHome = () => {
   const { orders, products, users, settings, resetStore, reseedStore } = useStore();
   const { user } = useUser();
+  const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('7d');
   const [systemStatus, setSystemStatus] = useState({
       cloudflare: true,
       payment: false,
@@ -65,27 +105,18 @@ const DashboardHome = () => {
           clerk: !!user,
       });
   }, [settings, user]);
-  
-  // Build chart data from real orders (last 7 days)
-  const data = (() => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const now = new Date();
-    const result: { name: string; sales: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-      const dayEnd = dayStart + 86400000;
-      const dayTotal = orders
-        .filter(o => {
-          const t = new Date(o.createdAt).getTime();
-          return t >= dayStart && t < dayEnd;
-        })
-        .reduce((sum, o) => sum + o.total, 0);
-      result.push({ name: days[d.getDay()], sales: Math.round(dayTotal * 100) / 100 });
-    }
-    return result;
-  })();
+
+  const data = buildChartData(orders, chartPeriod);
+
+  // Real period-over-period trend (30 days vs prior 30 days)
+  const now = Date.now();
+  const periodMs = 30 * 86400000;
+  const thisRevenue = orders.filter(o => now - new Date(o.createdAt).getTime() < periodMs).reduce((s, o) => s + o.total, 0);
+  const prevRevenue = orders.filter(o => { const age = now - new Date(o.createdAt).getTime(); return age >= periodMs && age < 2 * periodMs; }).reduce((s, o) => s + o.total, 0);
+  const revenueChange = prevRevenue > 0 ? Math.round(((thisRevenue - prevRevenue) / prevRevenue) * 100) : null;
+  const thisOrderCount = orders.filter(o => now - new Date(o.createdAt).getTime() < periodMs).length;
+  const prevOrderCount = orders.filter(o => { const age = now - new Date(o.createdAt).getTime(); return age >= periodMs && age < 2 * periodMs; }).length;
+  const ordersChange = prevOrderCount > 0 ? Math.round(((thisOrderCount - prevOrderCount) / prevOrderCount) * 100) : null;
 
   const getCloudflareMessage = () => "Cloudflare D1";
 
@@ -158,10 +189,10 @@ const DashboardHome = () => {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Revenue" value={`$${totalRevenue.toFixed(2)}`} icon={DollarSign} trend="12%" trendUp={true} />
-        <StatCard title="Total Orders" value={orders.length} icon={ShoppingBag} trend="5%" trendUp={true} />
+        <StatCard title="Total Revenue" value={`$${totalRevenue.toFixed(2)}`} icon={DollarSign} trend={revenueChange !== null ? `${revenueChange > 0 ? '+' : ''}${revenueChange}%` : undefined} trendUp={revenueChange !== null ? revenueChange >= 0 : true} />
+        <StatCard title="Total Orders" value={orders.length} icon={ShoppingBag} trend={ordersChange !== null ? `${ordersChange > 0 ? '+' : ''}${ordersChange}%` : undefined} trendUp={ordersChange !== null ? ordersChange >= 0 : true} />
         <StatCard title="Pending Orders" value={pendingOrders} icon={Package} trend={pendingOrders > 0 ? "Action Needed" : "All Clear"} trendUp={pendingOrders === 0} />
-        <StatCard title="Customers" value={users.length || 0} icon={Users} trend="3%" trendUp={true} />
+        <StatCard title="Customers" value={users.length || 0} icon={Users} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -169,10 +200,14 @@ const DashboardHome = () => {
           <div className="lg:col-span-2 bg-white p-8 shadow-sm rounded-2xl border border-gray-100">
             <div className="flex justify-between items-center mb-8">
                 <h3 className="font-display text-xl text-native-black">Revenue Overview</h3>
-                <select className="bg-gray-50 border-none text-sm text-gray-500 rounded-lg px-3 py-1 focus:ring-0 cursor-pointer">
-                    <option>Last 7 Days</option>
-                    <option>Last 30 Days</option>
-                    <option>This Year</option>
+                <select
+                    value={chartPeriod}
+                    onChange={e => setChartPeriod(e.target.value as ChartPeriod)}
+                    className="bg-gray-50 border-none text-sm text-gray-500 rounded-lg px-3 py-1 focus:ring-0 cursor-pointer"
+                >
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d">Last 30 Days</option>
+                    <option value="year">This Year</option>
                 </select>
             </div>
             <div className="h-80 w-full">
