@@ -18,15 +18,35 @@ const getBearerToken = (request: Request): string | null => {
   return auth?.startsWith('Bearer ') ? auth.slice(7) : null;
 };
 
+// Fetch user metadata from Clerk API (JWT doesn't include publicMetadata by default)
+const getUserRole = async (userId: string, secretKey: string): Promise<string | null> => {
+  try {
+    const res = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
+      headers: { Authorization: `Bearer ${secretKey}` },
+    });
+    if (!res.ok) return null;
+    const user: any = await res.json();
+    return user.public_metadata?.role || null;
+  } catch {
+    return null;
+  }
+};
+
 export const requireAdmin = async (request: Request, env: Env): Promise<string | Response> => {
   const token = getBearerToken(request);
   if (!token) return jsonError('Unauthorized', 401);
 
   try {
     const payload = await verifyToken(token, { secretKey: env.CLERK_SECRET_KEY });
-    const role = (payload.publicMetadata as any)?.role;
+    const userId = payload.sub;
+
+    // Check publicMetadata in JWT first, fall back to API call
+    let role = (payload as any).publicMetadata?.role || (payload as any).public_metadata?.role;
+    if (!role) {
+      role = await getUserRole(userId, env.CLERK_SECRET_KEY);
+    }
     if (role !== 'admin') return jsonError('Forbidden', 403);
-    return payload.sub;
+    return userId;
   } catch {
     return jsonError('Invalid token', 401);
   }
