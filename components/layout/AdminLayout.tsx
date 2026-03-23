@@ -58,14 +58,16 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const SidebarContent = () => (
     <>
       {/* Brand Header */}
-      <div className="p-8 border-b border-white/5">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-8 h-8 bg-native-clay rounded-lg flex items-center justify-center shadow-lg shadow-native-clay/20">
-            <Mountain size={16} className="text-white" />
+      <div className="px-5 py-5 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-native-clay rounded-lg flex items-center justify-center shadow-lg shadow-native-clay/20">
+            <Mountain size={17} className="text-white" />
           </div>
-          <h2 className="font-display text-2xl text-white tracking-wide">Pickle Nick</h2>
+          <div>
+            <h2 className="font-display text-xl text-white tracking-wide leading-tight">Pickle Nick</h2>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-native-sand/40">Command Center</p>
+          </div>
         </div>
-        <p className="text-xs text-native-sand/40 font-medium pl-11">Command Center</p>
       </div>
 
       {/* Navigation */}
