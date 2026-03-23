@@ -1,7 +1,8 @@
 import { Product, Order, User, SocialPost, AppSettings, SiteContent, ContactMessage, Category } from '../types';
 
-// Points to the Cloudflare Worker. In dev, proxy via vite or wrangler dev.
-const BASE = '/api';
+// In dev, Vite proxies /api → localhost:8787. In production, use the Worker URL.
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || '';
+const BASE = `${WORKER_URL}/api`;
 
 const apiFetch = async (path: string, opts: RequestInit = {}, token?: string | null): Promise<any> => {
   const headers: Record<string, string> = {

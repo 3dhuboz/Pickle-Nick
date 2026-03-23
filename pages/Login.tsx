@@ -1,5 +1,5 @@
 import React from 'react';
-import { SignIn, useUser } from '@clerk/clerk-react';
+import { SignIn, useUser } from '@clerk/react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
@@ -20,7 +20,7 @@ const Login = () => {
         <SignIn
           routing="hash"
           signUpUrl="/login"
-          afterSignInUrl="/shop"
+          fallbackRedirectUrl="/shop"
           appearance={{
             elements: {
               rootBox: 'w-full',

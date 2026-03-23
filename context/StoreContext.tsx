@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useUser, useAuth, useClerk } from '@clerk/clerk-react';
+import { useUser, useAuth, useClerk } from '@clerk/react';
 import { Product, Order, User, SocialPost, OrderItem, AppSettings, SiteContent, ContactMessage, Category } from '../types';
 import { ApiService, INITIAL_SETTINGS } from '../services/api';
 

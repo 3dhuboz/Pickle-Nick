@@ -3,7 +3,7 @@ import { useStore } from '../../context/StoreContext';
 import { Save, Layout, Info, Phone, Link, Image as ImageIcon, Upload, Wand2, Loader2, Sparkles, User, Palette, X, Edit, Maximize2, Check, AlertCircle, HelpCircle } from 'lucide-react';
 import { SiteContent } from '../../types';
 import { generateSiteImage } from '../../services/aiService';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/react';
 
 const HelpTip = ({ text }: { text: string }) => (
     <div className="flex items-start gap-2 bg-yellow-50 text-yellow-800 p-2 text-xs font-sans rounded border border-yellow-200 mb-6">

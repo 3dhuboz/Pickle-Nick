@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/react';
 import { Order, OrderStatus, Product, OrderItem } from '../../types';
 import { Search, Plus, Trash2, X, Download, Truck, Mail, Send, Eye, Server, Loader2, Check, AlertCircle, Save, HelpCircle, ChevronDown, Filter, Users, Package } from 'lucide-react';
 import { EmailService } from '../../services/emailService';

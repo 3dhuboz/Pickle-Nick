@@ -3,7 +3,7 @@ import { useStore } from '../../context/StoreContext';
 import { generateSocialContent, generateMarketingImage, analyzePostTimes, generateRecommendations, generateSmartSchedule } from '../../services/aiService';
 import type { SmartScheduledPostResult } from '../../services/aiService';
 import { SocialPost, ContentCalendarStats } from '../../types';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/react';
 import { ToastProvider, useToast } from '../../components/Toast';
 import {
   Sparkles, Settings, Calendar, BarChart3, Wand2, Image as ImageIcon,

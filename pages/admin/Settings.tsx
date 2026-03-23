@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../context/StoreContext';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/react';
 import { Save, Cloud, Database, AlertCircle, DollarSign, Mail, Server, Send, Loader2, Check, HelpCircle, Truck, Share2, Instagram, Facebook, Link as LinkIcon, Settings as SettingsIcon, ChevronDown, ChevronRight, Lightbulb, CheckCircle2, Circle, ExternalLink, Zap, BookOpen } from 'lucide-react';
 import { AppSettings, EmailConfig, ShippingConfig } from '../../types';
 import { FacebookService, FacebookPage } from '../../services/facebookService';
