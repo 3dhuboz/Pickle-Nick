@@ -140,49 +140,27 @@ const DashboardHome = () => {
         </div>
       </div>
       
-      {/* Getting Started Checklist */}
+      {/* Getting Started Checklist — compact, only payments + email */}
       {(() => {
         const checks = [
-          { label: 'Set up payments', done: systemStatus.payment, icon: CreditCard, hint: 'Connect Square to accept orders', link: '/admin/settings' },
-          { label: 'Configure email', done: !!(settings.emailConfig?.enabled && settings.emailConfig?.adminEmail), icon: Mail, hint: 'Get order confirmations', link: '/admin/settings' },
-          { label: 'Connect database', done: systemStatus.cloudflare, icon: Cloud, hint: 'Save data to the cloud', link: '/admin/settings' },
-          { label: 'Link social media', done: systemStatus.facebook, icon: Share2, hint: 'Auto-post to Facebook & Instagram', link: '/admin/settings' },
+          { label: 'Set up payments', done: systemStatus.payment, hint: 'Connect Square', link: '/admin/settings' },
+          { label: 'Configure email', done: !!(settings.emailConfig?.enabled && settings.emailConfig?.adminEmail), hint: 'Order notifications', link: '/admin/settings' },
         ];
         const doneCount = checks.filter(c => c.done).length;
-        const allDone = doneCount === checks.length;
-        if (allDone) return null;
+        if (doneCount === checks.length) return null;
         return (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Lightbulb size={20} className="text-amber-600" />
-                <div>
-                  <h3 className="font-display font-semibold text-gray-900">Getting Started</h3>
-                  <p className="text-xs text-gray-500">{doneCount} of {checks.length} done — finish setup to unlock all features</p>
-                </div>
-              </div>
-              <Link to="/admin/settings" className="text-xs font-medium text-amber-700 hover:text-amber-900 bg-white px-3 py-1.5 rounded-lg border border-amber-200 shadow-sm flex items-center gap-1.5 transition-colors">
-                <SettingsIcon size={13} /> Open Settings
-              </Link>
+          <div className="flex items-center gap-4 bg-amber-50/60 border border-amber-200/60 rounded-xl px-4 py-3">
+            <Lightbulb size={16} className="text-amber-500 shrink-0" />
+            <div className="flex items-center gap-3 flex-1 text-sm">
+              {checks.filter(c => !c.done).map((c, i) => (
+                <Link key={i} to={c.link} className="text-amber-700 hover:text-amber-900 font-medium transition-colors">
+                  {c.label} <span className="text-amber-500/60">· {c.hint}</span>
+                </Link>
+              ))}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-              {checks.map((c, i) => 
-                c.done ? (
-                  <div key={i} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm bg-white/60 text-gray-400">
-                    <CheckCircle2 size={16} className="text-green-500 shrink-0" />
-                    <span className="block text-sm line-through">{c.label}</span>
-                  </div>
-                ) : (
-                  <Link key={i} to={c.link} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm bg-white text-gray-900 border border-amber-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-pointer group">
-                    <Circle size={16} className="text-amber-400 shrink-0 group-hover:text-amber-500 transition-colors" />
-                    <div className="min-w-0">
-                      <span className="block text-sm font-medium group-hover:text-amber-700 transition-colors">{c.label}</span>
-                      <span className="text-[10px] text-gray-400 block">{c.hint}</span>
-                    </div>
-                  </Link>
-                )
-              )}
-            </div>
+            <Link to="/admin/settings" className="text-xs font-medium text-amber-600 hover:text-amber-800 transition-colors shrink-0">
+              Settings →
+            </Link>
           </div>
         );
       })()}
