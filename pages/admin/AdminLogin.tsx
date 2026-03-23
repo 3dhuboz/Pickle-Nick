@@ -1,8 +1,16 @@
 import React from 'react';
-import { SignIn } from '@clerk/react';
-import { Link } from 'react-router-dom';
+import { SignIn, useUser } from '@clerk/react';
+import { Link, Navigate } from 'react-router-dom';
 
 const AdminLogin = () => {
+  const { user, isLoaded } = useUser();
+
+  // If already signed in as admin, skip login and go to dashboard
+  if (isLoaded && user) {
+    const isAdmin = (user.publicMetadata as any)?.role === 'admin';
+    if (isAdmin) return <Navigate to="/admin/dashboard" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-native-sand bg-fabric-texture flex items-center justify-center p-4">
       <div className="w-full max-w-md">
