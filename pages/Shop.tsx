@@ -37,7 +37,10 @@ const Shop = () => {
           {activeCategory ? (
               <div className="relative h-64 md:h-96 w-full group overflow-hidden">
                   <div className="absolute inset-0 bg-black/40 z-10 transition-colors group-hover:bg-black/30"></div>
-                  <img src={activeCategory.image} alt={activeCategory.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+                  {activeCategory.image
+                    ? <img src={activeCategory.image} alt={activeCategory.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+                    : <div className="w-full h-full bg-native-earth/30" />
+                  }
                   <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-8 text-white drop-shadow-2xl">
                       <h1 className="font-display text-6xl md:text-8xl uppercase leading-[0.8] mb-4 drop-shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">{activeCategory.name}</h1>
                       <p className="font-tribal font-bold text-lg md:text-2xl tracking-[0.4em] uppercase opacity-90 animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-200">{activeCategory.description}</p>
@@ -107,11 +110,10 @@ const Shop = () => {
                 <div className="bg-white border border-native-black/5 h-full flex flex-col shadow-card hover:shadow-lg hover:-translate-y-2 transition-all duration-500 relative rounded-[2.5rem] overflow-hidden">
                   
                   <div className="aspect-square overflow-hidden bg-native-sand relative">
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" 
-                    />
+                    {product.image
+                      ? <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                      : <div className="w-full h-full flex items-center justify-center"><span className="font-display text-6xl opacity-20">🥒</span></div>
+                    }
                     {product.stock === 0 && (
                       <div className="absolute inset-0 bg-native-black/70 backdrop-blur-[2px] flex items-center justify-center">
                         <span className="text-white font-tribal text-xl font-bold uppercase border border-white/30 px-6 py-3 tracking-[0.3em] rounded-full">Barren</span>

@@ -2,11 +2,14 @@ import { AppSettings, Order, OrderItem } from '../types';
 
 const sendEmail = async (
     endpoint: string,
-    payload: { to: string; subject: string; html: string; fromName?: string; fromEmail?: string; bcc?: string; resendApiKey?: string; smtp?: { host?: string; port?: number; user?: string; pass?: string; secure?: string } }
+    payload: { to: string; subject: string; html: string; fromName?: string; fromEmail?: string; bcc?: string; resendApiKey?: string; smtp?: { host?: string; port?: number; user?: string; pass?: string; secure?: string } },
+    token?: string
 ): Promise<boolean> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
     });
     let data: any;
@@ -192,7 +195,7 @@ const shippingUpdateHtml = (customerName: string, orderId: string, total: string
   `, brandName);
 
 export const EmailService = {
-    sendOrderConfirmation: async (order: Order, settings: AppSettings): Promise<boolean> => {
+    sendOrderConfirmation: async (order: Order, settings: AppSettings, token?: string): Promise<boolean> => {
         const config = settings.emailConfig;
         if (!config?.enabled) {
             console.warn("Email not configured or disabled. Skipping order confirmation.");
@@ -222,14 +225,14 @@ export const EmailService = {
                 bcc: config.adminEmail,
                 resendApiKey: config.emailProvider !== 'smtp' ? config.resendApiKey : undefined,
                 smtp: config.emailProvider === 'smtp' ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
-            });
+            }, token);
         } catch (e: any) {
             console.error('Order confirmation email failed:', e?.message);
             return false;
         }
     },
 
-    sendTrackingUpdate: async (order: Order, settings: AppSettings): Promise<boolean> => {
+    sendTrackingUpdate: async (order: Order, settings: AppSettings, token?: string): Promise<boolean> => {
         const config = settings.emailConfig;
         if (!config?.enabled) {
             console.warn("Email not configured or disabled. Skipping tracking email.");
@@ -260,14 +263,14 @@ export const EmailService = {
             bcc: config.adminEmail,
             resendApiKey: config.emailProvider !== 'smtp' ? config.resendApiKey : undefined,
             smtp: config.emailProvider === 'smtp' ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
-        });
+        }, token);
         } catch (e: any) {
             console.error('Tracking update email failed:', e?.message);
             return false;
         }
     },
 
-    sendTestEmail: async (settings: AppSettings): Promise<boolean> => {
+    sendTestEmail: async (settings: AppSettings, token?: string): Promise<boolean> => {
         const config = settings.emailConfig;
         if (!config?.adminEmail) return false;
 
@@ -287,6 +290,6 @@ export const EmailService = {
             fromEmail: config.fromEmail,
             resendApiKey: config.emailProvider !== 'smtp' ? config.resendApiKey : undefined,
             smtp: config.emailProvider === 'smtp' ? { host: config.smtpHost, port: config.smtpPort, user: config.smtpUser, pass: config.smtpPass, secure: config.smtpSecure } : undefined
-        });
+        }, token);
     }
 };

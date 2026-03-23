@@ -29,7 +29,7 @@ const Navbar = () => {
           <Link to="/" className="flex-shrink-0 flex items-center group relative z-10">
              <div className="h-16 w-16 bg-white border border-native-black/5 overflow-hidden shadow-sm transform transition-all group-hover:scale-105 group-hover:shadow-md flex items-center justify-center rounded-full">
                 <img 
-                  src={siteContent?.general.logoUrl || "/logo.jpg"}
+                  src={siteContent?.general.logoUrl || "/logo.svg"}
                   alt="Pickle Nick Logo" 
                   className="h-full w-full object-cover p-1 sepia-[.15]" 
                 />
@@ -45,16 +45,13 @@ const Navbar = () => {
           </div>
 
           {/* Icons */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3">
             {currentUser ? (
-              <div className="flex items-center gap-3">
-                 <Link to="/account" className="flex items-center gap-3 group">
-                    <span className="hidden lg:block font-tribal text-sm font-bold uppercase tracking-[0.2em] text-native-clay group-hover:text-native-black transition-colors">{currentUser.name.split(' ')[0]}</span>
-                    <div className="p-3 bg-native-sand/50 border border-native-black/5 rounded-full hover:bg-native-black hover:text-white transition-all shadow-inner">
-                        <UserIcon size={22} />
-                    </div>
-                 </Link>
-              </div>
+              <Link to="/account" className="flex items-center gap-2 group" title="My Account">
+                <div className="p-3 bg-native-sand/50 border border-native-black/5 rounded-full hover:bg-native-black hover:text-white transition-all shadow-inner">
+                    <UserIcon size={22} />
+                </div>
+              </Link>
             ) : (
               <Link to="/login" className="p-3 bg-native-sand/50 border border-native-black/5 rounded-full text-native-black hover:bg-native-black hover:text-white transition-all shadow-inner" title="Login">
                 <UserIcon size={22} />

@@ -17,9 +17,6 @@ export default defineConfig(({ mode }) => {
         }
       },
       plugins: [react()],
-      define: {
-        'import.meta.env.VITE_CLERK_PUBLISHABLE_KEY': JSON.stringify(env.VITE_CLERK_PUBLISHABLE_KEY),
-      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),

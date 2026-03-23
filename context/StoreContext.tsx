@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useUser, useAuth, useClerk } from '@clerk/clerk-react';
+import { useUser, useAuth, useClerk } from '@clerk/react';
 import { Product, Order, User, SocialPost, OrderItem, AppSettings, SiteContent, ContactMessage, Category } from '../types';
 import { ApiService, INITIAL_SETTINGS } from '../services/api';
 
@@ -81,14 +81,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const refreshData = async () => {
     try {
-      const [p, cat, content] = await Promise.all([
+      const [p, cat, content, publicSettings] = await Promise.all([
         ApiService.getProducts(),
         ApiService.getCategories(),
         ApiService.getContent(),
+        ApiService.getPublicSettings(),
       ]);
       setProducts(p);
       setCategories(cat);
       if (content && Object.keys(content).length > 0) setSiteContent(content as SiteContent);
+      setSettings(prev => ({ ...prev, ...publicSettings }));
     } catch (e) {
       console.error('Failed to refresh public data', e);
     }
@@ -110,6 +112,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSettings(s);
       } catch (e) {
         console.error('Failed to refresh admin data', e);
+      }
+    } else if (user) {
+      // Load the logged-in customer's own orders for Account page
+      try {
+        const token = await tok();
+        const myOrders = await ApiService.getMyOrders(token);
+        setOrders(myOrders);
+      } catch (e) {
+        console.error('Failed to load customer orders', e);
       }
     }
   };

@@ -8,6 +8,61 @@ const stamp = (data: any) => ({ ...data, updated_at: Date.now() });
 
 const uid = () => crypto.randomUUID();
 
+// Fire-and-forget Resend email helper (never throws, just logs)
+const sendTransactionalEmail = async (
+  env: Env,
+  to: string,
+  subject: string,
+  html: string,
+  extra?: { bcc?: string }
+): Promise<void> => {
+  const apiKey = env.RESEND_API_KEY;
+  if (!apiKey) return;
+  try {
+    const settingsRow = await env.DB.prepare("SELECT data FROM app_settings WHERE key='main'").first<{ data: string }>();
+    const s = settingsRow ? JSON.parse(settingsRow.data) : {};
+    const fromName = s.emailConfig?.fromName || 'Pickle Nick';
+    const fromEmail = s.emailConfig?.fromEmail || 'noreply@picklenick.au';
+    const payload: any = { from: `${fromName} <${fromEmail}>`, to: [to], subject, html };
+    if (extra?.bcc) payload.bcc = [extra.bcc];
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch (e) {
+    console.error('sendTransactionalEmail failed:', e);
+  }
+};
+
+const buildOrderConfirmationHTML = (order: any, items: any[]): string => {
+  const itemRows = items.map(i =>
+    `<tr><td style="padding:8px 0;border-bottom:1px solid #f0ebe2;">${i.name} × ${i.quantity}</td><td style="padding:8px 0;border-bottom:1px solid #f0ebe2;text-align:right;">$${(i.price * i.quantity).toFixed(2)}</td></tr>`
+  ).join('');
+  return `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;padding:32px;border-radius:12px;">
+    <h2 style="color:#1a1a1a;">Order Confirmed — ${order.id}</h2>
+    <p>Hi ${order.customerName}, thanks for your order!</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;">${itemRows}</table>
+    <p><strong>Subtotal:</strong> $${Number(order.subtotal).toFixed(2)}</p>
+    ${order.tax > 0 ? `<p><strong>GST:</strong> $${Number(order.tax).toFixed(2)}</p>` : ''}
+    <p><strong>Shipping (${order.shippingMethod || 'standard'}):</strong> ${order.shippingCost > 0 ? '$' + Number(order.shippingCost).toFixed(2) : 'FREE'}</p>
+    <p style="font-size:18px;"><strong>Total: $${Number(order.total).toFixed(2)}</strong></p>
+    <p style="color:#666;">Shipping to: ${order.shippingAddress}</p>
+    <p style="color:#999;font-size:12px;">You'll receive a tracking number once your order ships.</p>
+  </div>`;
+};
+
+const buildTrackingHTML = (order: any): string => `
+  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;padding:32px;border-radius:12px;">
+    <h2 style="color:#1a1a1a;">Your Order Has Shipped — ${order.id}</h2>
+    <p>Hi ${order.customerName}, your order is on its way!</p>
+    ${order.trackingNumber
+      ? `<div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;"><p style="margin:0;color:#666;font-size:13px;">Tracking Number</p><p style="margin:4px 0 0;font-size:18px;font-weight:700;">${order.trackingNumber}</p></div>`
+      : '<p>Your parcel is being prepared for dispatch.</p>'
+    }
+    <p style="color:#666;">Shipping to: ${order.shippingAddress}</p>
+  </div>`;
+
 const rowToProduct = (r: any) => ({
   id: r.id, name: r.name, description: r.description, price: r.price,
   stock: r.stock, image: r.image, category: r.category, featured: !!r.featured,
@@ -203,6 +258,18 @@ async function handleOrders(request: Request, env: Env, path: string): Promise<R
     }
 
     await env.DB.batch(stmts);
+
+    // Fire-and-forget order confirmation email
+    if (order.customerEmail) {
+      const settingsRow2 = await env.DB.prepare("SELECT data FROM app_settings WHERE key='main'").first<{ data: string }>();
+      const s2 = settingsRow2 ? JSON.parse(settingsRow2.data) : {};
+      if (s2.emailConfig?.enabled) {
+        const html = buildOrderConfirmationHTML(order, order.items || []);
+        const bcc = s2.emailConfig?.adminEmail;
+        sendTransactionalEmail(env, order.customerEmail, `Order Confirmed — ${order.id}`, html, bcc ? { bcc } : undefined);
+      }
+    }
+
     return jsonResponse({ success: true, id: order.id });
   }
 
@@ -211,12 +278,27 @@ async function handleOrders(request: Request, env: Env, path: string): Promise<R
     const auth = await requireAdmin(request, env);
     if (auth instanceof Response) return auth;
     const body: any = await request.json();
+
+    // Fetch existing order to detect status transition and get customer email
+    const existing = await env.DB.prepare('SELECT * FROM orders WHERE id = ?').bind(id).first<any>();
+
     await env.DB.prepare(
       'UPDATE orders SET status=?,payment_status=?,payment_method=?,transaction_id=?,tracking_number=?,no_tracking=?,shipping_method=?,updated_at=? WHERE id=?'
     ).bind(
       body.status, body.paymentStatus, body.paymentMethod ?? null, body.transactionId ?? null,
       body.trackingNumber ?? null, body.noTracking ? 1 : 0, body.shippingMethod ?? null, Date.now(), id
     ).run();
+
+    // Send tracking email when status transitions to 'shipped'
+    if (existing && existing.status !== 'shipped' && body.status === 'shipped' && existing.customer_email) {
+      const settingsRow = await env.DB.prepare("SELECT data FROM app_settings WHERE key='main'").first<{ data: string }>();
+      const s = settingsRow ? JSON.parse(settingsRow.data) : {};
+      if (s.emailConfig?.enabled) {
+        const updated = { ...body, id, customerName: existing.customer_name, customerEmail: existing.customer_email, shippingAddress: existing.shipping_address };
+        sendTransactionalEmail(env, existing.customer_email, `Your Order Has Shipped — ${id}`, buildTrackingHTML(updated));
+      }
+    }
+
     return jsonResponse({ success: true });
   }
 
@@ -351,7 +433,20 @@ async function handleContent(request: Request, env: Env): Promise<Response> {
 
 // ── Settings Handler ──────────────────────────────────────────────────────────
 
-async function handleSettings(request: Request, env: Env): Promise<Response> {
+async function handleSettings(request: Request, env: Env, path: string): Promise<Response> {
+  // Public subset — safe for any visitor (no secrets exposed)
+  if (request.method === 'GET' && path === '/api/settings/public') {
+    const row = await env.DB.prepare("SELECT data FROM app_settings WHERE key='main'").first<{ data: string }>();
+    const full = row ? JSON.parse(row.data) : {};
+    return jsonResponse({
+      gstEnabled: full.gstEnabled ?? false,
+      gstRate: full.gstRate ?? 10,
+      shippingConfig: full.shippingConfig ?? null,
+      squareApplicationId: full.squareApplicationId ?? '',
+      squareLocationId: full.squareLocationId ?? '',
+    });
+  }
+
   const auth = await requireAdmin(request, env);
   if (auth instanceof Response) return auth;
 
@@ -585,6 +680,64 @@ async function handlePublish(request: Request, env: Env): Promise<Response> {
   return jsonResponse(result);
 }
 
+// ── Square Payments ────────────────────────────────────────────────────────────
+
+async function handlePayment(request: Request, env: Env): Promise<Response> {
+  if (request.method !== 'POST') return jsonError('Method not allowed', 405);
+
+  const body: { sourceId: string; amount: number; currency?: string; idempotencyKey: string } = await request.json();
+  if (!body.sourceId || !body.amount || !body.idempotencyKey) {
+    return jsonError('sourceId, amount, and idempotencyKey are required', 400);
+  }
+
+  // Read Square credentials from D1 app_settings
+  const settingsRow = await env.DB.prepare('SELECT data FROM app_settings WHERE key=?').bind('main').first<{ data: string }>();
+  const appSettings = settingsRow ? JSON.parse(settingsRow.data) : {};
+  const accessToken: string = appSettings.squareAccessToken || '';
+  const locationId: string = appSettings.squareLocationId || '';
+
+  if (!accessToken || !locationId) {
+    return jsonError('Square is not configured. Set access token and location ID in Settings.', 503);
+  }
+
+  const isSandbox = accessToken.startsWith('EAAAl') === false && accessToken.startsWith('EAAA') && accessToken.length < 60;
+  const squareBase = (accessToken.startsWith('sandbox') || accessToken.startsWith('EAAAl'))
+    ? 'https://connect.squareupsandbox.com'
+    : 'https://connect.squareup.com';
+
+  const amountCents = Math.round(body.amount * 100);
+  const currency = body.currency || 'AUD';
+
+  const res = await fetch(`${squareBase}/v2/payments`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'Square-Version': '2024-01-18',
+    },
+    body: JSON.stringify({
+      source_id: body.sourceId,
+      idempotency_key: body.idempotencyKey,
+      amount_money: { amount: amountCents, currency },
+      location_id: locationId,
+      autocomplete: true,
+    }),
+  });
+
+  const data: any = await res.json();
+
+  if (!res.ok || data.errors) {
+    const msg = data.errors?.[0]?.detail || data.errors?.[0]?.code || 'Payment failed';
+    return jsonError(msg, 402);
+  }
+
+  return jsonResponse({
+    success: true,
+    transactionId: data.payment?.id,
+    status: data.payment?.status,
+  });
+}
+
 // ── Main Router ───────────────────────────────────────────────────────────────
 
 export default {
@@ -604,11 +757,12 @@ export default {
       if (path.startsWith('/api/posts'))     return handlePosts(request, env, path);
       if (path.startsWith('/api/messages'))  return handleMessages(request, env, path);
       if (path.startsWith('/api/content'))   return handleContent(request, env);
-      if (path.startsWith('/api/settings'))  return handleSettings(request, env);
+      if (path.startsWith('/api/settings'))  return handleSettings(request, env, path);
       if (path.startsWith('/api/email/send')) return handleSendEmail(request, env);
       if (path.startsWith('/api/ai/'))       return handleAI(request, env, path);
       if (path.startsWith('/api/r2/upload')) return handleR2Upload(request, env);
       if (path.startsWith('/api/publish'))   return handlePublish(request, env);
+      if (path.startsWith('/api/payments'))  return handlePayment(request, env);
       return jsonError('Not found', 404);
     } catch (err: any) {
       console.error('Worker error:', err);

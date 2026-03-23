@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ClerkProvider, useUser } from '@clerk/clerk-react';
+import { useUser } from '@clerk/react';
 import { StoreProvider, useStore } from './context/StoreContext';
-
-const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
 // Pages
 import Home from './pages/Home';
@@ -82,7 +80,7 @@ const SeoManager = () => {
     const tagline = g.tagline || 'Spirit of the Brine';
     const description = g.seoDescription || `${brand} — artisan pickles and provisions, delivered Australia-wide.`;
     const siteUrl = (g.siteUrl || 'https://picklenick.au').replace(/\/$/, '');
-    const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.jpg';
+    const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.svg';
     const ogImage = faviconUrl.startsWith('http') ? faviconUrl : `${siteUrl}${faviconUrl}`;
 
     // Title
@@ -195,11 +193,9 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <ClerkProvider publishableKey={CLERK_KEY}>
-      <StoreProvider>
-        <AppContent />
-      </StoreProvider>
-    </ClerkProvider>
+    <StoreProvider>
+      <AppContent />
+    </StoreProvider>
   );
 };
 

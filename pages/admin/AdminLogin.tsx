@@ -1,5 +1,5 @@
 import React from 'react';
-import { SignIn } from '@clerk/clerk-react';
+import { SignIn } from '@clerk/react';
 import { Link } from 'react-router-dom';
 
 const AdminLogin = () => {
@@ -16,7 +16,7 @@ const AdminLogin = () => {
             <SignIn
               routing="hash"
               signUpUrl="/admin/login"
-              afterSignInUrl="/admin/dashboard"
+              fallbackRedirectUrl="/admin/dashboard"
               appearance={{
                 elements: {
                   rootBox: 'w-full',

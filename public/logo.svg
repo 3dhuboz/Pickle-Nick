@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <rect width="400" height="400" rx="200" fill="#1a1a1a"/>
+  <text x="200" y="160" text-anchor="middle" font-family="Georgia, serif" font-size="72" font-weight="bold" fill="#f5f0e6" letter-spacing="2">PICKLE</text>
+  <text x="200" y="250" text-anchor="middle" font-family="Georgia, serif" font-size="72" font-weight="bold" fill="#bc4b35" letter-spacing="2">NICK</text>
+  <text x="200" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#a08060" letter-spacing="8" text-transform="uppercase">EST. 2024</text>
+  <circle cx="200" cy="360" r="6" fill="#bc4b35"/>
+</svg>
