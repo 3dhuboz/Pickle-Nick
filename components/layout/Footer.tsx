@@ -35,7 +35,7 @@ const Footer = () => {
           <div className="flex flex-col items-center md:items-start">
             <div className="flex items-center gap-3 mb-6">
                 <div className="bg-native-sand p-2 rounded-full h-16 w-16 flex items-center justify-center overflow-hidden border-2 border-native-silver/20 shadow-md">
-                  <img src={siteContent?.general.logoUrl || "/logo.jpg"} className="h-full w-full object-contain" alt="Logo" />
+                  <img src={siteContent?.general.logoUrl || "/logo.svg"} className="h-full w-full object-contain" alt="Logo" />
                 </div>
                 <div>
                    <h3 className="font-display text-3xl text-native-sand uppercase tracking-wide">Pickle Nick</h3>

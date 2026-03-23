@@ -80,7 +80,7 @@ const SeoManager = () => {
     const tagline = g.tagline || 'Spirit of the Brine';
     const description = g.seoDescription || `${brand} — artisan pickles and provisions, delivered Australia-wide.`;
     const siteUrl = (g.siteUrl || 'https://picklenick.au').replace(/\/$/, '');
-    const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.jpg';
+    const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.svg';
     const ogImage = faviconUrl.startsWith('http') ? faviconUrl : `${siteUrl}${faviconUrl}`;
 
     // Title

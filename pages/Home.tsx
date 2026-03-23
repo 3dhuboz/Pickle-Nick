@@ -71,7 +71,7 @@ const Home = () => {
                  <div className="relative bg-native-sand p-4 rounded-full border border-native-black/10 shadow-2xl transform transition-transform duration-700 group-hover:scale-105">
                     <div className="rounded-full overflow-hidden border-4 border-native-clay h-80 w-80 md:h-96 md:w-96 relative bg-white flex items-center justify-center shadow-inner">
                        <img
-                           src={siteContent.general.logoUrl || "/logo.jpg"}
+                           src={siteContent.general.logoUrl || "/logo.svg"}
                            alt="Pickle Nick Logo"
                            className="w-full h-full object-cover sepia-[.15]"
                        />
@@ -228,7 +228,10 @@ const Home = () => {
                 <div className="h-1.5 w-full bg-tribal opacity-30 absolute top-0 z-10"></div>
                 
                 <div className="relative h-80 overflow-hidden bg-native-sand/20">
-                  <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 sepia-[.1] group-hover:sepia-0" />
+                  {product.image
+                    ? <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 sepia-[.1] group-hover:sepia-0" />
+                    : <div className="w-full h-full flex items-center justify-center"><span className="font-display text-6xl opacity-20">🥒</span></div>
+                  }
                   <div className="absolute top-4 right-4 bg-white/95 text-native-black px-4 py-1 font-display text-xl rounded-full shadow-md border border-native-black/5">
                     ${product.price.toFixed(2)}
                   </div>

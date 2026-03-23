@@ -29,7 +29,7 @@ const Navbar = () => {
           <Link to="/" className="flex-shrink-0 flex items-center group relative z-10">
              <div className="h-16 w-16 bg-white border border-native-black/5 overflow-hidden shadow-sm transform transition-all group-hover:scale-105 group-hover:shadow-md flex items-center justify-center rounded-full">
                 <img 
-                  src={siteContent?.general.logoUrl || "/logo.jpg"}
+                  src={siteContent?.general.logoUrl || "/logo.svg"}
                   alt="Pickle Nick Logo" 
                   className="h-full w-full object-cover p-1 sepia-[.15]" 
                 />
