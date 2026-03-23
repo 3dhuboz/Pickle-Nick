@@ -531,7 +531,7 @@ async function handleAI(request: Request, env: Env, path: string): Promise<Respo
 
   // Image generation via OpenRouter → R2
   if (path.endsWith('/image')) {
-    const { prompt, model = 'google/gemini-2.5-flash-preview:image' } = body;
+    const { prompt, model = 'google/gemini-3.1-flash-image-preview' } = body;
 
     try {
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
