@@ -529,44 +529,67 @@ async function handleAI(request: Request, env: Env, path: string): Promise<Respo
     return jsonResponse({ text: data.choices?.[0]?.message?.content ?? '' });
   }
 
-  // Image generation via Cloudflare Workers AI → R2
+  // Image generation via OpenRouter → R2
   if (path.endsWith('/image')) {
-    const { prompt } = body;
-    const imagePrompt = prompt;
+    const { prompt, model = 'google/gemini-2.5-flash-preview:image' } = body;
 
     try {
-      const response = await (env.AI as any).run('@cf/bytedance/stable-diffusion-xl-lightning', {
-        prompt: imagePrompt,
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://picklenick.au',
+          'X-Title': 'Pickle Nick',
+        },
+        body: JSON.stringify({
+          model,
+          modalities: ['image', 'text'],
+          messages: [{ role: 'user', content: prompt }],
+        }),
       });
 
-      // Workers AI returns Uint8Array, ReadableStream, or ArrayBuffer depending on version
-      let buffer: ArrayBuffer;
-      if (response instanceof ArrayBuffer) {
-        buffer = response;
-      } else if (response instanceof ReadableStream) {
-        buffer = await new Response(response).arrayBuffer();
-      } else if (response instanceof Uint8Array) {
-        buffer = response.buffer;
-      } else if (typeof response === 'object' && response !== null) {
-        // Some models return { image: base64string }
-        const b64 = response.image || response.data;
-        if (typeof b64 === 'string') {
-          const bin = atob(b64);
-          const bytes = new Uint8Array(bin.length);
-          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-          buffer = bytes.buffer;
-        } else {
-          throw new Error('Unexpected AI response format');
+      const data: any = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || `OpenRouter ${res.status}`);
+
+      // Extract base64 image from response
+      const content = data.choices?.[0]?.message?.content;
+      let b64Data: string | null = null;
+
+      if (typeof content === 'string') {
+        // Content may contain markdown image: ![](data:image/png;base64,...)
+        const match = content.match(/data:image\/[^;]+;base64,([A-Za-z0-9+/=]+)/);
+        if (match) b64Data = match[1];
+      } else if (Array.isArray(content)) {
+        // Multi-part content: [{type:'image', image:{data:'base64...'}}]
+        const imgPart = content.find((p: any) => p.type === 'image' || p.type === 'image_url');
+        if (imgPart?.image?.data) b64Data = imgPart.image.data;
+        else if (imgPart?.image_url?.url) {
+          const m = imgPart.image_url.url.match(/base64,([A-Za-z0-9+/=]+)/);
+          if (m) b64Data = m[1];
         }
-      } else {
-        buffer = response;
       }
 
+      // Also check top-level images array
+      if (!b64Data && data.choices?.[0]?.message?.images) {
+        const img = data.choices[0].message.images[0];
+        if (typeof img === 'string') {
+          const m = img.match(/base64,([A-Za-z0-9+/=]+)/);
+          b64Data = m ? m[1] : img;
+        }
+      }
+
+      if (!b64Data) throw new Error('No image in AI response');
+
+      const bin = atob(b64Data);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+
       const key = `ai-images/${uid()}.png`;
-      await env.STORAGE.put(key, buffer, { httpMetadata: { contentType: 'image/png' } });
+      await env.STORAGE.put(key, bytes.buffer, { httpMetadata: { contentType: 'image/png' } });
       return jsonResponse({ url: `${env.R2_PUBLIC_URL}/${key}` });
     } catch (e: any) {
-      console.error('AI image error:', e?.message, e?.stack, JSON.stringify(e));
+      console.error('AI image error:', e?.message, e?.stack);
       return jsonError(`Image generation failed: ${e?.message || 'Unknown error'}`, 500);
     }
   }
