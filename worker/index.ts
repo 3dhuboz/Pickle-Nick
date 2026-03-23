@@ -781,6 +781,17 @@ export default {
       if (path.startsWith('/api/email/send')) return handleSendEmail(request, env);
       if (path.startsWith('/api/ai/'))       return handleAI(request, env, path);
       if (path.startsWith('/api/r2/upload')) return handleR2Upload(request, env);
+      // Public R2 file serving: /api/r2/file/<key>
+      if (path.startsWith('/api/r2/file/') && request.method === 'GET') {
+        const key = path.replace('/api/r2/file/', '');
+        const obj = await env.STORAGE.get(key);
+        if (!obj) return jsonError('Not found', 404);
+        const headers = new Headers();
+        headers.set('Content-Type', obj.httpMetadata?.contentType || 'application/octet-stream');
+        headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+        headers.set('Access-Control-Allow-Origin', '*');
+        return new Response(obj.body, { headers });
+      }
       if (path.startsWith('/api/publish'))   return handlePublish(request, env);
       if (path.startsWith('/api/payments'))  return handlePayment(request, env);
       return jsonError('Not found', 404);

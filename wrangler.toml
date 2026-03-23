@@ -3,7 +3,7 @@ main = "worker/index.ts"
 compatibility_date = "2025-01-01"
 
 [vars]
-R2_PUBLIC_URL = "https://r2.picklenick.au"
+R2_PUBLIC_URL = "https://pickle-nick-worker.steve-700.workers.dev/api/r2/file"
 
 [[d1_databases]]
 binding = "DB"
