@@ -553,33 +553,44 @@ async function handleAI(request: Request, env: Env, path: string): Promise<Respo
       if (!res.ok) throw new Error(data.error?.message || `OpenRouter ${res.status}`);
 
       // Extract base64 image from response
-      const content = data.choices?.[0]?.message?.content;
+      const msg = data.choices?.[0]?.message;
+      const content = msg?.content;
       let b64Data: string | null = null;
 
-      if (typeof content === 'string') {
-        // Content may contain markdown image: ![](data:image/png;base64,...)
-        const match = content.match(/data:image\/[^;]+;base64,([A-Za-z0-9+/=]+)/);
-        if (match) b64Data = match[1];
-      } else if (Array.isArray(content)) {
-        // Multi-part content: [{type:'image', image:{data:'base64...'}}]
-        const imgPart = content.find((p: any) => p.type === 'image' || p.type === 'image_url');
-        if (imgPart?.image?.data) b64Data = imgPart.image.data;
-        else if (imgPart?.image_url?.url) {
-          const m = imgPart.image_url.url.match(/base64,([A-Za-z0-9+/=]+)/);
-          if (m) b64Data = m[1];
+      if (Array.isArray(content)) {
+        // Multi-part content array
+        for (const part of content) {
+          if (part.type === 'image_url' && part.image_url?.url) {
+            const m = part.image_url.url.match(/base64,([A-Za-z0-9+/=\s]+)/s);
+            if (m) { b64Data = m[1].replace(/\s/g, ''); break; }
+          }
+          if (part.type === 'image' && part.image?.data) {
+            b64Data = part.image.data.replace(/\s/g, ''); break;
+          }
+          if (part.type === 'text' && typeof part.text === 'string') {
+            const m = part.text.match(/data:image\/[^;]+;base64,([A-Za-z0-9+/=\s]+)/s);
+            if (m) { b64Data = m[1].replace(/\s/g, ''); break; }
+          }
+        }
+      } else if (typeof content === 'string') {
+        const match = content.match(/data:image\/[^;]+;base64,([A-Za-z0-9+/=\s]+)/s);
+        if (match) b64Data = match[1].replace(/\s/g, '');
+      }
+
+      // Check top-level images array (OpenRouter native format)
+      // Structure: msg.images[0] = { type: 'image_url', image_url: { url: 'data:image/png;base64,...' } }
+      if (!b64Data && msg?.images) {
+        const img = msg.images[0];
+        const url = typeof img === 'string' ? img : img?.image_url?.url || img?.url || '';
+        if (url) {
+          const m = url.match(/base64,([A-Za-z0-9+/=\s]+)/s);
+          b64Data = m ? m[1].replace(/\s/g, '') : null;
         }
       }
 
-      // Also check top-level images array
-      if (!b64Data && data.choices?.[0]?.message?.images) {
-        const img = data.choices[0].message.images[0];
-        if (typeof img === 'string') {
-          const m = img.match(/base64,([A-Za-z0-9+/=]+)/);
-          b64Data = m ? m[1] : img;
-        }
+      if (!b64Data) {
+        throw new Error('No image in AI response');
       }
-
-      if (!b64Data) throw new Error('No image in AI response');
 
       const bin = atob(b64Data);
       const bytes = new Uint8Array(bin.length);
