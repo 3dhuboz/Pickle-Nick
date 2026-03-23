@@ -156,32 +156,23 @@ const Settings = () => {
       if (!form.squareAccessToken) return alert('Enter your Square Access Token first.');
       setIsTestingSquare(true);
       setSquareTestResult(null);
-      const tryFetch = async (baseUrl: string) => {
-          const res = await fetch(`${baseUrl}/v2/locations`, {
-              headers: {
-                  'Authorization': `Bearer ${form.squareAccessToken}`,
-                  'Square-Version': '2024-01-18',
-                  'Content-Type': 'application/json'
-              }
-          });
-          return { res, data: await res.json() };
-      };
       try {
-          let result = await tryFetch('https://connect.squareup.com');
-          if (!result.res.ok) result = await tryFetch('https://connect.squareupsandbox.com');
-          const { res, data } = result;
-          if (res.ok && data.locations?.length > 0) {
-              const mode = res.url.includes('sandbox') ? 'Sandbox' : 'Production';
-              const match = form.squareLocationId ? data.locations.find((l: any) => l.id === form.squareLocationId) : null;
-              if (form.squareLocationId && !match) {
-                  setSquareTestResult({ ok: false, msg: `Token valid (${mode}) but Location ID not found. Available: ${data.locations.map((l: any) => l.id).join(', ')}` });
-              } else {
-                  const loc = match || data.locations[0];
-                  setSquareTestResult({ ok: true, msg: `Connected (${mode}) — ${loc.name || loc.id}` });
-              }
+          // Save settings first so Worker can read the token from D1
+          const token = await getToken() || '';
+          await fetch(`${import.meta.env.VITE_WORKER_URL || ''}/api/settings`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify(form),
+          });
+          // Test via Worker proxy (avoids CORS)
+          const res = await fetch(`${import.meta.env.VITE_WORKER_URL || ''}/api/payments/test`, {
+              headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const data = await res.json() as any;
+          if (data.ok) {
+              setSquareTestResult({ ok: true, msg: data.msg || 'Connected' });
           } else {
-              const errMsg = data.errors?.[0]?.detail || data.errors?.[0]?.code || 'Authentication failed. Check your Access Token.';
-              setSquareTestResult({ ok: false, msg: errMsg });
+              setSquareTestResult({ ok: false, msg: data.msg || data.error || 'Connection failed' });
           }
       } catch (e: any) {
           setSquareTestResult({ ok: false, msg: e.message || 'Network error' });

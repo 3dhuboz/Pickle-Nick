@@ -702,7 +702,37 @@ async function handlePublish(request: Request, env: Env): Promise<Response> {
 
 // ── Square Payments ────────────────────────────────────────────────────────────
 
-async function handlePayment(request: Request, env: Env): Promise<Response> {
+async function handlePayment(request: Request, env: Env, path: string): Promise<Response> {
+  // GET /api/payments/test — admin-only Square connection test
+  if (request.method === 'GET' && path.endsWith('/test')) {
+    const auth = await requireAdmin(request, env);
+    if (auth instanceof Response) return auth;
+    const settingsRow = await env.DB.prepare("SELECT data FROM app_settings WHERE key='main'").first<{ data: string }>();
+    const s = settingsRow ? JSON.parse(settingsRow.data) : {};
+    const token = s.squareAccessToken;
+    if (!token) return jsonResponse({ ok: false, msg: 'No Square Access Token configured' });
+    const tryBase = async (base: string) => {
+      const res = await fetch(`${base}/v2/locations`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'Square-Version': '2024-01-18', 'Content-Type': 'application/json' },
+      });
+      return { res, data: await res.json() as any, base };
+    };
+    try {
+      let result = await tryBase('https://connect.squareup.com');
+      if (!result.res.ok) result = await tryBase('https://connect.squareupsandbox.com');
+      if (result.res.ok && result.data.locations?.length > 0) {
+        const mode = result.base.includes('sandbox') ? 'Sandbox' : 'Production';
+        const loc = s.squareLocationId
+          ? result.data.locations.find((l: any) => l.id === s.squareLocationId) || result.data.locations[0]
+          : result.data.locations[0];
+        return jsonResponse({ ok: true, msg: `Connected (${mode}) — ${loc.name || loc.id}` });
+      }
+      return jsonResponse({ ok: false, msg: result.data.errors?.[0]?.detail || 'Auth failed' });
+    } catch (e: any) {
+      return jsonResponse({ ok: false, msg: e.message || 'Network error' });
+    }
+  }
+
   if (request.method !== 'POST') return jsonError('Method not allowed', 405);
 
   const body: { sourceId: string; amount: number; currency?: string; idempotencyKey: string } = await request.json();
@@ -793,7 +823,7 @@ export default {
         return new Response(obj.body, { headers });
       }
       if (path.startsWith('/api/publish'))   return handlePublish(request, env);
-      if (path.startsWith('/api/payments'))  return handlePayment(request, env);
+      if (path.startsWith('/api/payments'))  return handlePayment(request, env, path);
       return jsonError('Not found', 404);
     } catch (err: any) {
       console.error('Worker error:', err);

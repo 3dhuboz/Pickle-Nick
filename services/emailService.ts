@@ -1,5 +1,7 @@
 import { AppSettings, Order, OrderItem } from '../types';
 
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || '';
+
 const sendEmail = async (
     endpoint: string,
     payload: { to: string; subject: string; html: string; fromName?: string; fromEmail?: string; bcc?: string; resendApiKey?: string; smtp?: { host?: string; port?: number; user?: string; pass?: string; secure?: string } },
@@ -202,7 +204,7 @@ export const EmailService = {
             return false;
         }
 
-        const endpoint = '/api/email/send';
+        const endpoint = `${WORKER_URL}/api/email/send`;
         const brandName = config.fromName || 'Pickle Nick';
         try {
             return await sendEmail(endpoint, {
@@ -244,7 +246,7 @@ export const EmailService = {
             ? `${settings.shippingConfig?.trackingBaseUrl || ''}${trackingNumber}`
             : null;
 
-        const endpoint = '/api/email/send';
+        const endpoint = `${WORKER_URL}/api/email/send`;
         const brandName = config.fromName || 'Pickle Nick';
         try {
         return await sendEmail(endpoint, {
@@ -274,7 +276,7 @@ export const EmailService = {
         const config = settings.emailConfig;
         if (!config?.adminEmail) return false;
 
-        const endpoint = '/api/email/send';
+        const endpoint = `${WORKER_URL}/api/email/send`;
         return sendEmail(endpoint, {
             to: config.adminEmail,
             subject: `${config.fromName || 'Pickle Nick'} — Email Test`,
