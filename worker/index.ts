@@ -539,14 +539,34 @@ async function handleAI(request: Request, env: Env, path: string): Promise<Respo
         prompt: imagePrompt,
       });
 
-      const buffer = response instanceof ReadableStream
-        ? await new Response(response).arrayBuffer()
-        : response;
+      // Workers AI returns Uint8Array, ReadableStream, or ArrayBuffer depending on version
+      let buffer: ArrayBuffer;
+      if (response instanceof ArrayBuffer) {
+        buffer = response;
+      } else if (response instanceof ReadableStream) {
+        buffer = await new Response(response).arrayBuffer();
+      } else if (response instanceof Uint8Array) {
+        buffer = response.buffer;
+      } else if (typeof response === 'object' && response !== null) {
+        // Some models return { image: base64string }
+        const b64 = response.image || response.data;
+        if (typeof b64 === 'string') {
+          const bin = atob(b64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          buffer = bytes.buffer;
+        } else {
+          throw new Error('Unexpected AI response format');
+        }
+      } else {
+        buffer = response;
+      }
 
       const key = `ai-images/${uid()}.png`;
       await env.STORAGE.put(key, buffer, { httpMetadata: { contentType: 'image/png' } });
       return jsonResponse({ url: `${env.R2_PUBLIC_URL}/${key}` });
     } catch (e: any) {
+      console.error('AI image error:', e);
       return jsonError(`Image generation failed: ${e.message}`, 500);
     }
   }
