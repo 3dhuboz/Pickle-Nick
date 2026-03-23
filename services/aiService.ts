@@ -34,7 +34,11 @@ const aiImage = async (prompt: string, token: string): Promise<string> => {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ prompt }),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    let msg = 'Image generation failed';
+    try { const j = await res.json(); msg = (j as any).error || msg; } catch { msg = await res.text(); }
+    throw new Error(msg);
+  }
   const data = await res.json();
   return data.url ?? '';
 };

@@ -566,8 +566,8 @@ async function handleAI(request: Request, env: Env, path: string): Promise<Respo
       await env.STORAGE.put(key, buffer, { httpMetadata: { contentType: 'image/png' } });
       return jsonResponse({ url: `${env.R2_PUBLIC_URL}/${key}` });
     } catch (e: any) {
-      console.error('AI image error:', e);
-      return jsonError(`Image generation failed: ${e.message}`, 500);
+      console.error('AI image error:', e?.message, e?.stack, JSON.stringify(e));
+      return jsonError(`Image generation failed: ${e?.message || 'Unknown error'}`, 500);
     }
   }
 
