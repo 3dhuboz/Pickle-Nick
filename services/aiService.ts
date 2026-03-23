@@ -72,7 +72,7 @@ export const generateSocialImage = async (prompt: string, token: string): Promis
   aiImage(prompt, token);
 
 export const generateSiteImage = async (prompt: string, token: string): Promise<string> => {
-  const imagePrompt = `Cinematic, high-quality photography for an artisan brand website. Subject: ${prompt}. Style: Rustic, authentic, sophisticated, tattoo-culture influence but elegant, warm lighting, high detail, 8k. No text overlays.`;
+  const imagePrompt = `${prompt}. High detail, 8k quality. No text overlays or watermarks.`;
   return aiImage(imagePrompt, token);
 };
 
