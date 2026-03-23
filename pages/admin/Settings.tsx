@@ -789,14 +789,6 @@ const Settings = () => {
             </div>
         </div>
 
-        {/* Infrastructure Info */}
-        <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-          <SectionHeader title="Infrastructure" icon={Cloud} description="This store runs on Cloudflare D1 (database), R2 (storage), and Clerk (auth). Secrets are managed via Cloudflare Worker environment variables — not stored here." configured={true} />
-          <div className="pl-0 md:pl-14 max-w-3xl">
-            <HelpTip text="To update secrets (OpenRouter key, Resend key, Clerk key, Facebook tokens), use: wrangler secret put <NAME> from your terminal. These are never exposed to the browser." />
-          </div>
-        </div>
-
         {/* Fixed Save Bar */}
         <div className="fixed bottom-0 right-0 left-0 md:left-72 bg-[#f8f5f2]/95 backdrop-blur-sm border-t border-gray-200 z-30 px-10 py-4 flex justify-end">
             <button 
