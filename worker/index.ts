@@ -532,7 +532,7 @@ async function handleAI(request: Request, env: Env, path: string): Promise<Respo
   // Image generation via Cloudflare Workers AI → R2
   if (path.endsWith('/image')) {
     const { prompt } = body;
-    const imagePrompt = `Professional food photography of artisan pickles, ${prompt}, highly detailed, cinematic lighting, appetizing, elegant styling, dark green branding tones.`;
+    const imagePrompt = prompt;
 
     try {
       const response = await (env.AI as any).run('@cf/bytedance/stable-diffusion-xl-lightning', {
