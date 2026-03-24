@@ -49,7 +49,7 @@ const ProductDetail = () => {
             {/* Details */}
             <div className="flex flex-col justify-center">
               <span className="text-native-clay font-bold font-tribal uppercase tracking-[0.3em] text-[10px] mb-4 bg-native-clay/5 px-4 py-1.5 rounded-full inline-block w-fit">{product.category}</span>
-              <h1 className="font-display text-5xl md:text-7xl text-native-black mb-6 uppercase leading-[0.9] drop-shadow-sm">{product.name}</h1>
+              <h1 className="font-display text-3xl md:text-5xl text-native-black mb-6 uppercase leading-[0.9] drop-shadow-sm break-words">{product.name}</h1>
               <div className="flex items-center gap-6 mb-10">
                  <p className="text-5xl font-display text-native-black drop-shadow-sm">${product.price.toFixed(2)}</p>
                  <span className="px-5 py-2 bg-native-turquoise/5 text-native-turquoise text-[10px] font-bold uppercase tracking-[0.2em] rounded-full border border-native-turquoise/10 shadow-sm">In Stock</span>

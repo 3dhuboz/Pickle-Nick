@@ -51,7 +51,7 @@ export const mountSquareCard = async (
     style: {
       '.input-container': { borderRadius: '12px', borderColor: 'rgba(0,0,0,0.08)' },
       '.input-container.is-focus': { borderColor: '#6CBEBC' },
-      input: { fontFamily: 'Inter, sans-serif', fontSize: '16px', color: '#1a1a1a' },
+      input: { fontSize: '16px', color: '#1a1a1a' },
     },
   });
   await card.attach(`#${containerId}`);

@@ -51,26 +51,20 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="flex flex-col min-h-screen border-x-4 border-native-black/50 max-w-[1600px] mx-auto bg-native-sand shadow-2xl relative rounded-t-3xl mt-4">
       {/* Brand Mascots — tribal art watermarks */}
       {siteContent?.general.mascotUrl1 && (
-        <div className="fixed bottom-8 left-6 w-48 pointer-events-none z-0 hidden xl:block">
-            <img src={siteContent.general.mascotUrl1} alt="" className="w-full" style={{
-              opacity: 0.55,
-              mixBlendMode: 'multiply',
-              filter: 'sepia(0.4) saturate(0.8) brightness(0.9)',
-              maskImage: 'radial-gradient(ellipse at center, black 50%, transparent 80%)',
-              WebkitMaskImage: 'radial-gradient(ellipse at center, black 50%, transparent 80%)',
-            }} />
-        </div>
+        <img
+          src={siteContent.general.mascotUrl1}
+          alt=""
+          className="fixed bottom-10 left-8 w-52 pointer-events-none hidden xl:block z-[100]"
+          style={{ opacity: 0.18 }}
+        />
       )}
       {siteContent?.general.mascotUrl2 && (
-        <div className="fixed top-32 right-6 w-40 pointer-events-none z-0 hidden xl:block">
-            <img src={siteContent.general.mascotUrl2} alt="" className="w-full" style={{
-              opacity: 0.55,
-              mixBlendMode: 'multiply',
-              filter: 'sepia(0.4) saturate(0.8) brightness(0.9)',
-              maskImage: 'radial-gradient(ellipse at center, black 50%, transparent 80%)',
-              WebkitMaskImage: 'radial-gradient(ellipse at center, black 50%, transparent 80%)',
-            }} />
-        </div>
+        <img
+          src={siteContent.general.mascotUrl2}
+          alt=""
+          className="fixed top-28 right-8 w-44 pointer-events-none hidden xl:block z-[100]"
+          style={{ opacity: 0.18 }}
+        />
       )}
 
       <Navbar />
