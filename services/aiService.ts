@@ -34,7 +34,11 @@ const aiImage = async (prompt: string, token: string): Promise<string> => {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ prompt }),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    let msg = 'Image generation failed';
+    try { const j = await res.json(); msg = (j as any).error || msg; } catch { msg = await res.text(); }
+    throw new Error(msg);
+  }
   const data = await res.json();
   return data.url ?? '';
 };
@@ -68,7 +72,7 @@ export const generateSocialImage = async (prompt: string, token: string): Promis
   aiImage(prompt, token);
 
 export const generateSiteImage = async (prompt: string, token: string): Promise<string> => {
-  const imagePrompt = `Cinematic, high-quality photography for an artisan brand website. Subject: ${prompt}. Style: Rustic, authentic, sophisticated, tattoo-culture influence but elegant, warm lighting, high detail, 8k. No text overlays.`;
+  const imagePrompt = `${prompt}. High detail, 8k quality. No text overlays or watermarks.`;
   return aiImage(imagePrompt, token);
 };
 

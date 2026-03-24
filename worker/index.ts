@@ -529,45 +529,79 @@ async function handleAI(request: Request, env: Env, path: string): Promise<Respo
     return jsonResponse({ text: data.choices?.[0]?.message?.content ?? '' });
   }
 
-  // Image generation via Cloudflare Workers AI → R2
+  // Image generation via OpenRouter → R2
   if (path.endsWith('/image')) {
-    const { prompt } = body;
-    const imagePrompt = `Professional food photography of artisan pickles, ${prompt}, highly detailed, cinematic lighting, appetizing, elegant styling, dark green branding tones.`;
+    const { prompt, model = 'google/gemini-3.1-flash-image-preview' } = body;
 
     try {
-      const response = await (env.AI as any).run('@cf/bytedance/stable-diffusion-xl-lightning', {
-        prompt: imagePrompt,
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://picklenick.au',
+          'X-Title': 'Pickle Nick',
+        },
+        body: JSON.stringify({
+          model,
+          modalities: ['image', 'text'],
+          messages: [{ role: 'user', content: prompt }],
+        }),
       });
 
-      // Workers AI returns Uint8Array, ReadableStream, or ArrayBuffer depending on version
-      let buffer: ArrayBuffer;
-      if (response instanceof ArrayBuffer) {
-        buffer = response;
-      } else if (response instanceof ReadableStream) {
-        buffer = await new Response(response).arrayBuffer();
-      } else if (response instanceof Uint8Array) {
-        buffer = response.buffer;
-      } else if (typeof response === 'object' && response !== null) {
-        // Some models return { image: base64string }
-        const b64 = response.image || response.data;
-        if (typeof b64 === 'string') {
-          const bin = atob(b64);
-          const bytes = new Uint8Array(bin.length);
-          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-          buffer = bytes.buffer;
-        } else {
-          throw new Error('Unexpected AI response format');
+      const data: any = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || `OpenRouter ${res.status}`);
+
+      // Extract base64 image from response
+      const msg = data.choices?.[0]?.message;
+      const content = msg?.content;
+      let b64Data: string | null = null;
+
+      if (Array.isArray(content)) {
+        // Multi-part content array
+        for (const part of content) {
+          if (part.type === 'image_url' && part.image_url?.url) {
+            const m = part.image_url.url.match(/base64,([A-Za-z0-9+/=\s]+)/s);
+            if (m) { b64Data = m[1].replace(/\s/g, ''); break; }
+          }
+          if (part.type === 'image' && part.image?.data) {
+            b64Data = part.image.data.replace(/\s/g, ''); break;
+          }
+          if (part.type === 'text' && typeof part.text === 'string') {
+            const m = part.text.match(/data:image\/[^;]+;base64,([A-Za-z0-9+/=\s]+)/s);
+            if (m) { b64Data = m[1].replace(/\s/g, ''); break; }
+          }
         }
-      } else {
-        buffer = response;
+      } else if (typeof content === 'string') {
+        const match = content.match(/data:image\/[^;]+;base64,([A-Za-z0-9+/=\s]+)/s);
+        if (match) b64Data = match[1].replace(/\s/g, '');
       }
 
+      // Check top-level images array (OpenRouter native format)
+      // Structure: msg.images[0] = { type: 'image_url', image_url: { url: 'data:image/png;base64,...' } }
+      if (!b64Data && msg?.images) {
+        const img = msg.images[0];
+        const url = typeof img === 'string' ? img : img?.image_url?.url || img?.url || '';
+        if (url) {
+          const m = url.match(/base64,([A-Za-z0-9+/=\s]+)/s);
+          b64Data = m ? m[1].replace(/\s/g, '') : null;
+        }
+      }
+
+      if (!b64Data) {
+        throw new Error('No image in AI response');
+      }
+
+      const bin = atob(b64Data);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+
       const key = `ai-images/${uid()}.png`;
-      await env.STORAGE.put(key, buffer, { httpMetadata: { contentType: 'image/png' } });
+      await env.STORAGE.put(key, bytes.buffer, { httpMetadata: { contentType: 'image/png' } });
       return jsonResponse({ url: `${env.R2_PUBLIC_URL}/${key}` });
     } catch (e: any) {
-      console.error('AI image error:', e);
-      return jsonError(`Image generation failed: ${e.message}`, 500);
+      console.error('AI image error:', e?.message, e?.stack);
+      return jsonError(`Image generation failed: ${e?.message || 'Unknown error'}`, 500);
     }
   }
 

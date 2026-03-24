@@ -211,27 +211,33 @@ const DashboardHome = () => {
                 <div className="space-y-3">
                     <ConnectionStatus
                         label="Database"
-                        icon={Users}
+                        icon={Cloud}
                         active={systemStatus.cloudflare}
-                        message={getCloudflareMessage()}
+                        message={`${products.length} products · ${orders.length} orders`}
                     />
                     <ConnectionStatus
-                        label="AI Services"
+                        label="Authentication"
+                        icon={Users}
+                        active={systemStatus.clerk}
+                        message={systemStatus.clerk ? "Clerk Active" : "Not signed in"}
+                    />
+                    <ConnectionStatus
+                        label="AI Engine"
                         icon={Sparkles}
                         active={true}
-                        message="OpenRouter (Worker)"
+                        message="OpenRouter + CF Workers AI"
                     />
-                    <ConnectionStatus 
-                        label="Payments" 
-                        icon={CreditCard} 
-                        active={systemStatus.payment} 
-                        message={systemStatus.payment ? "Connected" : "Setup Required"} 
+                    <ConnectionStatus
+                        label="Payments"
+                        icon={CreditCard}
+                        active={systemStatus.payment}
+                        message={systemStatus.payment ? "Square Connected" : "Setup Required"}
                     />
-                    <ConnectionStatus 
-                        label="Facebook API" 
-                        icon={Share2} 
-                        active={systemStatus.facebook} 
-                        message={systemStatus.facebook ? "Linked" : "Not Configured"} 
+                    <ConnectionStatus
+                        label="Email"
+                        icon={Mail}
+                        active={!!(settings.emailConfig?.enabled && settings.emailConfig?.resendApiKey)}
+                        message={settings.emailConfig?.enabled ? "Resend Active" : "Not Configured"}
                     />
                 </div>
             </div>

@@ -1,9 +1,9 @@
 name = "pickle-nick-worker"
 main = "worker/index.ts"
-compatibility_date = "2025-01-01"
+compatibility_date = "2025-12-01"
 
 [vars]
-R2_PUBLIC_URL = "https://pickle-nick-worker.steve-700.workers.dev/api/r2/file"
+R2_PUBLIC_URL = "https://picklenick.au/api/r2/file"
 
 [[d1_databases]]
 binding = "DB"
@@ -16,6 +16,10 @@ bucket_name = "pickle-nick-assets"
 
 [ai]
 binding = "AI"
+
+[[routes]]
+pattern = "picklenick.au/api/*"
+zone_name = "picklenick.au"
 
 [triggers]
 crons = ["0 * * * *"]
