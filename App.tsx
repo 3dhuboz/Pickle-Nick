@@ -54,16 +54,16 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <img
           src={siteContent.general.mascotUrl1}
           alt=""
-          className="fixed bottom-10 left-8 w-52 pointer-events-none hidden xl:block z-[100]"
-          style={{ opacity: 0.18 }}
+          className="fixed bottom-10 left-8 w-52 pointer-events-none hidden xl:block z-[1]"
+          style={{ opacity: 0.08 }}
         />
       )}
       {siteContent?.general.mascotUrl2 && (
         <img
           src={siteContent.general.mascotUrl2}
           alt=""
-          className="fixed top-28 right-8 w-44 pointer-events-none hidden xl:block z-[100]"
-          style={{ opacity: 0.18 }}
+          className="fixed top-28 right-8 w-44 pointer-events-none hidden xl:block z-[1]"
+          style={{ opacity: 0.08 }}
         />
       )}
 
