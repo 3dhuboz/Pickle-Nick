@@ -8,7 +8,7 @@ R2_PUBLIC_URL = "https://picklenick.au/api/r2/file"
 [[d1_databases]]
 binding = "DB"
 database_name = "pickle-nick-db"
-database_id = "3a5bfc65-f074-4de1-afba-9f80820d625b"
+database_id = "db8ef207-7cc7-4102-af28-268361783916"
 
 [[r2_buckets]]
 binding = "STORAGE"

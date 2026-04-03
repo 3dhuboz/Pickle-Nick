@@ -845,6 +845,14 @@ export default {
       if (path.startsWith('/api/email/send')) return handleSendEmail(request, env);
       if (path.startsWith('/api/ai/'))       return handleAI(request, env, path);
       if (path.startsWith('/api/r2/upload')) return handleR2Upload(request, env);
+      // Admin R2 listing
+      if (path === '/api/r2/list' && request.method === 'GET') {
+        const auth = await requireAdmin(request, env);
+        if (auth instanceof Response) return auth;
+        const listed = await env.STORAGE.list({ limit: 500 });
+        const objects = listed.objects.map(o => ({ key: o.key, size: o.size, uploaded: o.uploaded }));
+        return jsonResponse(objects);
+      }
       // Public R2 file serving: /api/r2/file/<key>
       if (path.startsWith('/api/r2/file/') && request.method === 'GET') {
         const key = path.replace('/api/r2/file/', '');
@@ -856,6 +864,29 @@ export default {
         headers.set('Access-Control-Allow-Origin', '*');
         return new Response(obj.body, { headers });
       }
+      // Admin backup endpoints
+      if (path === '/api/admin/backups' && request.method === 'GET') {
+        const auth = await requireAdmin(request, env);
+        if (auth instanceof Response) return auth;
+        const listed = await env.STORAGE.list({ prefix: 'backups/' });
+        const backups = listed.objects.map(o => ({ date: o.key.replace('backups/', '').replace('.json', ''), size: o.size, uploaded: o.uploaded }));
+        return jsonResponse(backups);
+      }
+      if (path.startsWith('/api/admin/backups/') && request.method === 'GET') {
+        const auth = await requireAdmin(request, env);
+        if (auth instanceof Response) return auth;
+        const date = path.replace('/api/admin/backups/', '');
+        const obj = await env.STORAGE.get(`backups/${date}.json`);
+        if (!obj) return jsonError('Backup not found', 404);
+        return new Response(obj.body, { headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+      }
+      // Trigger backup manually (admin only)
+      if (path === '/api/admin/backup-now' && request.method === 'POST') {
+        const auth = await requireAdmin(request, env);
+        if (auth instanceof Response) return auth;
+        await runDailyBackup(env);
+        return jsonResponse({ ok: true, message: 'Backup triggered' });
+      }
       if (path.startsWith('/api/publish'))   return handlePublish(request, env);
       if (path.startsWith('/api/payments'))  return handlePayment(request, env, path);
       return jsonError('Not found', 404);
@@ -866,6 +897,55 @@ export default {
   },
 
   async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
+    await runDailyBackup(env);
     await runPublisher(env);
   },
 };
+
+// ── Daily D1 Backup to R2 ──────────────────────────────────────────────────
+
+async function runDailyBackup(env: Env): Promise<void> {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const key = `backups/${today}.json`;
+
+  // Skip if already backed up today
+  const existing = await env.STORAGE.head(key);
+  if (existing) return;
+
+  try {
+    const tables = [
+      'products', 'categories', 'orders', 'order_items',
+      'users', 'user_orders', 'posts', 'messages',
+      'site_content', 'app_settings',
+    ];
+
+    const backup: Record<string, unknown> = {
+      meta: { date: today, timestamp: new Date().toISOString(), tables: {} as Record<string, number> },
+    };
+
+    for (const table of tables) {
+      const { results } = await env.DB.prepare(`SELECT * FROM ${table}`).all();
+      backup[table] = results;
+      (backup.meta as any).tables[table] = results.length;
+    }
+
+    await env.STORAGE.put(key, JSON.stringify(backup, null, 2), {
+      httpMetadata: { contentType: 'application/json' },
+    });
+
+    // Clean up backups older than 30 days
+    const listed = await env.STORAGE.list({ prefix: 'backups/' });
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    for (const obj of listed.objects) {
+      const dateStr = obj.key.replace('backups/', '').replace('.json', '');
+      if (dateStr < cutoff.toISOString().slice(0, 10)) {
+        await env.STORAGE.delete(obj.key);
+      }
+    }
+
+    console.log(`Backup complete: ${key} (${Object.keys(backup).length - 1} tables)`);
+  } catch (e) {
+    console.error('Backup failed:', e);
+  }
+}
