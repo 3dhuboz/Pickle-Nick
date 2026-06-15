@@ -8,8 +8,8 @@ const BrineDepthScene = lazy(() => import('../components/visual/BrineDepthScene'
 const heroMock = '/design/pickle-nick-hero-mock.png';
 
 const heroStageStyle: React.CSSProperties = {
-  width: 'min(100vw, 143.786svh)',
-  height: 'min(100svh, 69.548vw)',
+  width: 'max(100vw, 143.786svh)',
+  height: 'max(100svh, 69.548vw)',
 };
 
 const proofPoints = [
@@ -47,11 +47,9 @@ const Home = () => {
         mm = gsap.matchMedia();
 
         gsap.set('[data-mock-stage]', { y: 18, opacity: 0, scale: 0.986 });
-        gsap.set('[data-mobile-copy]', { y: 22, opacity: 0 });
 
         gsap.timeline({ defaults: { ease: 'power3.out' } })
-          .to('[data-mock-stage]', { y: 0, opacity: 1, scale: 1, duration: 0.92 })
-          .to('[data-mobile-copy]', { y: 0, opacity: 1, duration: 0.72, stagger: 0.08 }, '-=0.42');
+          .to('[data-mock-stage]', { y: 0, opacity: 1, scale: 1, duration: 0.92 });
 
         mm.add('(prefers-reduced-motion: no-preference)', () => {
           gsap.to('[data-mock-image]', {
@@ -110,56 +108,60 @@ const Home = () => {
     <div ref={homeRef} className="overflow-hidden bg-[#120d0b] text-[#f5f0e6]">
       <section
         data-hero-section
-        className="relative isolate overflow-hidden bg-[#070504] sm:min-h-[100svh]"
+        className="relative isolate h-[100svh] overflow-hidden bg-[#070504]"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_22%,rgba(244,197,109,0.16),transparent_34%),radial-gradient(circle_at_18%_64%,rgba(188,75,53,0.12),transparent_30%),#070504]" />
 
-        <div data-mock-stage className="relative mx-auto hidden overflow-hidden sm:block" style={heroStageStyle}>
-          <img
-            data-mock-image
-            src={heroMock}
-            alt="Pickle Nick achar house hero with custom pickle jars and tattoo flash styling"
-            className="absolute inset-0 h-full w-full origin-center object-cover"
-          />
-          <div data-depth-scene className="pointer-events-none absolute inset-0 z-20 opacity-55 mix-blend-screen">
-            <Suspense fallback={null}>
-              <BrineDepthScene />
-            </Suspense>
+        <div className="absolute inset-0 hidden items-start justify-center sm:flex">
+          <div data-mock-stage className="relative shrink-0 overflow-hidden" style={heroStageStyle}>
+            <img
+              data-mock-image
+              src={heroMock}
+              alt="Pickle Nick achar house hero with custom pickle jars and tattoo flash styling"
+              className="absolute inset-0 h-full w-full origin-center object-cover"
+            />
+            <div data-depth-scene className="pointer-events-none absolute inset-0 z-20 opacity-55 mix-blend-screen">
+              <Suspense fallback={null}>
+                <BrineDepthScene />
+              </Suspense>
+            </div>
+
+            <h1 className="sr-only">Pickle Nick custom pickles, hot sauce, and small-batch brine.</h1>
+
+            <Link to="/shop" aria-label="Shop" className={`${desktopHotspot} left-[63.6%] top-[4.2%] h-[4.4%] w-[4.7%]`} />
+            <Link to="/contact" aria-label="Custom Jar" className={`${desktopHotspot} left-[68.7%] top-[4.2%] h-[4.4%] w-[8.1%]`} />
+            <Link to="/about" aria-label="Our Story" className={`${desktopHotspot} left-[77.3%] top-[4.2%] h-[4.4%] w-[7.4%]`} />
+            <Link to="/contact" aria-label="Contact" className={`${desktopHotspot} left-[85.4%] top-[4.2%] h-[4.4%] w-[6.2%]`} />
+            <Link to="/cart" aria-label="Cart" className={`${desktopHotspot} left-[90.7%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
+            <Link to="/shop" aria-label="Open menu" className={`${desktopHotspot} left-[94.5%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
+            <Link to="/shop" aria-label="Shop the batch" className={`${desktopHotspot} left-[9.8%] top-[49.2%] h-[5.8%] w-[18.8%]`} />
+            <Link to="/contact" aria-label="Build a custom jar" className={`${desktopHotspot} left-[9.8%] top-[56.6%] h-[5.8%] w-[18.8%]`} />
           </div>
-
-          <h1 className="sr-only">Pickle Nick custom pickles, hot sauce, and small-batch brine.</h1>
-
-          <Link to="/shop" aria-label="Shop" className={`${desktopHotspot} left-[63.6%] top-[4.2%] h-[4.4%] w-[4.7%]`} />
-          <Link to="/contact" aria-label="Custom Jar" className={`${desktopHotspot} left-[68.7%] top-[4.2%] h-[4.4%] w-[8.1%]`} />
-          <Link to="/about" aria-label="Our Story" className={`${desktopHotspot} left-[77.3%] top-[4.2%] h-[4.4%] w-[7.4%]`} />
-          <Link to="/contact" aria-label="Contact" className={`${desktopHotspot} left-[85.4%] top-[4.2%] h-[4.4%] w-[6.2%]`} />
-          <Link to="/cart" aria-label="Cart" className={`${desktopHotspot} left-[90.7%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
-          <Link to="/shop" aria-label="Open menu" className={`${desktopHotspot} left-[94.5%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
-          <Link to="/shop" aria-label="Shop the batch" className={`${desktopHotspot} left-[9.8%] top-[49.2%] h-[5.8%] w-[18.8%]`} />
-          <Link to="/contact" aria-label="Build a custom jar" className={`${desktopHotspot} left-[9.8%] top-[56.6%] h-[5.8%] w-[18.8%]`} />
         </div>
 
-        <div data-mock-stage className="relative mx-auto aspect-[1504/1046] w-full overflow-hidden sm:hidden">
-          <img
-            data-mock-image
-            src={heroMock}
-            alt="Pickle Nick achar house hero with custom pickle jars and tattoo flash styling"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div data-depth-scene className="pointer-events-none absolute inset-0 opacity-45 mix-blend-screen">
-            <Suspense fallback={null}>
-              <BrineDepthScene />
-            </Suspense>
+        <div className="absolute inset-0 flex items-center justify-start overflow-hidden sm:hidden">
+          <div data-mock-stage className="relative shrink-0 overflow-hidden" style={heroStageStyle}>
+            <img
+              data-mock-image
+              src={heroMock}
+              alt="Pickle Nick achar house hero with custom pickle jars and tattoo flash styling"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div data-depth-scene className="pointer-events-none absolute inset-0 opacity-45 mix-blend-screen">
+              <Suspense fallback={null}>
+                <BrineDepthScene />
+              </Suspense>
+            </div>
+            <h1 className="sr-only">Pickle Nick custom pickles, hot sauce, and small-batch brine.</h1>
+            <Link to="/shop" aria-label="Shop" className={`${desktopHotspot} left-[63.6%] top-[4.2%] h-[4.4%] w-[4.7%]`} />
+            <Link to="/contact" aria-label="Custom Jar" className={`${desktopHotspot} left-[68.7%] top-[4.2%] h-[4.4%] w-[8.1%]`} />
+            <Link to="/about" aria-label="Our Story" className={`${desktopHotspot} left-[77.3%] top-[4.2%] h-[4.4%] w-[7.4%]`} />
+            <Link to="/contact" aria-label="Contact" className={`${desktopHotspot} left-[85.4%] top-[4.2%] h-[4.4%] w-[6.2%]`} />
+            <Link to="/cart" aria-label="Cart" className={`${desktopHotspot} left-[90.7%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
+            <Link to="/shop" aria-label="Open menu" className={`${desktopHotspot} left-[94.5%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
+            <Link to="/shop" aria-label="Shop the batch" className={`${desktopHotspot} left-[9.8%] top-[49.2%] h-[5.8%] w-[18.8%]`} />
+            <Link to="/contact" aria-label="Build a custom jar" className={`${desktopHotspot} left-[9.8%] top-[56.6%] h-[5.8%] w-[18.8%]`} />
           </div>
-          <h1 className="sr-only">Pickle Nick custom pickles, hot sauce, and small-batch brine.</h1>
-          <Link to="/shop" aria-label="Shop" className={`${desktopHotspot} left-[63.6%] top-[4.2%] h-[4.4%] w-[4.7%]`} />
-          <Link to="/contact" aria-label="Custom Jar" className={`${desktopHotspot} left-[68.7%] top-[4.2%] h-[4.4%] w-[8.1%]`} />
-          <Link to="/about" aria-label="Our Story" className={`${desktopHotspot} left-[77.3%] top-[4.2%] h-[4.4%] w-[7.4%]`} />
-          <Link to="/contact" aria-label="Contact" className={`${desktopHotspot} left-[85.4%] top-[4.2%] h-[4.4%] w-[6.2%]`} />
-          <Link to="/cart" aria-label="Cart" className={`${desktopHotspot} left-[90.7%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
-          <Link to="/shop" aria-label="Open menu" className={`${desktopHotspot} left-[94.5%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
-          <Link to="/shop" aria-label="Shop the batch" className={`${desktopHotspot} left-[9.8%] top-[49.2%] h-[5.8%] w-[18.8%]`} />
-          <Link to="/contact" aria-label="Build a custom jar" className={`${desktopHotspot} left-[9.8%] top-[56.6%] h-[5.8%] w-[18.8%]`} />
         </div>
       </section>
 
