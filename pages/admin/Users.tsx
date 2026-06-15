@@ -84,7 +84,7 @@ const Users = () => {
     <div>
       <div className="flex justify-between items-end mb-10 border-b-2 border-native-black/10 pb-6">
         <div>
-            <h1 className="text-5xl font-display text-native-black uppercase mb-2">The Tribe</h1>
+            <h1 className="text-5xl font-display text-native-black uppercase mb-2">The Crew</h1>
             <p className="font-sans text-native-earth text-lg italic">"Those who know the crunch."</p>
         </div>
         <button 
@@ -212,7 +212,7 @@ const Users = () => {
                  </td>
                </tr>
              )) : (
-               !isAdding && <tr><td colSpan={5} className="p-12 text-center text-native-earth/40 italic text-xl">No registered tribe members. Guest checkout is active.</td></tr>
+               !isAdding && <tr><td colSpan={5} className="p-12 text-center text-native-earth/40 italic text-xl">No registered crew members. Guest checkout is active.</td></tr>
              )}
           </tbody>
         </table>

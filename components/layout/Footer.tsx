@@ -13,7 +13,7 @@ const Footer = () => {
 
       <div className="border-y border-[#f4c56d]/12 bg-[#0b0807] py-4">
         <div className="mx-auto max-w-7xl overflow-hidden px-4">
-          <div className="flex gap-8 whitespace-nowrap font-tribal text-sm font-bold uppercase tracking-[0.22em] text-[#f4c56d]/58 animate-drift">
+          <div className="flex w-max gap-8 whitespace-nowrap font-tribal text-sm font-bold uppercase tracking-[0.22em] text-[#f4c56d]/58 animate-drift">
             <span>* Hand Packed</span>
             <span>* Toasted Spice</span>
             <span>* Slow Brined</span>

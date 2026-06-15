@@ -25,6 +25,7 @@ const Shop = () => {
   });
 
   const activeCategory = categories.find(category => category.name === filter);
+  const heroProduct = products.find(product => product.featured) || products[0];
 
   useLayoutEffect(() => {
     let cancelled = false;
@@ -78,11 +79,12 @@ const Shop = () => {
 
   return (
     <div ref={shopRef} className="min-h-screen bg-[#120d0b] text-[#f5f0e6]">
-      <section className="relative overflow-hidden px-5 pb-16 pt-32 lg:px-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(244,197,109,0.18),transparent_30%),linear-gradient(135deg,rgba(244,197,109,0.08)_1px,transparent_1px),#120d0b] bg-[auto,28px_28px,auto]" />
+      <section className="relative overflow-hidden px-5 pb-12 pt-28 lg:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(244,197,109,0.2),transparent_30%),radial-gradient(circle_at_15%_75%,rgba(188,75,53,0.16),transparent_28%),linear-gradient(135deg,rgba(244,197,109,0.08)_1px,transparent_1px),#120d0b] bg-[auto,auto,28px_28px,auto]" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,#bc4b35,#f4c56d,#5f7f32,transparent)] opacity-80" />
 
         <div className="relative mx-auto max-w-7xl">
-          <div className="grid gap-10 border-b border-[#f4c56d]/18 pb-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <div className="grid gap-10 border-b border-[#f4c56d]/18 pb-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
             <div data-shop-reveal>
               <NickLogo size="md" className="mb-6" />
               <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
@@ -93,15 +95,29 @@ const Shop = () => {
               </h1>
             </div>
 
-            <div data-shop-reveal className="max-w-2xl lg:justify-self-end">
-              <p className="font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76">
-                {activeCategory?.description || 'Custom pickles, hot sauce, brine jars, and small-batch provisions built for serious crunch.'}
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d]/82">
-                <span className="border border-[#f4c56d]/22 px-4 py-2">Small Batch</span>
-                <span className="border border-[#f4c56d]/22 px-4 py-2">Custom Heat</span>
-                <span className="border border-[#f4c56d]/22 px-4 py-2">Tattoo Batch</span>
+            <div data-shop-reveal className="grid gap-6 lg:justify-self-end xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-end">
+              <div className="max-w-2xl">
+                <p className="font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76">
+                  {activeCategory?.description || 'Custom pickles, hot sauce, brine jars, and small-batch provisions built for serious crunch.'}
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d]/82">
+                  <span className="border border-[#f4c56d]/22 px-4 py-2">Small Batch</span>
+                  <span className="border border-[#f4c56d]/22 px-4 py-2">Custom Heat</span>
+                  <span className="border border-[#f4c56d]/22 px-4 py-2">Tattoo Batch</span>
+                </div>
               </div>
+
+              {heroProduct && (
+                <Link
+                  to={`/product/${heroProduct.id}`}
+                  className="group relative hidden aspect-[4/4.25] overflow-hidden border border-[#f4c56d]/22 bg-[#090605] shadow-[0_26px_72px_rgba(0,0,0,0.42)] xl:block"
+                >
+                  <BrandedProductImage product={heroProduct} className="h-full w-full" forceBrandBackdrop />
+                  <div className="absolute right-4 top-4 z-30 bg-[#f1dfb8] px-4 py-1 font-display text-xl text-[#120d0b] shadow-[0_10px_24px_rgba(0,0,0,0.28)]">
+                    ${heroProduct.price.toFixed(2)}
+                  </div>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -153,7 +169,7 @@ const Shop = () => {
                   className="group flex min-h-full flex-col overflow-hidden border border-[#120d0b]/16 bg-[#120d0b] text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)] transition duration-500 hover:-translate-y-2"
                 >
                   <div className="relative aspect-[4/5] overflow-hidden bg-[#201611]">
-                    <BrandedProductImage product={product} className="h-full w-full" />
+                    <BrandedProductImage product={product} className="h-full w-full" forceBrandBackdrop />
                     {product.stock === 0 && (
                       <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#120d0b]/78 backdrop-blur-[2px]">
                         <span className="border border-[#f4c56d]/42 px-5 py-3 font-tribal text-xs font-bold uppercase tracking-[0.28em] text-[#f4c56d]">

@@ -7,7 +7,7 @@ import BrandedProductImage from '../components/brand/BrandedProductImage';
 
 const BrineDepthScene = lazy(() => import('../components/visual/BrineDepthScene'));
 
-const heroBackground = '/brand/pickle-nick-warrior-tattoo-hero.png';
+const heroBackground = '/brand/pickle-nick-warrior-tattoo-hero-v2.png';
 
 const proofPoints = [
   { icon: Sparkles, title: 'Small Batch', desc: 'Handmade in tiny batches.' },
@@ -48,7 +48,7 @@ const Home = () => {
       const ctx = gsap.context(() => {
         mm = gsap.matchMedia();
 
-        gsap.set('[data-hero-brand], [data-hero-copy], [data-hero-actions], [data-hero-badge]', {
+        gsap.set('[data-hero-brand], [data-hero-copy], [data-hero-actions], [data-hero-badge], [data-hero-plate]', {
           y: 24,
           opacity: 0,
         });
@@ -58,7 +58,8 @@ const Home = () => {
           .to('[data-hero-brand]', { y: 0, opacity: 1, duration: 0.78 })
           .to('[data-hero-copy]', { y: 0, opacity: 1, duration: 0.82 }, '-=0.52')
           .to('[data-hero-actions]', { y: 0, opacity: 1, duration: 0.72 }, '-=0.46')
-          .to('[data-hero-badge]', { y: 0, opacity: 1, duration: 0.78, stagger: 0.08 }, '-=0.58');
+          .to('[data-hero-badge]', { y: 0, opacity: 1, duration: 0.78, stagger: 0.08 }, '-=0.58')
+          .to('[data-hero-plate]', { y: 0, opacity: 1, duration: 0.78 }, '-=0.74');
 
         mm.add('(prefers-reduced-motion: no-preference)', () => {
           gsap.to('[data-hero-bg]', {
@@ -76,6 +77,18 @@ const Home = () => {
           gsap.to('[data-hero-badge]', {
             yPercent: -5,
             rotate: -1.2,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '[data-hero-section]',
+              start: 'top top',
+              end: 'bottom top',
+              scrub: true,
+            },
+          });
+
+          gsap.to('[data-hero-plate]', {
+            yPercent: -8,
+            rotate: 1.4,
             ease: 'none',
             scrollTrigger: {
               trigger: '[data-hero-section]',
@@ -191,8 +204,8 @@ const Home = () => {
           </div>
         </header>
 
-        <div className="relative z-20 mx-auto flex min-h-[calc(100svh-5.5rem)] max-w-7xl items-center pb-20 pt-10">
-          <div className="max-w-4xl">
+        <div className="relative z-20 mx-auto flex min-h-[calc(100svh-5.5rem)] max-w-7xl items-center pb-28 pt-10">
+          <div className="max-w-[48rem]">
             <div data-hero-brand className="mb-5 inline-flex items-center gap-4">
               <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-[#f4c56d]/42 bg-[#080605] p-1 shadow-[0_18px_46px_rgba(0,0,0,0.58),0_0_0_5px_rgba(244,197,109,0.07)] sm:h-20 sm:w-20">
                 <img
@@ -203,7 +216,7 @@ const Home = () => {
               </span>
               <span>
                 <span className="block font-tribal text-xs font-bold uppercase tracking-[0.3em] text-native-clay">
-                  Warrior Batch
+                  Nick's Mark
                 </span>
                 <span className="mt-1 block font-tribal text-xs font-bold uppercase tracking-[0.24em] text-[#f4c56d]/66">
                   Tattoo brine house
@@ -236,7 +249,7 @@ const Home = () => {
               </Link>
             </div>
 
-            <div className="mt-7 grid max-w-2xl grid-cols-3 gap-3">
+            <div className="mt-8 hidden max-w-2xl grid-cols-3 gap-3 md:grid">
               {[
                 ['01', 'Small batch'],
                 ['02', 'Tattoo heat'],
@@ -255,9 +268,37 @@ const Home = () => {
               ))}
             </div>
           </div>
+
+          <div
+            data-hero-plate
+            className="absolute bottom-28 right-0 hidden w-[18rem] rotate-[-2deg] border border-[#f4c56d]/28 bg-[#090605]/76 p-5 text-[#f5f0e6] shadow-[0_26px_70px_rgba(0,0,0,0.52)] backdrop-blur-md xl:block"
+          >
+            <div className="absolute -left-8 -top-8 h-24 w-24 rounded-full border border-[#f4c56d]/35 bg-[#090605] p-1 shadow-[0_18px_38px_rgba(0,0,0,0.45)]">
+              <img
+                src="/brand/pickle-nick-seal-made-to-bite-back.png"
+                alt=""
+                aria-hidden="true"
+                className="h-full w-full rounded-full object-cover"
+              />
+            </div>
+            <div className="pl-14">
+              <p className="font-tribal text-[10px] font-bold uppercase tracking-[0.28em] text-native-clay">
+                Custom Heat
+              </p>
+              <p className="mt-2 font-display text-3xl leading-none text-[#f4c56d]">
+                Nick-marked jars
+              </p>
+            </div>
+            <div className="mt-5 grid grid-cols-2 gap-2 border-t border-[#f4c56d]/16 pt-4 font-tribal text-[10px] font-bold uppercase tracking-[0.2em] text-[#f5f0e6]/62">
+              <span>Small batch</span>
+              <span className="text-right">Tattoo heat</span>
+              <span>Brass seal</span>
+              <span className="text-right">Bold crunch</span>
+            </div>
+          </div>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-30 border-t border-[#f4c56d]/14 bg-[#f1dfb8] px-5 py-4 text-[#120d0b] shadow-[0_-18px_44px_rgba(0,0,0,0.34)]">
+        <div className="absolute inset-x-0 bottom-0 z-30 border-t border-[#f4c56d]/14 bg-[#f1dfb8] px-5 py-5 text-[#120d0b] shadow-[0_-18px_44px_rgba(0,0,0,0.34)]">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
             <p className="font-display text-2xl leading-none sm:text-3xl">Made to bite back</p>
             <div className="flex flex-wrap gap-4 font-tribal text-[10px] font-bold uppercase tracking-[0.2em] text-[#120d0b]/66 sm:text-xs">
@@ -312,7 +353,7 @@ const Home = () => {
                 className="group overflow-hidden border border-[#120d0b]/15 bg-[#120d0b] text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)] transition hover:-translate-y-2"
               >
                 <div className="relative aspect-[4/5] overflow-hidden bg-[#201611]">
-                  <BrandedProductImage product={product} className="h-full w-full" imageClassName="group-hover:scale-110" />
+                  <BrandedProductImage product={product} className="h-full w-full" imageClassName="group-hover:scale-110" forceBrandBackdrop />
                   <div className="absolute right-4 top-4 z-30 bg-[#f1dfb8] px-4 py-1 font-display text-xl text-[#120d0b] shadow-[0_10px_24px_rgba(0,0,0,0.28)]">
                     ${product.price.toFixed(2)}
                   </div>

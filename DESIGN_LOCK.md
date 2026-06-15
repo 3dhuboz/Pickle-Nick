@@ -3,7 +3,8 @@
 Accepted direction: American tribal / warrior tattoo pickle brand, with Nick's seal and product labels as the anchor. This is not India-the-country styling.
 
 ## Must Keep
-- The homepage hero must use the American tribal tattoo product-counter asset, not the old India-country mock.
+- The homepage hero must use `public/brand/pickle-nick-warrior-tattoo-hero-v2.png`, not the old India-country mock or earlier animal/skull-heavy explorations.
+- Public product cards and product detail media should use `public/brand/pickle-nick-product-card-backdrop.png` when live product imagery drifts away from Nick-branded jars.
 - Full-bleed dark hero with an ink-black/tattoo-wall feel.
 - No bulky rounded white top header or cream app-shell frame.
 - Small edge navigation with warm brass/parchment text.
@@ -18,6 +19,7 @@ Accepted direction: American tribal / warrior tattoo pickle brand, with Nick's s
 ## Must Avoid
 - Generic artisan cream/beige layout.
 - Western/cowboy typography.
+- Skull-led, animal-led, or creature-led product art unless Nick explicitly asks for it.
 - Sacred/regalia/caricature cues, careless generic "tribe" wording, or culturally specific sacred symbols.
 - Country-India cues unless explicitly requested: achar naming, jali/rangoli geometry, palace/temple line art, curry-house styling, or South Asian market decor.
 - Random icons, mountains, feathers, floating pills, or decorative blobs.

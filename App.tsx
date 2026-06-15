@@ -51,27 +51,25 @@ const ProtectedCustomerRoute: React.FC<{ children: React.ReactNode }> = ({ child
 };
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { siteContent } = useStore();
   const { pathname } = useLocation();
   const showWatermarks = pathname !== '/';
 
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-[#120d0b] text-native-sand">
-      {/* Brand mascots as quiet heritage watermarks */}
-      {showWatermarks && siteContent?.general.mascotUrl1 && (
+      {showWatermarks && (
         <img
-          src={siteContent.general.mascotUrl1}
+          src="/brand/pickle-nick-seal-made-to-bite-back.png"
           alt=""
-          className="fixed bottom-10 left-8 w-52 pointer-events-none hidden xl:block z-[1]"
+          className="pointer-events-none fixed bottom-10 left-8 z-[1] hidden w-48 rounded-full xl:block"
           style={{ opacity: 0.08 }}
         />
       )}
-      {showWatermarks && siteContent?.general.mascotUrl2 && (
+      {showWatermarks && (
         <img
-          src={siteContent.general.mascotUrl2}
+          src="/brand/pickle-nick-seal-made-to-bite-back.png"
           alt=""
-          className="fixed top-28 right-8 w-44 pointer-events-none hidden xl:block z-[1]"
-          style={{ opacity: 0.08 }}
+          className="pointer-events-none fixed right-8 top-28 z-[1] hidden w-40 rounded-full xl:block"
+          style={{ opacity: 0.055 }}
         />
       )}
 
@@ -91,8 +89,8 @@ const SeoManager = () => {
     if (!siteContent) return;
     const g = siteContent.general;
     const brand = g.brandName || 'Pickle Nick';
-    const tagline = g.tagline || 'Spirit of the Brine';
-    const description = g.seoDescription || `${brand} - artisan pickles and provisions, delivered Australia-wide.`;
+    const tagline = g.tagline || 'Made To Bite Back';
+    const description = g.seoDescription || `${brand} makes custom pickles, hot sauce, and small-batch jars with Nick's mark.`;
     const siteUrl = (g.siteUrl || 'https://picklenick.au').replace(/\/$/, '');
     const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.jpg';
     const ogImage = faviconUrl.startsWith('http') ? faviconUrl : `${siteUrl}${faviconUrl}`;
