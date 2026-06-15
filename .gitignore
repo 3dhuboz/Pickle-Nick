@@ -15,6 +15,11 @@ dist-ssr
 # Wrangler local state
 .wrangler
 
+# Codex save artifacts
+git-bundles/
+metadata/
+working-tree/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
