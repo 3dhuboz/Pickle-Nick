@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, Minus, Plus, ShoppingBasket, Star } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import NickLogo from '../components/brand/NickLogo';
+import BrandedProductImage from '../components/brand/BrandedProductImage';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -50,17 +51,9 @@ const ProductDetail = () => {
           <div className="relative">
             <div className="absolute -bottom-4 -right-4 h-full w-full border border-[#f4c56d]/22" />
             <div className="relative aspect-[4/5] overflow-hidden border border-[#f4c56d]/18 bg-[#201611]">
-              {product.image ? (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="h-full w-full object-cover opacity-95 sepia-[.12]"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center font-display text-8xl text-[#f4c56d]/24">PN</div>
-              )}
+              <BrandedProductImage product={product} variant="detail" className="h-full w-full" />
               {product.featured && (
-                <div className="absolute right-5 top-5 border border-[#f4c56d]/35 bg-[#120d0b]/78 p-3 text-[#f4c56d] backdrop-blur">
+                <div className="absolute right-5 top-24 z-30 border border-[#f4c56d]/35 bg-[#120d0b]/78 p-3 text-[#f4c56d] backdrop-blur">
                   <Star fill="currentColor" size={24} />
                 </div>
               )}

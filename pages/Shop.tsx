@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Filter, Flame, Search } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import NickLogo from '../components/brand/NickLogo';
+import BrandedProductImage from '../components/brand/BrandedProductImage';
 
 const Shop = () => {
   const { products, categories } = useStore();
@@ -79,7 +80,6 @@ const Shop = () => {
     <div ref={shopRef} className="min-h-screen bg-[#120d0b] text-[#f5f0e6]">
       <section className="relative overflow-hidden px-5 pb-16 pt-32 lg:px-8">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(244,197,109,0.18),transparent_30%),linear-gradient(135deg,rgba(244,197,109,0.08)_1px,transparent_1px),#120d0b] bg-[auto,28px_28px,auto]" />
-        <div className="absolute inset-y-0 left-0 hidden w-28 border-r border-[#f4c56d]/12 bg-[linear-gradient(135deg,rgba(244,197,109,0.15)_1px,transparent_1px),linear-gradient(45deg,rgba(188,75,53,0.16)_1px,transparent_1px)] bg-[length:22px_22px] lg:block" />
 
         <div className="relative mx-auto max-w-7xl">
           <div className="grid gap-10 border-b border-[#f4c56d]/18 pb-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
@@ -95,12 +95,12 @@ const Shop = () => {
 
             <div data-shop-reveal className="max-w-2xl lg:justify-self-end">
               <p className="font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76">
-                {activeCategory?.description || 'Custom pickles, hot sauce, achar jars, and small-batch provisions built for serious crunch.'}
+                {activeCategory?.description || 'Custom pickles, hot sauce, brine jars, and small-batch provisions built for serious crunch.'}
               </p>
               <div className="mt-6 flex flex-wrap gap-3 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d]/82">
                 <span className="border border-[#f4c56d]/22 px-4 py-2">Small Batch</span>
                 <span className="border border-[#f4c56d]/22 px-4 py-2">Custom Heat</span>
-                <span className="border border-[#f4c56d]/22 px-4 py-2">Achar House</span>
+                <span className="border border-[#f4c56d]/22 px-4 py-2">Tattoo Batch</span>
               </div>
             </div>
           </div>
@@ -153,23 +153,15 @@ const Shop = () => {
                   className="group flex min-h-full flex-col overflow-hidden border border-[#120d0b]/16 bg-[#120d0b] text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)] transition duration-500 hover:-translate-y-2"
                 >
                   <div className="relative aspect-[4/5] overflow-hidden bg-[#201611]">
-                    {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="h-full w-full object-cover opacity-95 sepia-[.14] transition duration-700 group-hover:scale-[1.08] group-hover:sepia-0"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center font-display text-7xl text-[#f4c56d]/25">PN</div>
-                    )}
+                    <BrandedProductImage product={product} className="h-full w-full" />
                     {product.stock === 0 && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-[#120d0b]/78 backdrop-blur-[2px]">
+                      <div className="absolute inset-0 z-40 flex items-center justify-center bg-[#120d0b]/78 backdrop-blur-[2px]">
                         <span className="border border-[#f4c56d]/42 px-5 py-3 font-tribal text-xs font-bold uppercase tracking-[0.28em] text-[#f4c56d]">
                           Sold Out
                         </span>
                       </div>
                     )}
-                    <div className="absolute left-4 top-4 bg-[#f1dfb8] px-4 py-1 font-display text-xl text-[#120d0b]">
+                    <div className="absolute right-4 top-4 z-30 bg-[#f1dfb8] px-4 py-1 font-display text-xl text-[#120d0b] shadow-[0_10px_24px_rgba(0,0,0,0.28)]">
                       ${product.price.toFixed(2)}
                     </div>
                   </div>

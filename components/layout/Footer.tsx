@@ -31,7 +31,7 @@ const Footer = () => {
           <NickLogo
             size="lg"
             showName
-            subtitle={siteContent?.general.tagline || 'Achar House'}
+            subtitle={siteContent?.general.tagline || 'Made To Bite Back'}
             labelClassName="text-4xl leading-none"
           />
           <p className="mt-7 max-w-md font-sans text-lg font-semibold leading-relaxed text-[#f5f0e6]/64">

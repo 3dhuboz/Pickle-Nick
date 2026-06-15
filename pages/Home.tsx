@@ -1,17 +1,13 @@
 import React, { Suspense, lazy, useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Flame, Hammer, Leaf, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, Flame, Hammer, Leaf, Menu, ShoppingBasket, Sparkles, Star } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import NickLogo from '../components/brand/NickLogo';
+import BrandedProductImage from '../components/brand/BrandedProductImage';
 
 const BrineDepthScene = lazy(() => import('../components/visual/BrineDepthScene'));
 
-const heroMock = '/design/pickle-nick-hero-mock.png';
-
-const heroStageStyle: React.CSSProperties = {
-  width: 'max(100vw, 143.786svh)',
-  height: 'max(100svh, 69.548vw)',
-};
+const heroBackground = '/brand/pickle-nick-warrior-tattoo-hero.png';
 
 const proofPoints = [
   { icon: Sparkles, title: 'Small Batch', desc: 'Handmade in tiny batches.' },
@@ -20,14 +16,19 @@ const proofPoints = [
   { icon: Hammer, title: 'Custom Made', desc: 'You dream it. We pickle it.' },
 ];
 
-const desktopHotspot =
-  'absolute z-30 rounded-sm outline-none transition focus-visible:ring-2 focus-visible:ring-[#f4c56d] focus-visible:ring-offset-2 focus-visible:ring-offset-[#120d0b]';
+const heroNavItems = [
+  { to: '/shop', label: 'Shop' },
+  { to: '/contact', label: 'Custom Jar' },
+  { to: '/about', label: 'Our Story' },
+  { to: '/contact', label: 'Contact' },
+];
 
 const Home = () => {
-  const { products } = useStore();
+  const { products, cart } = useStore();
   const homeRef = useRef<HTMLDivElement | null>(null);
   const featuredProducts = products.filter(product => product.featured).slice(0, 4);
   const showcaseProducts = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 4);
+  const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   useLayoutEffect(() => {
     let cancelled = false;
@@ -47,15 +48,34 @@ const Home = () => {
       const ctx = gsap.context(() => {
         mm = gsap.matchMedia();
 
-        gsap.set('[data-mock-stage]', { y: 18, opacity: 0, scale: 0.986 });
+        gsap.set('[data-hero-brand], [data-hero-copy], [data-hero-actions], [data-hero-badge]', {
+          y: 24,
+          opacity: 0,
+        });
+        gsap.set('[data-hero-bg]', { scale: 1.035 });
 
         gsap.timeline({ defaults: { ease: 'power3.out' } })
-          .to('[data-mock-stage]', { y: 0, opacity: 1, scale: 1, duration: 0.92 });
+          .to('[data-hero-brand]', { y: 0, opacity: 1, duration: 0.78 })
+          .to('[data-hero-copy]', { y: 0, opacity: 1, duration: 0.82 }, '-=0.52')
+          .to('[data-hero-actions]', { y: 0, opacity: 1, duration: 0.72 }, '-=0.46')
+          .to('[data-hero-badge]', { y: 0, opacity: 1, duration: 0.78, stagger: 0.08 }, '-=0.58');
 
         mm.add('(prefers-reduced-motion: no-preference)', () => {
-          gsap.to('[data-mock-image]', {
-            scale: 1.018,
-            yPercent: -1.2,
+          gsap.to('[data-hero-bg]', {
+            scale: 1.08,
+            yPercent: -2.2,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '[data-hero-section]',
+              start: 'top top',
+              end: 'bottom top',
+              scrub: true,
+            },
+          });
+
+          gsap.to('[data-hero-badge]', {
+            yPercent: -5,
+            rotate: -1.2,
             ease: 'none',
             scrollTrigger: {
               trigger: '[data-hero-section]',
@@ -109,59 +129,142 @@ const Home = () => {
     <div ref={homeRef} className="overflow-hidden bg-[#120d0b] text-[#f5f0e6]">
       <section
         data-hero-section
-        className="relative isolate h-[100svh] overflow-hidden bg-[#070504]"
+        className="relative isolate min-h-[100svh] overflow-hidden bg-[#070504] px-5 text-[#f5f0e6] lg:px-8"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_22%,rgba(244,197,109,0.16),transparent_34%),radial-gradient(circle_at_18%_64%,rgba(188,75,53,0.12),transparent_30%),#070504]" />
+        <img
+          data-hero-bg
+          src={heroBackground}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full origin-center object-cover object-[63%_50%] opacity-95 sm:object-center"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,5,4,0.98)_0%,rgba(7,5,4,0.86)_34%,rgba(7,5,4,0.24)_68%,rgba(7,5,4,0.5)_100%),radial-gradient(circle_at_68%_26%,rgba(244,197,109,0.12),transparent_28%),radial-gradient(circle_at_18%_68%,rgba(188,75,53,0.14),transparent_30%)]" />
+        <div className="absolute inset-y-0 left-0 hidden w-28 bg-[linear-gradient(135deg,rgba(244,197,109,0.14)_1px,transparent_1px),linear-gradient(45deg,rgba(188,75,53,0.12)_1px,transparent_1px)] bg-[length:24px_24px] opacity-40 lg:block" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,5,4,0.28),transparent_18%,transparent_74%,rgba(7,5,4,0.9))]" />
 
-        <div className="absolute inset-0 hidden items-start justify-center sm:flex">
-          <div data-mock-stage className="relative shrink-0 overflow-hidden" style={heroStageStyle}>
-            <img
-              data-mock-image
-              src={heroMock}
-              alt="Pickle Nick achar house hero with custom pickle jars and tattoo flash styling"
-              className="absolute inset-0 h-full w-full origin-center object-cover"
-            />
-            <div data-depth-scene className="pointer-events-none absolute inset-0 z-20 opacity-55 mix-blend-screen">
-              <Suspense fallback={null}>
-                <BrineDepthScene />
-              </Suspense>
+        <div data-depth-scene className="pointer-events-none absolute inset-0 z-10 opacity-45 mix-blend-screen">
+          <Suspense fallback={null}>
+            <BrineDepthScene />
+          </Suspense>
+        </div>
+
+        <header className="relative z-30 mx-auto flex max-w-7xl items-center justify-between pt-6">
+          <NickLogo
+            to="/"
+            size="md"
+            showName
+            labelClassName="hidden text-2xl uppercase tracking-[0.18em] sm:block"
+          />
+
+          <nav className="hidden items-center gap-8 md:flex">
+            {heroNavItems.map(item => (
+              <Link
+                key={`${item.to}-${item.label}`}
+                to={item.to}
+                className="font-tribal text-sm font-bold uppercase tracking-[0.22em] text-[#f5f0e6]/74 transition hover:text-[#f4c56d]"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <Link
+              to="/cart"
+              className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[#f4c56d]/28 bg-[#080605]/64 text-[#f4c56d] backdrop-blur transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
+              aria-label="Cart"
+            >
+              <ShoppingBasket size={19} />
+              {cartItemCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-native-clay text-[10px] font-bold text-white">
+                  {cartItemCount}
+                </span>
+              )}
+            </Link>
+            <Link
+              to="/shop"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#f4c56d]/28 bg-[#080605]/64 text-[#f4c56d] backdrop-blur transition hover:bg-[#f4c56d] hover:text-[#120d0b] md:hidden"
+              aria-label="Open shop"
+            >
+              <Menu size={20} />
+            </Link>
+          </div>
+        </header>
+
+        <div className="relative z-20 mx-auto flex min-h-[calc(100svh-5.5rem)] max-w-7xl items-center pb-20 pt-10">
+          <div className="max-w-4xl">
+            <div data-hero-brand className="mb-5 inline-flex items-center gap-4">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-[#f4c56d]/42 bg-[#080605] p-1 shadow-[0_18px_46px_rgba(0,0,0,0.58),0_0_0_5px_rgba(244,197,109,0.07)] sm:h-20 sm:w-20">
+                <img
+                  src="/brand/pickle-nick-seal-made-to-bite-back.png"
+                  alt="Pickle Nick Made To Bite Back seal"
+                  className="h-full w-full rounded-full object-cover"
+                />
+              </span>
+              <span>
+                <span className="block font-tribal text-xs font-bold uppercase tracking-[0.3em] text-native-clay">
+                  Warrior Batch
+                </span>
+                <span className="mt-1 block font-tribal text-xs font-bold uppercase tracking-[0.24em] text-[#f4c56d]/66">
+                  Tattoo brine house
+                </span>
+              </span>
             </div>
 
-            <h1 className="sr-only">Pickle Nick custom pickles, hot sauce, and small-batch brine.</h1>
+            <h1 data-hero-copy className="font-display text-[4rem] leading-[0.86] text-[#f4c56d] drop-shadow-[0_10px_30px_rgba(0,0,0,0.72)] sm:whitespace-nowrap sm:text-7xl lg:text-[7.2rem] xl:text-[8rem]">
+              Pickle Nick
+            </h1>
+            <p data-hero-copy className="mt-3 font-display text-3xl leading-none text-native-clay drop-shadow-[0_8px_24px_rgba(0,0,0,0.72)] sm:text-4xl lg:text-5xl">
+              Bold. Brined. Brilliant.
+            </p>
+            <p data-hero-copy className="mt-6 max-w-xl font-sans text-lg font-semibold leading-relaxed text-[#f5f0e6]/82 sm:text-xl">
+              Custom pickles, hot sauce, and small-batch brine with old tattoo flash, rugged heat, and Nick's mark on every jar.
+            </p>
 
-            <Link to="/shop" aria-label="Shop" className={`${desktopHotspot} left-[63.6%] top-[4.2%] h-[4.4%] w-[4.7%]`} />
-            <Link to="/contact" aria-label="Custom Jar" className={`${desktopHotspot} left-[68.7%] top-[4.2%] h-[4.4%] w-[8.1%]`} />
-            <Link to="/about" aria-label="Our Story" className={`${desktopHotspot} left-[77.3%] top-[4.2%] h-[4.4%] w-[7.4%]`} />
-            <Link to="/contact" aria-label="Contact" className={`${desktopHotspot} left-[85.4%] top-[4.2%] h-[4.4%] w-[6.2%]`} />
-            <Link to="/cart" aria-label="Cart" className={`${desktopHotspot} left-[90.7%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
-            <Link to="/shop" aria-label="Open menu" className={`${desktopHotspot} left-[94.5%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
-            <Link to="/shop" aria-label="Shop the batch" className={`${desktopHotspot} left-[9.8%] top-[49.2%] h-[5.8%] w-[18.8%]`} />
-            <Link to="/contact" aria-label="Build a custom jar" className={`${desktopHotspot} left-[9.8%] top-[56.6%] h-[5.8%] w-[18.8%]`} />
+            <div data-hero-actions className="mt-7 flex flex-col gap-4 sm:flex-row">
+              <Link
+                to="/shop"
+                className="group inline-flex items-center justify-center gap-3 border border-native-clay bg-native-clay px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-white shadow-[0_18px_44px_rgba(188,75,53,0.34)] transition hover:-translate-y-1 hover:bg-[#a63d2b]"
+              >
+                Shop the batch <ArrowRight size={18} className="transition group-hover:translate-x-1" />
+              </Link>
+              <Link
+                to="/contact"
+                className="inline-flex items-center justify-center border border-[#f4c56d]/34 bg-[#080605]/52 px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-[#f4c56d] backdrop-blur transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
+              >
+                Build a custom jar
+              </Link>
+            </div>
+
+            <div className="mt-7 grid max-w-2xl grid-cols-3 gap-3">
+              {[
+                ['01', 'Small batch'],
+                ['02', 'Tattoo heat'],
+                ['03', 'Nick marked'],
+              ].map(([number, label]) => (
+                <div
+                  key={number}
+                  data-hero-badge
+                  className="border border-[#f4c56d]/18 bg-[#080605]/58 px-4 py-3 backdrop-blur-sm"
+                >
+                  <span className="block font-display text-3xl leading-none text-[#f4c56d]">{number}</span>
+                  <span className="mt-2 block font-tribal text-[10px] font-bold uppercase tracking-[0.22em] text-[#f5f0e6]/68">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="absolute inset-0 flex items-center justify-start overflow-hidden sm:hidden">
-          <div data-mock-stage className="relative shrink-0 overflow-hidden" style={heroStageStyle}>
-            <img
-              data-mock-image
-              src={heroMock}
-              alt="Pickle Nick achar house hero with custom pickle jars and tattoo flash styling"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div data-depth-scene className="pointer-events-none absolute inset-0 opacity-45 mix-blend-screen">
-              <Suspense fallback={null}>
-                <BrineDepthScene />
-              </Suspense>
+        <div className="absolute inset-x-0 bottom-0 z-30 border-t border-[#f4c56d]/14 bg-[#f1dfb8] px-5 py-4 text-[#120d0b] shadow-[0_-18px_44px_rgba(0,0,0,0.34)]">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
+            <p className="font-display text-2xl leading-none sm:text-3xl">Made to bite back</p>
+            <div className="flex flex-wrap gap-4 font-tribal text-[10px] font-bold uppercase tracking-[0.2em] text-[#120d0b]/66 sm:text-xs">
+              <span>Hand packed</span>
+              <span>Tattoo flash labels</span>
+              <span>Custom heat</span>
             </div>
-            <h1 className="sr-only">Pickle Nick custom pickles, hot sauce, and small-batch brine.</h1>
-            <Link to="/shop" aria-label="Shop" className={`${desktopHotspot} left-[63.6%] top-[4.2%] h-[4.4%] w-[4.7%]`} />
-            <Link to="/contact" aria-label="Custom Jar" className={`${desktopHotspot} left-[68.7%] top-[4.2%] h-[4.4%] w-[8.1%]`} />
-            <Link to="/about" aria-label="Our Story" className={`${desktopHotspot} left-[77.3%] top-[4.2%] h-[4.4%] w-[7.4%]`} />
-            <Link to="/contact" aria-label="Contact" className={`${desktopHotspot} left-[85.4%] top-[4.2%] h-[4.4%] w-[6.2%]`} />
-            <Link to="/cart" aria-label="Cart" className={`${desktopHotspot} left-[90.7%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
-            <Link to="/shop" aria-label="Open menu" className={`${desktopHotspot} left-[94.5%] top-[3.6%] h-[5.6%] w-[3.8%]`} />
-            <Link to="/shop" aria-label="Shop the batch" className={`${desktopHotspot} left-[9.8%] top-[49.2%] h-[5.8%] w-[18.8%]`} />
-            <Link to="/contact" aria-label="Build a custom jar" className={`${desktopHotspot} left-[9.8%] top-[56.6%] h-[5.8%] w-[18.8%]`} />
           </div>
         </div>
       </section>
@@ -209,20 +312,12 @@ const Home = () => {
                 className="group overflow-hidden border border-[#120d0b]/15 bg-[#120d0b] text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)] transition hover:-translate-y-2"
               >
                 <div className="relative aspect-[4/5] overflow-hidden bg-[#201611]">
-                  {product.image ? (
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="h-full w-full object-cover opacity-95 sepia-[.14] transition duration-700 group-hover:scale-110 group-hover:sepia-0"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center font-display text-7xl text-[#f4c56d]/25">PN</div>
-                  )}
-                  <div className="absolute left-4 top-4 rounded-full bg-[#f1dfb8] px-4 py-1 font-display text-xl text-[#120d0b]">
+                  <BrandedProductImage product={product} className="h-full w-full" imageClassName="group-hover:scale-110" />
+                  <div className="absolute right-4 top-4 z-30 bg-[#f1dfb8] px-4 py-1 font-display text-xl text-[#120d0b] shadow-[0_10px_24px_rgba(0,0,0,0.28)]">
                     ${product.price.toFixed(2)}
                   </div>
                   {product.featured && (
-                    <Star className="absolute right-4 top-4 text-[#f4c56d] drop-shadow" fill="currentColor" size={26} />
+                    <Star className="absolute right-4 top-16 z-30 text-[#f4c56d] drop-shadow" fill="currentColor" size={26} />
                   )}
                 </div>
                 <div className="border-t border-[#f4c56d]/18 p-6">
@@ -249,12 +344,12 @@ const Home = () => {
               <NickLogo
                 size="md"
                 showName
-                subtitle="Custom batch desk"
+                subtitle="Warrior batch desk"
                 className="relative mb-7"
                 labelClassName="text-3xl leading-none"
               />
               <p className="font-tribal text-sm font-bold uppercase tracking-[0.3em] text-native-clay">
-                Custom Jar Brief
+                Warrior Batch Brief
               </p>
               <h2 className="mt-4 max-w-xl font-display text-[2.55rem] leading-[0.92] text-[#f4c56d] sm:text-5xl md:text-[3.45rem]">
                 Nick's mark, your heat
@@ -284,7 +379,7 @@ const Home = () => {
                 PN
               </div>
               <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
-                Batch Notes
+                Tattoo Notes
               </p>
               <h3 className="mt-3 max-w-md font-display text-4xl leading-none sm:text-[2.9rem]">
                 Made to order, not made to look polite
@@ -294,7 +389,7 @@ const Home = () => {
                 {[
                   { number: '01', title: 'Crunch', desc: 'Pickle, chilli, mango, mixed veg, or a stranger idea from the pantry.' },
                   { number: '02', title: 'Heat', desc: 'Bright, smoky, savage, sweet, or somewhere in the middle.' },
-                  { number: '03', title: 'Mark', desc: 'A custom label direction and small-batch finish made for the occasion.' },
+                  { number: '03', title: 'Mark', desc: 'Nick-branded label direction and small-batch finish made for the occasion.' },
                 ].map(item => (
                   <div key={item.number} data-depth-card className="grid gap-4 py-4 sm:grid-cols-[4.5rem_1fr] sm:items-start">
                     <span className="font-display text-4xl leading-none text-native-clay">{item.number}</span>
@@ -311,7 +406,7 @@ const Home = () => {
                   Made to bite back
                 </p>
                 <span className="border border-native-clay/35 px-4 py-2 font-display text-2xl leading-none text-native-clay">
-                  Achar House
+                  Brine House
                 </span>
               </div>
             </div>

@@ -28,7 +28,7 @@ const NickLogo = ({
   size = 'md',
 }: NickLogoProps) => {
   const { siteContent } = useStore();
-  const logoUrl = siteContent?.general.logoUrl || '/logo.jpg';
+  const logoUrl = siteContent?.general.logoUrl || '/brand/pickle-nick-seal-made-to-bite-back.png';
 
   const content = (
     <>

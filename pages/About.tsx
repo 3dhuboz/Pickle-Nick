@@ -17,14 +17,14 @@ const About = () => {
           <div>
             <NickLogo size="md" className="mb-6" />
             <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
-              Achar House
+              Brine House
             </p>
             <h1 className="mt-4 font-display text-[4rem] leading-[0.9] text-[#f4c56d] drop-shadow-[0_8px_26px_rgba(0,0,0,0.65)] sm:text-7xl md:text-8xl">
               Our Story
             </h1>
           </div>
           <p className="max-w-2xl font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76 lg:justify-self-end">
-            Custom pickles with old-market heat, tattoo-flash labels, and small-batch attitude.
+            Custom pickles with rugged heat, tattoo-flash labels, and small-batch attitude.
           </p>
         </div>
       </section>
