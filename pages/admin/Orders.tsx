@@ -5,6 +5,27 @@ import { Order, OrderStatus, Product, OrderItem } from '../../types';
 import { Search, Plus, Trash2, X, Download, Truck, Mail, Send, Eye, Server, Loader2, Check, AlertCircle, Save, HelpCircle, ChevronDown, Filter, Users, Package } from 'lucide-react';
 import { EmailService } from '../../services/emailService';
 
+const escapeHtml = (value: unknown): string =>
+  String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char] || char));
+
+const sanitizeOrderForEmailPreview = (order: Order): Order => ({
+  ...order,
+  id: escapeHtml(order.id),
+  customerName: escapeHtml(order.customerName),
+  items: order.items.map(item => ({
+    ...item,
+    name: escapeHtml(item.name),
+    quantity: Number(item.quantity || 0),
+    price: Number(item.price || 0),
+  })),
+});
+
 const generateShippingEmailHTML = (order: Order, trackingNumber: string, fromEmail: string, brandName: string): string => `
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
   <div style="background:#1a1a1a;padding:24px 32px;">
@@ -522,10 +543,10 @@ const Orders = () => {
                       <div 
                         className="shadow-lg rounded-xl overflow-hidden"
                         dangerouslySetInnerHTML={{ __html: generateShippingEmailHTML(
-                            selectedOrder, 
-                            formData.trackingNumber || '',
-                            settings.emailConfig?.adminEmail || 'orders@picklenick.com',
-                            'Pickle Nick Provisions'
+                            sanitizeOrderForEmailPreview(selectedOrder), 
+                            escapeHtml(formData.trackingNumber || ''),
+                            escapeHtml(settings.emailConfig?.adminEmail || 'orders@picklenick.com'),
+                            escapeHtml('Pickle Nick Provisions')
                         ) }} 
                       />
                   </div>

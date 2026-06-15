@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useUser } from '@clerk/react';
 import { StoreProvider, useStore } from './context/StoreContext';
 
 // Pages
-import Home from './pages/Home';
-import Shop from './pages/Shop';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
-import Login from './pages/Login';
-import Account from './pages/Account';
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminDashboard from './pages/admin/AdminDashboard';
+const Home = lazy(() => import('./pages/Home'));
+const Shop = lazy(() => import('./pages/Shop'));
+const About = lazy(() => import('./pages/About'));
+const Contact = lazy(() => import('./pages/Contact'));
+const ProductDetail = lazy(() => import('./pages/ProductDetail'));
+const Cart = lazy(() => import('./pages/Cart'));
+const Login = lazy(() => import('./pages/Login'));
+const Account = lazy(() => import('./pages/Account'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 
 // Components
 import Navbar from './components/layout/Navbar';
@@ -30,6 +30,12 @@ const ScrollToTop = () => {
   }, [pathname]);
   return null;
 };
+
+const PageFallback = () => (
+  <div className="min-h-screen bg-native-sand flex items-center justify-center">
+    <div className="h-14 w-14 rounded-full border-4 border-native-clay/25 border-t-native-clay animate-spin" />
+  </div>
+);
 
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoaded } = useUser();
@@ -165,34 +171,36 @@ const AppContent = () => {
     <Router>
       <ScrollToTop />
       <SeoManager />
-      <Routes>
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/*" element={
-          <ProtectedAdminRoute>
-            <AdminLayout>
-              <AdminDashboard />
-            </AdminLayout>
-          </ProtectedAdminRoute>
-        } />
-        
-        {/* Public Routes */}
-        <Route path="/" element={<MainLayout><Home /></MainLayout>} />
-        <Route path="/shop" element={<MainLayout><Shop /></MainLayout>} />
-        <Route path="/product/:id" element={<MainLayout><ProductDetail /></MainLayout>} />
-        <Route path="/about" element={<MainLayout><About /></MainLayout>} />
-        <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
-        <Route path="/cart" element={<MainLayout><Cart /></MainLayout>} />
-        <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
-        
-        {/* Customer Route */}
-        <Route path="/account" element={
-          <ProtectedCustomerRoute>
-            <MainLayout>
-              <Account />
-            </MainLayout>
-          </ProtectedCustomerRoute>
-        } />
-      </Routes>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/*" element={
+            <ProtectedAdminRoute>
+              <AdminLayout>
+                <AdminDashboard />
+              </AdminLayout>
+            </ProtectedAdminRoute>
+          } />
+          
+          {/* Public Routes */}
+          <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+          <Route path="/shop" element={<MainLayout><Shop /></MainLayout>} />
+          <Route path="/product/:id" element={<MainLayout><ProductDetail /></MainLayout>} />
+          <Route path="/about" element={<MainLayout><About /></MainLayout>} />
+          <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
+          <Route path="/cart" element={<MainLayout><Cart /></MainLayout>} />
+          <Route path="/login" element={<MainLayout><Login /></MainLayout>} />
+          
+          {/* Customer Route */}
+          <Route path="/account" element={
+            <ProtectedCustomerRoute>
+              <MainLayout>
+                <Account />
+              </MainLayout>
+            </ProtectedCustomerRoute>
+          } />
+        </Routes>
+      </Suspense>
     </Router>
   );
 };

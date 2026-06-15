@@ -126,13 +126,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   useEffect(() => {
-    if (!userLoaded) return;
     refreshData();
 
     const handler = (e: any) => { e.preventDefault(); setInstallPrompt(e); };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, [userLoaded, isAdmin]);
+  }, [userLoaded, isAdmin, user?.id]);
 
   // Products
   const addProduct = async (p: Product) => {

@@ -8,6 +8,15 @@ const stamp = (data: any) => ({ ...data, updated_at: Date.now() });
 
 const uid = () => crypto.randomUUID();
 
+const escapeHtml = (value: unknown): string =>
+  String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char] || char));
+
 // Fire-and-forget Resend email helper (never throws, just logs)
 const sendTransactionalEmail = async (
   env: Env,
@@ -36,6 +45,19 @@ const sendTransactionalEmail = async (
 };
 
 const buildOrderConfirmationHTML = (order: any, items: any[]): string => {
+  order = {
+    ...order,
+    id: escapeHtml(order.id),
+    customerName: escapeHtml(order.customerName),
+    shippingAddress: escapeHtml(order.shippingAddress),
+    shippingMethod: escapeHtml(order.shippingMethod || 'standard'),
+  };
+  items = items.map(i => ({
+    ...i,
+    name: escapeHtml(i.name),
+    quantity: Number(i.quantity || 0),
+    price: Number(i.price || 0),
+  }));
   const itemRows = items.map(i =>
     `<tr><td style="padding:8px 0;border-bottom:1px solid #f0ebe2;">${i.name} × ${i.quantity}</td><td style="padding:8px 0;border-bottom:1px solid #f0ebe2;text-align:right;">$${(i.price * i.quantity).toFixed(2)}</td></tr>`
   ).join('');
@@ -52,7 +74,15 @@ const buildOrderConfirmationHTML = (order: any, items: any[]): string => {
   </div>`;
 };
 
-const buildTrackingHTML = (order: any): string => `
+const buildTrackingHTML = (order: any): string => {
+  order = {
+    ...order,
+    id: escapeHtml(order.id),
+    customerName: escapeHtml(order.customerName),
+    shippingAddress: escapeHtml(order.shippingAddress),
+    trackingNumber: escapeHtml(order.trackingNumber),
+  };
+  return `
   <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;padding:32px;border-radius:12px;">
     <h2 style="color:#1a1a1a;">Your Order Has Shipped — ${order.id}</h2>
     <p>Hi ${order.customerName}, your order is on its way!</p>
@@ -62,6 +92,7 @@ const buildTrackingHTML = (order: any): string => `
     }
     <p style="color:#666;">Shipping to: ${order.shippingAddress}</p>
   </div>`;
+};
 
 const rowToProduct = (r: any) => ({
   id: r.id, name: r.name, description: r.description, price: r.price,
