@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
-import { Star, ShieldCheck, Leaf, Clock, ArrowRight, Sun, Mountain, Flame, Hammer, Quote, Download } from 'lucide-react';
+import { Star, ShieldCheck, Leaf, Clock, ArrowRight, Flame, Hammer, Quote, Download, Sparkles } from 'lucide-react';
 
 const BrineDepthScene = lazy(() => import('../components/visual/BrineDepthScene'));
 
@@ -30,12 +30,12 @@ const Home = () => {
       const ctx = gsap.context(() => {
         mm = gsap.matchMedia();
 
-        gsap.set('[data-hero-reveal]', { y: 24, opacity: 0 });
+        gsap.set('[data-hero-reveal]', { y: 18 });
         gsap.set('[data-hero-emblem]', { opacity: 0, scale: 0.92, rotateY: -10 });
 
         gsap.timeline({ defaults: { ease: 'power3.out' } })
-          .to('[data-hero-reveal]', { y: 0, opacity: 1, duration: 0.56, stagger: 0.07 })
-          .to('[data-hero-emblem]', { opacity: 1, scale: 1, rotateY: 0, duration: 0.78 }, '-=0.42');
+          .to('[data-hero-reveal]', { y: 0, duration: 0.38, stagger: 0.035, clearProps: 'transform' })
+          .to('[data-hero-emblem]', { opacity: 1, scale: 1, rotateY: 0, duration: 0.62, clearProps: 'transform,opacity' }, '-=0.28');
 
         mm.add('(prefers-reduced-motion: no-preference)', () => {
           gsap.to('[data-depth-scene]', {
@@ -107,7 +107,7 @@ const Home = () => {
   return (
     <div ref={homeRef} className="bg-native-sand">
       {/* Hero Section */}
-      <section data-hero-section className="relative overflow-hidden py-24 md:py-32 rounded-b-[3rem] shadow-wampum bg-native-sand z-20 min-h-[calc(100vh-7rem)] flex items-center">
+      <section data-hero-section className="relative overflow-hidden py-24 md:py-32 rounded-b-[3rem] shadow-spice bg-native-sand z-20 min-h-[calc(100vh-7rem)] flex items-center">
         
         <div data-depth-scene className="absolute inset-0 z-0">
           <Suspense fallback={null}>
@@ -121,11 +121,11 @@ const Home = () => {
            <div className="text-center md:text-left">
               <div data-hero-reveal className="flex items-center justify-center md:justify-start gap-2 mb-6 text-native-clay">
                  <Flame size={24} fill="currentColor" />
-                 <span className="font-tribal text-lg tracking-[0.3em] uppercase font-bold">Est. 2024 • Native Flavor</span>
+                 <span className="font-tribal text-sm md:text-lg tracking-[0.14em] md:tracking-[0.24em] uppercase font-bold">Est. 2024 • Achar-inspired brine house</span>
                  <Flame size={24} fill="currentColor" />
               </div>
               
-              <h1 data-hero-reveal className="font-display text-6xl md:text-8xl text-native-black mb-6 leading-none drop-shadow-lg">
+              <h1 data-hero-reveal className="font-display text-5xl md:text-7xl lg:text-8xl text-native-black mb-6 leading-none drop-shadow-lg">
                 {siteContent.home.heroHeading}
               </h1>
               <h2 data-hero-reveal className="font-tribal text-2xl md:text-4xl text-native-leather uppercase tracking-widest mb-8 inline-block pb-2 border-b-2 border-native-turquoise/50">
@@ -139,21 +139,21 @@ const Home = () => {
               <div data-hero-reveal className="flex flex-col sm:flex-row gap-6 justify-center md:justify-start">
                 <Link 
                   to="/shop" 
-                  className="bg-native-clay text-white border-2 border-native-clay font-display text-2xl px-10 py-5 uppercase tracking-widest shadow-wampum hover:shadow-wampum-hover rounded-full transition-all transform hover:-translate-y-1"
+                  className="bg-native-clay text-white border-2 border-native-clay font-display text-xl md:text-2xl px-8 md:px-10 py-5 uppercase tracking-widest shadow-spice hover:shadow-spice-hover rounded-full transition-all transform hover:-translate-y-1 whitespace-nowrap"
                 >
                   Shop The Batch
                 </Link>
                 {installPrompt ? (
                     <button 
                       onClick={triggerInstall}
-                      className="bg-native-turquoise text-white border-2 border-native-turquoise font-display text-2xl px-10 py-5 uppercase tracking-widest hover:bg-native-black hover:border-native-black rounded-full transition-all flex items-center justify-center gap-3 shadow-ink"
+                      className="bg-native-turquoise text-white border-2 border-native-turquoise font-display text-xl md:text-2xl px-8 md:px-10 py-5 uppercase tracking-widest hover:bg-native-black hover:border-native-black rounded-full transition-all flex items-center justify-center gap-3 shadow-ink whitespace-nowrap"
                     >
                       <Download size={24} /> Install App
                     </button>
                 ) : (
                     <Link 
                       to="/about" 
-                      className="bg-transparent text-native-black border-2 border-native-black font-display text-2xl px-10 py-5 uppercase tracking-widest hover:bg-native-black hover:text-white rounded-full transition-all shadow-ink hover:shadow-lg"
+                      className="bg-transparent text-native-black border-2 border-native-black font-display text-xl md:text-2xl px-8 md:px-10 py-5 uppercase tracking-widest hover:bg-native-black hover:text-white rounded-full transition-all shadow-ink hover:shadow-lg whitespace-nowrap"
                     >
                       Our Story
                     </Link>
@@ -162,16 +162,14 @@ const Home = () => {
            </div>
            
            <div className="relative flex justify-center" style={{ perspective: '1200px' }}>
-              {/* Central Image Container - Leather Shield Style */}
-              <div data-hero-emblem className="relative z-10 group" style={{ transformStyle: 'preserve-3d' }}>
-                 <div data-float-glyph className="absolute -top-8 left-8 bg-native-sand/90 text-native-turquoise p-4 rounded-full shadow-xl border border-native-black/10 z-20">
-                    <Mountain size={30} />
+              <div data-hero-emblem className="relative z-10 group w-full max-w-[420px]" style={{ transformStyle: 'preserve-3d' }}>
+                 <div data-float-glyph className="absolute -top-7 left-8 bg-[#fff7e0]/95 text-native-teal p-4 rounded-2xl shadow-xl border border-native-clay/10 z-20 rotate-[-6deg]">
+                    <Leaf size={28} />
                  </div>
-                 <div className="absolute inset-0 bg-native-turquoise rounded-full blur-3xl opacity-20 transform scale-110 group-hover:opacity-40 transition-opacity duration-700"></div>
+                 <div className="absolute -inset-6 rounded-[2rem] border border-native-clay/15 bg-white/30 backdrop-blur-sm shadow-2xl rotate-2"></div>
                  
-                 {/* Main Logo Image */}
-                 <div className="relative bg-native-sand p-4 rounded-full border border-native-black/10 shadow-2xl transform transition-transform duration-700 group-hover:scale-105">
-                    <div className="rounded-full overflow-hidden border-4 border-native-clay h-80 w-80 md:h-96 md:w-96 relative bg-white flex items-center justify-center shadow-inner">
+                 <div className="relative bg-[#fff7e0] p-4 rounded-[2rem] border-2 border-native-clay/30 shadow-2xl transform transition-transform duration-700 group-hover:scale-[1.025]">
+                    <div className="rounded-[1.5rem] overflow-hidden border border-native-black/10 aspect-square relative bg-white flex items-center justify-center shadow-inner">
                        <img
                            src={siteContent.general.logoUrl || "/logo.svg"}
                            alt="Pickle Nick Logo"
@@ -180,19 +178,18 @@ const Home = () => {
                     </div>
                  </div>
 
-                 {/* Decorative Feathers/Charms */}
-                 <div className="absolute -bottom-6 left-0 md:left-10 bg-native-black text-native-sand px-8 py-3 font-display text-xl uppercase tracking-widest shadow-xl transform -rotate-6 rounded-xl z-20 border border-native-sand/20">
-                    Small Batch
+                 <div className="absolute -bottom-5 left-4 md:left-8 bg-native-black text-native-sand px-7 py-3 font-display text-lg uppercase tracking-widest shadow-xl transform -rotate-3 rounded-xl z-20 border border-native-sand/20">
+                    Achar-style batches
                  </div>
-                  <div data-float-glyph className="absolute top-10 -right-4 bg-native-clay text-white p-5 rounded-full shadow-xl border-4 border-native-sand z-20">
-                    <Sun size={32} />
+                  <div data-float-glyph className="absolute top-10 -right-4 bg-native-clay text-white p-5 rounded-2xl shadow-xl border-4 border-native-sand z-20 rotate-6">
+                    <Sparkles size={30} />
                  </div>
               </div>
            </div>
         </div>
       </section>
 
-      {/* --- SECTION: THE ALCHEMIST (FOUNDER) --- */}
+      {/* --- SECTION: THE MAKER --- */}
       <section className="py-24 px-4 bg-native-sand bg-fabric-texture relative overflow-hidden">
          {/* Tribal Pattern Overlay */}
          <div className="absolute top-0 left-0 w-full h-4 bg-tribal opacity-40"></div>
@@ -214,7 +211,7 @@ const Home = () => {
                     </div>
                   )}
                   <div className="bg-white p-4 text-center rounded-b-xl">
-                     <p className="font-display text-2xl text-native-black uppercase">Nick "The Brine" Keeper</p>
+                     <p className="font-display text-2xl text-native-black uppercase">Nick, Keeper of the Brine</p>
                   </div>
                </div>
             </div>
@@ -222,7 +219,7 @@ const Home = () => {
             {/* Text Side */}
             <div className="order-1 md:order-2">
                <h2 className="font-display text-5xl md:text-7xl text-native-black mb-6 uppercase leading-none drop-shadow-sm">
-                  The Man Behind <br/><span className="text-native-clay">The Jar</span>
+                  The Maker Behind <br/><span className="text-native-clay">The Jar</span>
                </h2>
                <div className="h-1.5 w-32 bg-native-turquoise mb-8 rounded-full"></div>
                
@@ -234,7 +231,7 @@ const Home = () => {
                </div>
 
                <p className="font-sans text-lg text-native-black/70 mb-10 pl-2">
-                  Every jar is a testament to the American spirit. Handmade, hand-packed, and sealed with a promise of quality that you can taste in the crunch.
+                  Every jar follows a simple, honest rhythm: fresh produce, toasted spice, sharp brine, and patient small-batch packing.
                </p>
 
                <div className="flex gap-4">
@@ -249,13 +246,13 @@ const Home = () => {
          </div>
       </section>
 
-      {/* --- SECTION: THE VISUAL TESTAMENT (PRODUCT IMAGES) --- */}
+      {/* --- SECTION: THE PICKLE COUNTER (PRODUCT IMAGES) --- */}
       <section className="py-24 bg-native-black text-native-sand relative rounded-3xl mx-4 my-8 shadow-2xl overflow-hidden">
          <div className="max-w-7xl mx-auto px-4 mb-16 text-center relative z-10">
-            <h2 className="font-display text-5xl md:text-7xl text-white uppercase mb-4 drop-shadow-md">Visual Testament</h2>
+            <h2 className="font-display text-5xl md:text-7xl text-white uppercase mb-4 drop-shadow-md">The Pickle Counter</h2>
             <div className="flex justify-center items-center gap-4 text-native-clay">
                <div className="h-0.5 w-20 bg-native-clay rounded-full"></div>
-               <span className="font-tribal uppercase tracking-[0.4em] font-bold">Proof of Process</span>
+               <span className="font-tribal uppercase tracking-[0.3em] font-bold">Spice, brine, crunch</span>
                <div className="h-0.5 w-20 bg-native-clay rounded-full"></div>
             </div>
          </div>
@@ -274,7 +271,7 @@ const Home = () => {
             )}
             <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
                <h3 className="font-display text-6xl md:text-9xl text-white/90 uppercase tracking-widest drop-shadow-2xl text-center leading-none opacity-80 mix-blend-overlay">
-                  Born In<br/>The Fire
+                  From Spice<br/>To Jar
                </h3>
             </div>
          </div>
@@ -289,7 +286,7 @@ const Home = () => {
                     <div className="w-full h-full bg-native-earth/20" />
                   )}
                   <div className="absolute bottom-4 left-4 bg-native-clay text-white px-6 py-2 font-tribal uppercase tracking-widest text-sm rounded-full shadow-lg">
-                     The Arsenal
+                     Spice Shelf
                   </div>
                </div>
             </div>
@@ -301,7 +298,7 @@ const Home = () => {
                     <div className="w-full h-full bg-native-earth/20" />
                   )}
                   <div className="absolute bottom-4 right-4 bg-native-turquoise text-white px-6 py-2 font-tribal uppercase tracking-widest text-sm rounded-full shadow-lg">
-                     Liquid Gold
+                     Brine Gloss
                   </div>
                </div>
             </div>
@@ -313,19 +310,19 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 pb-6 border-b-2 border-native-black/10">
              <div>
-               <span className="font-tribal text-native-clay text-xl tracking-[0.4em] uppercase font-bold">The Provisioner</span>
+               <span className="font-tribal text-native-clay text-xl tracking-[0.3em] uppercase font-bold">The counter</span>
                <h2 className="font-display text-5xl md:text-6xl text-native-black uppercase mt-2 drop-shadow-sm">
-                 Bounty of the Season
+                 Today's jars
                </h2>
              </div>
              <Link to="/shop" className="group flex items-center font-display text-2xl uppercase text-native-black hover:text-native-clay transition-colors mt-6 md:mt-0 bg-white px-6 py-2 rounded-full shadow-sm hover:shadow-md border border-native-black/5">
-               View All Goods <ArrowRight className="ml-2 group-hover:translate-x-2 transition-transform" size={28} />
+               View all jars <ArrowRight className="ml-2 group-hover:translate-x-2 transition-transform" size={28} />
              </Link>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {featuredProducts.map(product => (
-              <div key={product.id} data-depth-card className="bg-white text-native-black rounded-3xl shadow-card hover:shadow-wampum group flex flex-col relative overflow-hidden transition-all duration-300 hover:-translate-y-2 border border-native-black/5">
+              <div key={product.id} data-depth-card className="bg-white text-native-black rounded-3xl shadow-card hover:shadow-spice group flex flex-col relative overflow-hidden transition-all duration-300 hover:-translate-y-2 border border-native-black/5">
                 {/* Decorative Pattern Top */}
                 <div className="h-1.5 w-full bg-tribal opacity-30 absolute top-0 z-10"></div>
                 
@@ -355,7 +352,7 @@ const Home = () => {
                     to={`/product/${product.id}`}
                     className="w-full block text-center bg-native-black text-white font-tribal text-lg uppercase py-3 rounded-full hover:bg-native-clay transition-all shadow-ink hover:shadow-lg"
                   >
-                    Claim This
+                    Open Jar
                   </Link>
                 </div>
               </div>
@@ -369,22 +366,22 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="font-display text-5xl md:text-7xl text-native-black mb-4 uppercase tracking-wide drop-shadow-sm">
-              Sacred Standards
+              House Standards
             </h2>
             <div className="flex justify-center items-center gap-4">
                <div className="h-0.5 w-20 bg-native-leather rounded-full"></div>
-               <Mountain className="text-native-turquoise" size={32} />
+               <Leaf className="text-native-turquoise" size={32} />
                <div className="h-0.5 w-20 bg-native-leather rounded-full"></div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
-              { icon: Clock, title: "Aged by Moon", desc: "Fermented for 48 hours under the watch of time. We respect the process." },
-              { icon: Leaf, title: "Earth Born", desc: "Harvested from local soil. Rooted in nature, untouched by synthetics." },
-              { icon: ShieldCheck, title: "Pure Spirit", desc: "No artificial dyes or additives. Just the honest bounty of the land." }
+              { icon: Clock, title: "Slow Brined", desc: "Given time for vinegar, salt, and spice to settle into a clean, bright crunch." },
+              { icon: Leaf, title: "Real Produce", desc: "Packed around the jar itself: vegetables first, seasoning second, filler never." },
+              { icon: ShieldCheck, title: "Clean Finish", desc: "No artificial dyes or shortcuts. Just bold pickles and sauces with a tidy label." }
             ].map((item, index) => (
-              <div key={index} data-depth-card className="bg-native-sand p-10 text-center relative group rounded-3xl border border-native-black/5 hover:border-native-black/20 hover:bg-white transition-all duration-500 shadow-card hover:shadow-wampum">
+              <div key={index} data-depth-card className="bg-native-sand p-10 text-center relative group rounded-3xl border border-native-black/5 hover:border-native-black/20 hover:bg-white transition-all duration-500 shadow-card hover:shadow-spice">
                 <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-native-turquoise text-white p-4 rounded-full border-4 border-native-sand shadow-xl group-hover:bg-native-clay group-hover:scale-110 transition-all">
                   <item.icon size={32} />
                 </div>

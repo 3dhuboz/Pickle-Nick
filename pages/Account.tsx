@@ -47,8 +47,8 @@ const Account = () => {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-native-black/5 pb-8 gap-6">
                     <div>
-                        <h1 className="font-display text-5xl md:text-6xl text-native-black uppercase mb-3 drop-shadow-sm">Member Ledger</h1>
-                        <p className="font-sans text-native-earth/60 text-lg italic">"Welcome back to the tribe, {currentUser.name.split(' ')[0]}."</p>
+                        <h1 className="font-display text-5xl md:text-6xl text-native-black uppercase mb-3 drop-shadow-sm">Your Pantry</h1>
+                        <p className="font-sans text-native-earth/60 text-lg italic">"Welcome back, {currentUser.name.split(' ')[0]}."</p>
                     </div>
                     <button 
                         onClick={handleLogout}
@@ -138,7 +138,7 @@ const Account = () => {
                             {userOrders.length === 0 ? (
                                 <div className="text-center py-20 rounded-[2rem] border-2 border-dashed border-native-black/5 bg-native-sand/20">
                                     <Package size={64} className="mx-auto text-native-black/5 mb-6" />
-                                    <p className="font-display text-2xl text-native-black/30 uppercase">No bounties claimed yet.</p>
+                                    <p className="font-display text-2xl text-native-black/30 uppercase">No orders yet.</p>
                                     <button onClick={() => navigate('/shop')} className="mt-8 text-native-clay font-tribal uppercase font-bold text-xs tracking-widest underline underline-offset-8 hover:text-native-black transition-colors">Visit the Shop</button>
                                 </div>
                             ) : (
@@ -199,7 +199,7 @@ const Account = () => {
                                             )}
 
                                             <div className="border-t border-native-black/5 pt-6">
-                                                <h4 className="font-tribal text-[10px] font-bold uppercase tracking-[0.3em] text-native-earth/40 mb-4">Manifest</h4>
+                                                <h4 className="font-tribal text-[10px] font-bold uppercase tracking-[0.3em] text-native-earth/40 mb-4">Jar list</h4>
                                                 <div className="space-y-3">
                                                     {order.items.map((item, idx) => (
                                                         <div key={idx} className="flex justify-between items-center text-sm">

@@ -1,10 +1,15 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-const clay = new THREE.Color('#bc4b35');
-const sand = new THREE.Color('#f5f0e6');
-const turquoise = new THREE.Color('#26a69a');
-const earth = new THREE.Color('#4e342e');
+const palette = {
+  parchment: new THREE.Color('#f5f0e6'),
+  chilli: new THREE.Color('#bc4b35'),
+  turmeric: new THREE.Color('#e0a72f'),
+  brass: new THREE.Color('#b98934'),
+  tamarind: new THREE.Color('#4e342e'),
+  leaf: new THREE.Color('#00695c'),
+  ink: new THREE.Color('#1a1a1a'),
+};
 
 const disposeMaterial = (material: THREE.Material | THREE.Material[]) => {
   if (Array.isArray(material)) {
@@ -16,94 +21,60 @@ const disposeMaterial = (material: THREE.Material | THREE.Material[]) => {
 
 const makeDiamondGeometry = () => {
   const shape = new THREE.Shape();
-  shape.moveTo(0, 0.16);
-  shape.lineTo(0.14, 0);
-  shape.lineTo(0, -0.16);
-  shape.lineTo(-0.14, 0);
+  shape.moveTo(0, 0.12);
+  shape.lineTo(0.11, 0);
+  shape.lineTo(0, -0.12);
+  shape.lineTo(-0.11, 0);
   shape.closePath();
   return new THREE.ShapeGeometry(shape);
 };
 
-const createSunMedallion = () => {
+const createArchPanel = () => {
   const group = new THREE.Group();
-  const disc = new THREE.Mesh(
-    new THREE.CircleGeometry(0.46, 48),
-    new THREE.MeshStandardMaterial({ color: clay, roughness: 0.74, metalness: 0.04 })
-  );
-  const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(0.52, 0.025, 10, 64),
-    new THREE.MeshStandardMaterial({ color: turquoise, roughness: 0.4, metalness: 0.18 })
-  );
-  const rayGeometry = new THREE.BoxGeometry(0.035, 0.28, 0.025);
-  const rayMaterial = new THREE.MeshStandardMaterial({ color: earth, roughness: 0.68 });
+  const archShape = new THREE.Shape();
+  archShape.moveTo(-1.85, -1.45);
+  archShape.lineTo(-1.85, 0.12);
+  archShape.bezierCurveTo(-1.85, 1.42, 1.85, 1.42, 1.85, 0.12);
+  archShape.lineTo(1.85, -1.45);
+  archShape.lineTo(-1.85, -1.45);
 
-  for (let i = 0; i < 18; i++) {
-    const ray = new THREE.Mesh(rayGeometry, rayMaterial);
-    const angle = (i / 18) * Math.PI * 2;
-    ray.position.set(Math.sin(angle) * 0.72, Math.cos(angle) * 0.72, -0.02);
-    ray.rotation.z = -angle;
-    group.add(ray);
-  }
+  const panel = new THREE.Mesh(
+    new THREE.ShapeGeometry(archShape, 36),
+    new THREE.MeshBasicMaterial({
+      color: palette.brass,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    })
+  );
 
-  group.add(disc, ring);
-  group.position.set(-3.15, 1.45, -1.25);
-  group.rotation.z = -0.12;
+  const inner = new THREE.Mesh(
+    new THREE.ShapeGeometry(archShape, 36),
+    new THREE.MeshBasicMaterial({
+      color: palette.parchment,
+      transparent: true,
+      opacity: 0.08,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    })
+  );
+  inner.scale.set(0.86, 0.86, 1);
+  inner.position.z = 0.01;
+
+  group.add(panel, inner);
+  group.position.set(0.2, -0.08, -1.9);
   return group;
 };
 
-const createJar = (x: number, y: number, z: number, scale: number, fill: THREE.ColorRepresentation, lid: THREE.ColorRepresentation) => {
-  const group = new THREE.Group();
-  const glassMaterial = new THREE.MeshPhysicalMaterial({
-    color: '#eaf7f5',
-    roughness: 0.06,
-    metalness: 0,
-    transmission: 0.22,
-    thickness: 0.75,
-    transparent: true,
-    opacity: 0.42,
-    side: THREE.DoubleSide,
-  });
-  const brineMaterial = new THREE.MeshStandardMaterial({
-    color: fill,
-    roughness: 0.38,
-    metalness: 0.02,
-    transparent: true,
-    opacity: 0.78,
-  });
-  const lidMaterial = new THREE.MeshStandardMaterial({ color: lid, roughness: 0.5, metalness: 0.15 });
-  const paperMaterial = new THREE.MeshStandardMaterial({ color: '#fff7e5', roughness: 0.92, metalness: 0 });
-  const markMaterial = new THREE.MeshStandardMaterial({ color: turquoise, roughness: 0.5, metalness: 0.02 });
-
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.43, 1.16, 36, 1, true), glassMaterial);
-  const fillBody = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.39, 0.82, 36), brineMaterial);
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.32, 0.26, 36), glassMaterial);
-  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.18, 36), lidMaterial);
-  const label = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.34), paperMaterial);
-  const labelMark = new THREE.Mesh(makeDiamondGeometry(), markMaterial);
-
-  fillBody.position.y = -0.12;
-  neck.position.y = 0.68;
-  cap.position.y = 0.88;
-  label.position.set(0, -0.06, 0.435);
-  labelMark.position.set(0, -0.06, 0.44);
-  labelMark.scale.setScalar(0.62);
-
-  group.add(body, fillBody, neck, cap, label, labelMark);
-  group.position.set(x, y, z);
-  group.scale.setScalar(scale);
-  group.userData.phase = Math.abs(x * 0.67 + z * 0.31);
-  group.userData.baseY = y;
-  return group;
-};
-
-const createPatternField = () => {
-  const countX = 18;
-  const countY = 7;
-  const geometry = new THREE.PlaneGeometry(0.18, 0.18);
+const createJaliPattern = () => {
+  const countX = 13;
+  const countY = 8;
+  const geometry = makeDiamondGeometry();
   const material = new THREE.MeshBasicMaterial({
-    color: '#8d6e63',
+    color: palette.tamarind,
     transparent: true,
-    opacity: 0.18,
+    opacity: 0.16,
     side: THREE.DoubleSide,
     depthWrite: false,
   });
@@ -111,12 +82,12 @@ const createPatternField = () => {
   const matrix = new THREE.Matrix4();
   let index = 0;
 
-  for (let y = 0; y < countY; y++) {
-    for (let x = 0; x < countX; x++) {
-      const posX = (x - countX / 2) * 0.62 + (y % 2) * 0.31;
-      const posY = (y - countY / 2) * 0.34;
+  for (let row = 0; row < countY; row++) {
+    for (let col = 0; col < countX; col++) {
+      const posX = (col - countX / 2) * 0.42 + (row % 2) * 0.2;
+      const posY = (row - countY / 2) * 0.3;
       matrix.compose(
-        new THREE.Vector3(posX, posY, -2.15),
+        new THREE.Vector3(posX, posY, -2.08),
         new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI / 4)),
         new THREE.Vector3(1, 1, 1)
       );
@@ -124,8 +95,94 @@ const createPatternField = () => {
     }
   }
 
-  mesh.position.y = 0.12;
+  mesh.position.set(0.15, 0, 0);
   return mesh;
+};
+
+const createShelf = () => {
+  const group = new THREE.Group();
+  const shelfTop = new THREE.Mesh(
+    new THREE.BoxGeometry(4.15, 0.14, 0.42),
+    new THREE.MeshStandardMaterial({ color: palette.tamarind, roughness: 0.72, metalness: 0.02 })
+  );
+  const brassEdge = new THREE.Mesh(
+    new THREE.BoxGeometry(4.25, 0.045, 0.46),
+    new THREE.MeshStandardMaterial({ color: palette.brass, roughness: 0.38, metalness: 0.28 })
+  );
+  shelfTop.position.set(0.15, -1.08, 0.12);
+  brassEdge.position.set(0.15, -0.98, 0.14);
+  group.add(shelfTop, brassEdge);
+  return group;
+};
+
+const createJar = (
+  x: number,
+  y: number,
+  z: number,
+  scale: number,
+  fill: THREE.ColorRepresentation,
+  lid: THREE.ColorRepresentation
+) => {
+  const group = new THREE.Group();
+  const glassMaterial = new THREE.MeshPhysicalMaterial({
+    color: '#f3fff8',
+    roughness: 0.04,
+    metalness: 0,
+    transmission: 0.18,
+    thickness: 0.55,
+    transparent: true,
+    opacity: 0.36,
+    side: THREE.DoubleSide,
+  });
+  const brineMaterial = new THREE.MeshStandardMaterial({
+    color: fill,
+    roughness: 0.42,
+    metalness: 0.01,
+    transparent: true,
+    opacity: 0.74,
+  });
+  const lidMaterial = new THREE.MeshStandardMaterial({ color: lid, roughness: 0.46, metalness: 0.2 });
+  const labelMaterial = new THREE.MeshStandardMaterial({ color: '#fff7e0', roughness: 0.92, metalness: 0 });
+  const stripeMaterial = new THREE.MeshStandardMaterial({ color: palette.chilli, roughness: 0.66, metalness: 0.02 });
+
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.4, 1.08, 40, 1, true), glassMaterial);
+  const fillBody = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.72, 40), brineMaterial);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.29, 0.23, 40), glassMaterial);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.31, 0.15, 40), lidMaterial);
+  const label = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.32), labelMaterial);
+  const stripe = new THREE.Mesh(new THREE.PlaneGeometry(0.09, 0.32), stripeMaterial);
+
+  fillBody.position.y = -0.16;
+  neck.position.y = 0.62;
+  cap.position.y = 0.81;
+  label.position.set(0, -0.06, 0.405);
+  stripe.position.set(-0.16, -0.06, 0.411);
+
+  group.add(body, fillBody, neck, cap, label, stripe);
+  group.position.set(x, y, z);
+  group.scale.setScalar(scale);
+  group.userData.phase = Math.abs(x * 0.71 + z * 0.28);
+  group.userData.baseY = y;
+  return group;
+};
+
+const createSpiceBowl = (x: number, z: number, color: THREE.ColorRepresentation) => {
+  const group = new THREE.Group();
+  const bowl = new THREE.Mesh(
+    new THREE.SphereGeometry(0.34, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2),
+    new THREE.MeshStandardMaterial({ color: palette.brass, roughness: 0.34, metalness: 0.36 })
+  );
+  const spice = new THREE.Mesh(
+    new THREE.SphereGeometry(0.27, 32, 10),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0 })
+  );
+  bowl.scale.y = 0.34;
+  spice.scale.y = 0.16;
+  bowl.position.y = -0.92;
+  spice.position.y = -0.83;
+  group.add(bowl, spice);
+  group.position.set(x, 0, z);
+  return group;
 };
 
 const backgroundVertexShader = `
@@ -135,8 +192,8 @@ const backgroundVertexShader = `
   void main() {
     vUv = uv;
     vec3 p = position;
-    p.z += sin((p.x * 1.25) + uTime * 0.34) * 0.05;
-    p.z += sin((p.y * 2.1) - uTime * 0.28) * 0.035;
+    p.z += sin((p.x * 1.1) + uTime * 0.18) * 0.025;
+    p.z += sin((p.y * 1.7) - uTime * 0.16) * 0.02;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
   }
 `;
@@ -144,18 +201,18 @@ const backgroundVertexShader = `
 const backgroundFragmentShader = `
   varying vec2 vUv;
   uniform float uTime;
-  uniform vec3 uSand;
-  uniform vec3 uClay;
-  uniform vec3 uTurquoise;
+  uniform vec3 uParchment;
+  uniform vec3 uChilli;
+  uniform vec3 uTurmeric;
 
   void main() {
-    float diagonalA = abs(sin((vUv.x + vUv.y + uTime * 0.018) * 38.0));
-    float diagonalB = abs(sin((vUv.x - vUv.y - uTime * 0.012) * 38.0));
-    float weave = smoothstep(0.92, 0.985, diagonalA * diagonalB);
-    float band = smoothstep(0.1, 0.9, vUv.y);
-    vec3 base = mix(uSand, uClay, weave * 0.16);
-    vec3 color = mix(base, uTurquoise, weave * band * 0.12);
-    gl_FragColor = vec4(color, 0.42);
+    float latticeA = abs(sin((vUv.x + vUv.y + uTime * 0.006) * 30.0));
+    float latticeB = abs(sin((vUv.x - vUv.y - uTime * 0.005) * 30.0));
+    float jali = smoothstep(0.945, 0.99, latticeA * latticeB);
+    float warmBand = smoothstep(0.08, 0.75, vUv.y);
+    vec3 base = mix(uParchment, uTurmeric, 0.08 + warmBand * 0.06);
+    vec3 color = mix(base, uChilli, jali * 0.14);
+    gl_FragColor = vec4(color, 0.48);
   }
 `;
 
@@ -167,8 +224,8 @@ const BrineDepthScene = () => {
     if (!mount) return;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-    camera.position.set(0, 0.46, 5.35);
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+    camera.position.set(0, 0.26, 5.8);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -177,17 +234,17 @@ const BrineDepthScene = () => {
     });
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.65));
     mount.appendChild(renderer.domElement);
 
     const root = new THREE.Group();
     scene.add(root);
 
-    const ambient = new THREE.AmbientLight('#f5f0e6', 1.9);
-    const keyLight = new THREE.DirectionalLight('#fff2d4', 3.2);
-    keyLight.position.set(2.9, 3.8, 4.4);
-    const rimLight = new THREE.PointLight('#26a69a', 2.4, 8);
-    rimLight.position.set(-2.6, 0.8, 2.6);
+    const ambient = new THREE.AmbientLight('#fff3d4', 1.9);
+    const keyLight = new THREE.DirectionalLight('#ffe1a6', 3);
+    keyLight.position.set(2.6, 3.4, 4.8);
+    const rimLight = new THREE.PointLight('#bc4b35', 2.2, 8);
+    rimLight.position.set(-1.8, 0.4, 2.2);
     scene.add(ambient, keyLight, rimLight);
 
     const shaderMaterial = new THREE.ShaderMaterial({
@@ -195,25 +252,30 @@ const BrineDepthScene = () => {
       depthWrite: false,
       uniforms: {
         uTime: { value: 0 },
-        uSand: { value: sand },
-        uClay: { value: clay },
-        uTurquoise: { value: turquoise },
+        uParchment: { value: palette.parchment },
+        uChilli: { value: palette.chilli },
+        uTurmeric: { value: palette.turmeric },
       },
       vertexShader: backgroundVertexShader,
       fragmentShader: backgroundFragmentShader,
     });
-    const shaderPlane = new THREE.Mesh(new THREE.PlaneGeometry(11.5, 6.2, 40, 20), shaderMaterial);
-    shaderPlane.position.set(0, 0.2, -2.65);
+    const shaderPlane = new THREE.Mesh(new THREE.PlaneGeometry(10.5, 5.7, 34, 18), shaderMaterial);
+    shaderPlane.position.set(0, 0.08, -2.75);
     scene.add(shaderPlane);
 
     const jars = [
-      createJar(-1.7, -0.64, 0.1, 0.98, '#7c9f3d', '#1a1a1a'),
-      createJar(-0.55, -0.82, 0.48, 1.16, '#d06a3d', '#bc4b35'),
-      createJar(0.72, -0.72, 0.22, 1.04, '#e7b84e', '#00695c'),
-      createJar(1.78, -0.58, -0.22, 0.88, '#8fae57', '#4e342e'),
+      createJar(-0.88, -0.45, 0.12, 0.92, '#7b9433', '#1a1a1a'),
+      createJar(0.08, -0.54, 0.44, 1.08, '#c55332', '#bc4b35'),
+      createJar(1.08, -0.49, 0.22, 0.98, '#dca83f', '#00695c'),
+      createJar(1.92, -0.42, -0.14, 0.82, '#8fae57', '#4e342e'),
     ];
+
+    root.add(createArchPanel(), createJaliPattern(), createShelf());
     jars.forEach(jar => root.add(jar));
-    root.add(createPatternField(), createSunMedallion());
+    root.add(
+      createSpiceBowl(-1.5, 0.26, '#d14f2e'),
+      createSpiceBowl(2.35, 0.06, '#e0a72f')
+    );
 
     const pointer = new THREE.Vector2(0, 0);
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -223,9 +285,15 @@ const BrineDepthScene = () => {
     const resize = () => {
       const width = Math.max(1, mount.clientWidth);
       const height = Math.max(1, mount.clientHeight);
+      const isNarrow = width < 760;
+
       camera.aspect = width / height;
+      camera.fov = isNarrow ? 42 : 35;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
+
+      root.position.set(isNarrow ? 0.02 : 1.52, isNarrow ? -0.36 : -0.08, 0);
+      root.scale.setScalar(isNarrow ? 0.72 : 0.88);
       renderer.render(scene, camera);
     };
 
@@ -237,13 +305,13 @@ const BrineDepthScene = () => {
     const render = () => {
       const elapsed = (performance.now() - startedAt) / 1000;
       shaderMaterial.uniforms.uTime.value = elapsed;
-      root.rotation.y += (pointer.x * 0.13 - root.rotation.y) * 0.045;
-      root.rotation.x += (-pointer.y * 0.055 - root.rotation.x) * 0.045;
-      rimLight.position.x = -2.6 + Math.sin(elapsed * 0.5) * 0.42;
+      root.rotation.y += (pointer.x * 0.045 - root.rotation.y) * 0.035;
+      root.rotation.x += (-pointer.y * 0.025 - root.rotation.x) * 0.035;
+      rimLight.position.x = -1.8 + Math.sin(elapsed * 0.38) * 0.22;
 
       jars.forEach(jar => {
-        jar.position.y = jar.userData.baseY + Math.sin(elapsed * 0.78 + jar.userData.phase) * 0.055;
-        jar.rotation.y = Math.sin(elapsed * 0.32 + jar.userData.phase) * 0.12;
+        jar.position.y = jar.userData.baseY + Math.sin(elapsed * 0.46 + jar.userData.phase) * 0.025;
+        jar.rotation.y = Math.sin(elapsed * 0.25 + jar.userData.phase) * 0.055;
       });
 
       renderer.render(scene, camera);
@@ -278,7 +346,7 @@ const BrineDepthScene = () => {
   return (
     <div
       ref={mountRef}
-      className="absolute inset-0 pointer-events-none opacity-90 mix-blend-multiply"
+      className="absolute inset-0 pointer-events-none opacity-70"
       aria-hidden="true"
     />
   );

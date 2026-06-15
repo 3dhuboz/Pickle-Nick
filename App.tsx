@@ -55,7 +55,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="flex flex-col min-h-screen border-x-4 border-native-black/50 max-w-[1600px] mx-auto bg-native-sand shadow-2xl relative rounded-t-3xl mt-4">
-      {/* Brand Mascots — tribal art watermarks */}
+      {/* Brand mascots as quiet heritage watermarks */}
       {siteContent?.general.mascotUrl1 && (
         <img
           src={siteContent.general.mascotUrl1}
@@ -90,7 +90,7 @@ const SeoManager = () => {
     const g = siteContent.general;
     const brand = g.brandName || 'Pickle Nick';
     const tagline = g.tagline || 'Spirit of the Brine';
-    const description = g.seoDescription || `${brand} — artisan pickles and provisions, delivered Australia-wide.`;
+    const description = g.seoDescription || `${brand} - artisan pickles and provisions, delivered Australia-wide.`;
     const siteUrl = (g.siteUrl || 'https://picklenick.au').replace(/\/$/, '');
     const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.svg';
     const ogImage = faviconUrl.startsWith('http') ? faviconUrl : `${siteUrl}${faviconUrl}`;
@@ -133,14 +133,14 @@ const SeoManager = () => {
     canonical.href = siteUrl;
 
     // Open Graph
-    setMeta('meta[property="og:title"]', `${brand} — ${tagline}`);
+    setMeta('meta[property="og:title"]', `${brand} - ${tagline}`);
     setMeta('meta[property="og:description"]', description);
     setMeta('meta[property="og:url"]', siteUrl);
     setMeta('meta[property="og:image"]', ogImage);
     setMeta('meta[property="og:site_name"]', brand);
 
     // Twitter
-    setMeta('meta[name="twitter:title"]', `${brand} — ${tagline}`);
+    setMeta('meta[name="twitter:title"]', `${brand} - ${tagline}`);
     setMeta('meta[name="twitter:description"]', description);
     setMeta('meta[name="twitter:image"]', ogImage);
 
