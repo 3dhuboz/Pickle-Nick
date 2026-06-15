@@ -1,7 +1,8 @@
 import React, { Suspense, lazy, useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Flame, Hammer, Leaf, ShieldCheck, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, Flame, Hammer, Leaf, Sparkles, Star } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import NickLogo from '../components/brand/NickLogo';
 
 const BrineDepthScene = lazy(() => import('../components/visual/BrineDepthScene'));
 
@@ -165,7 +166,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="bg-[#f1dfb8] px-5 py-20 text-[#120d0b] lg:px-8">
+      <section className="bg-[#f1dfb8] px-5 pb-10 pt-20 text-[#120d0b] lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mb-12 grid gap-8 border-b border-[#120d0b]/15 pb-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
             <div data-depth-card>
@@ -238,31 +239,82 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="bg-[#120d0b] px-5 py-20 text-[#f5f0e6] lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-          <div data-depth-card>
-            <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
-              Custom Jar Brief
-            </p>
-            <h2 className="mt-3 font-display text-[2.7rem] leading-[0.95] text-[#f4c56d] sm:text-5xl md:text-6xl">
-              Nick's mark, your heat
-            </h2>
-            <p className="mt-6 max-w-xl font-sans text-lg font-semibold leading-relaxed text-[#f5f0e6]/76">
-              Pick the crunch, choose the burn, and give Nick enough flavour direction to make the batch feel personal.
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { title: '1. Crunch', desc: 'Pickle, chilli, mango, mixed veg.' },
-              { title: '2. Heat', desc: 'Bright, smoky, savage, or sweet.' },
-              { title: '3. Mark', desc: 'A label and batch made for you.' },
-            ].map(item => (
-              <div key={item.title} data-depth-card className="border border-[#f4c56d]/18 bg-white/[0.03] p-6">
-                <ShieldCheck className="mb-5 text-native-clay" size={28} />
-                <h3 className="font-tribal text-sm font-bold uppercase tracking-[0.22em] text-[#f4c56d]">{item.title}</h3>
-                <p className="mt-3 font-sans text-sm font-semibold leading-relaxed text-[#f5f0e6]/68">{item.desc}</p>
+      <section data-custom-brief-section className="relative overflow-hidden bg-[#120d0b] px-5 py-10 text-[#f5f0e6] lg:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(188,75,53,0.16),transparent_31%),radial-gradient(circle_at_82%_22%,rgba(244,197,109,0.12),transparent_34%),linear-gradient(135deg,rgba(244,197,109,0.055)_1px,transparent_1px),#120d0b] bg-[auto,auto,30px_30px,auto]" />
+
+        <div className="relative mx-auto max-w-7xl">
+          <div data-depth-card className="grid overflow-hidden border border-[#f4c56d]/20 bg-[#080605] shadow-[0_32px_90px_rgba(0,0,0,0.38)] lg:grid-cols-[0.92fr_1.08fr]">
+            <div className="relative border-b border-[#f4c56d]/14 p-7 md:p-10 lg:border-b-0 lg:border-r lg:p-12">
+              <div className="absolute -bottom-24 -left-16 h-72 w-72 rounded-full border border-[#f4c56d]/10 opacity-40" />
+              <NickLogo
+                size="md"
+                showName
+                subtitle="Custom batch desk"
+                className="relative mb-7"
+                labelClassName="text-3xl leading-none"
+              />
+              <p className="font-tribal text-sm font-bold uppercase tracking-[0.3em] text-native-clay">
+                Custom Jar Brief
+              </p>
+              <h2 className="mt-4 max-w-xl font-display text-[2.55rem] leading-[0.92] text-[#f4c56d] sm:text-5xl md:text-[3.45rem]">
+                Nick's mark, your heat
+              </h2>
+              <p className="mt-6 max-w-xl font-sans text-lg font-semibold leading-relaxed text-[#f5f0e6]/76">
+                Pick the crunch, choose the burn, and give Nick enough flavour direction to make the batch feel personal.
+              </p>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Link
+                  to="/contact"
+                  className="group inline-flex items-center justify-center gap-3 border border-native-clay bg-native-clay px-7 py-4 font-tribal text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:-translate-y-1 hover:bg-[#a63d2b]"
+                >
+                  Start a brief <ArrowRight size={18} className="transition group-hover:translate-x-1" />
+                </Link>
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center justify-center border border-[#f4c56d]/28 px-7 py-4 font-tribal text-sm font-bold uppercase tracking-[0.2em] text-[#f4c56d] transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
+                >
+                  Shop the batch
+                </Link>
               </div>
-            ))}
+            </div>
+
+            <div className="relative bg-[#f1dfb8] p-7 text-[#120d0b] md:p-10 lg:p-12">
+              <div className="absolute right-6 top-6 hidden font-display text-[8rem] leading-none text-[#120d0b]/[0.035] sm:block">
+                PN
+              </div>
+              <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
+                Batch Notes
+              </p>
+              <h3 className="mt-3 max-w-md font-display text-4xl leading-none sm:text-[2.9rem]">
+                Made to order, not made to look polite
+              </h3>
+
+              <div className="mt-7 divide-y divide-[#120d0b]/14 border-y border-[#120d0b]/14">
+                {[
+                  { number: '01', title: 'Crunch', desc: 'Pickle, chilli, mango, mixed veg, or a stranger idea from the pantry.' },
+                  { number: '02', title: 'Heat', desc: 'Bright, smoky, savage, sweet, or somewhere in the middle.' },
+                  { number: '03', title: 'Mark', desc: 'A custom label direction and small-batch finish made for the occasion.' },
+                ].map(item => (
+                  <div key={item.number} data-depth-card className="grid gap-4 py-4 sm:grid-cols-[4.5rem_1fr] sm:items-start">
+                    <span className="font-display text-4xl leading-none text-native-clay">{item.number}</span>
+                    <div>
+                      <h4 className="font-tribal text-sm font-bold uppercase tracking-[0.24em] text-[#120d0b]">{item.title}</h4>
+                      <p className="mt-2 font-sans text-base font-semibold leading-relaxed text-[#3d2a21]/78">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+                <p className="font-tribal text-xs font-bold uppercase tracking-[0.26em] text-[#120d0b]/55">
+                  Made to bite back
+                </p>
+                <span className="border border-native-clay/35 px-4 py-2 font-display text-2xl leading-none text-native-clay">
+                  Achar House
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
