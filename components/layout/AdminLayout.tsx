@@ -9,7 +9,6 @@ import {
   Share2, 
   Settings, 
   LogOut,
-  Mountain,
   FileText,
   Mail,
   ChevronRight,
@@ -17,6 +16,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import NickLogo from '../brand/NickLogo';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { logoutAdmin } = useStore();
@@ -60,13 +60,13 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Brand Header */}
       <div className="px-5 py-5 border-b border-white/5">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-native-clay rounded-lg flex items-center justify-center shadow-lg shadow-native-clay/20">
-            <Mountain size={17} className="text-white" />
-          </div>
-          <div>
-            <h2 className="font-display text-xl text-white tracking-wide leading-tight">Pickle Nick</h2>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-native-sand/40">Command Center</p>
-          </div>
+          <NickLogo
+            size="sm"
+            showName
+            imageClassName="h-10 w-10"
+            subtitle="Command Center"
+            labelClassName="text-xl leading-tight"
+          />
         </div>
       </div>
 
@@ -123,10 +123,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-native-black text-white flex items-center justify-between px-4 py-3 shadow-lg">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-native-clay rounded-md flex items-center justify-center">
-            <Mountain size={14} className="text-white" />
-          </div>
-          <span className="font-display text-lg tracking-wide">Pickle Nick</span>
+          <NickLogo size="sm" showName imageClassName="h-9 w-9" labelClassName="text-lg leading-none" />
         </div>
         <button
           title="Open menu"

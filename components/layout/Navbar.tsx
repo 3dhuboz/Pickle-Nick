@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, ShoppingBasket, User as UserIcon, X } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
+import NickLogo from '../brand/NickLogo';
 
 const navItems = [
   { to: '/', label: 'Home' },
@@ -12,7 +13,7 @@ const navItems = [
 ];
 
 const Navbar = () => {
-  const { cart, siteContent, currentUser, logoutCustomer } = useStore();
+  const { cart, currentUser, logoutCustomer } = useStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -34,18 +35,13 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-[#120d0b]/90 via-[#120d0b]/62 to-transparent backdrop-blur-md">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="group flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[#f4c56d]/35 bg-[#f5f0e6] shadow-[0_0_26px_rgba(244,197,109,0.18)]">
-            <img
-              src={siteContent?.general.logoUrl || '/logo.svg'}
-              alt="Pickle Nick Logo"
-              className="h-full w-full object-cover p-1 sepia-[.2]"
-            />
-          </span>
-          <span className="hidden font-display text-xl uppercase tracking-[0.16em] text-[#f4c56d] sm:block">
-            Pickle Nick
-          </span>
-        </Link>
+        <NickLogo
+          to="/"
+          size="sm"
+          showName
+          imageClassName="h-12 w-12"
+          labelClassName="hidden text-xl uppercase tracking-[0.16em] sm:block"
+        />
 
         <div className="hidden items-center gap-8 md:flex">
           {navItems.slice(1).map(item => (

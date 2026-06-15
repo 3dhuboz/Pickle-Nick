@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Check, Minus, Plus, ShoppingBasket, Star } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { ArrowLeft, ShoppingBasket, Check, Star } from 'lucide-react';
+import NickLogo from '../components/brand/NickLogo';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -10,101 +11,133 @@ const ProductDetail = () => {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
 
-  const product = products.find(p => p.id === id);
+  const product = products.find(item => item.id === id);
 
-  if (!product) return <div className="p-20 text-center text-4xl font-display uppercase text-native-black">Product not found</div>;
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-[#120d0b] px-5 pt-36 text-center text-[#f5f0e6]">
+        <p className="font-display text-5xl text-[#f4c56d]">Product not found</p>
+        <button
+          onClick={() => navigate('/shop')}
+          className="mt-8 border border-[#f4c56d]/35 px-7 py-4 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d] transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
+        >
+          Back to shop
+        </button>
+      </div>
+    );
+  }
 
   const handleAddToCart = () => {
     addToCart(product, qty);
     setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    window.setTimeout(() => setAdded(false), 2000);
   };
 
   return (
-    <div className="bg-native-sand min-h-screen py-16 px-4">
-      <div className="max-w-6xl mx-auto">
-        <button 
+    <div className="min-h-screen bg-[#120d0b] px-5 py-32 text-[#f5f0e6] lg:px-8">
+      <div className="absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(circle_at_74%_18%,rgba(244,197,109,0.17),transparent_34%),linear-gradient(135deg,rgba(244,197,109,0.08)_1px,transparent_1px),#120d0b] bg-[auto,28px_28px,auto]" />
+
+      <div className="relative mx-auto max-w-7xl">
+        <button
           onClick={() => navigate(-1)}
-          className="flex items-center text-native-black/60 hover:text-native-clay mb-10 font-tribal text-[10px] font-bold uppercase tracking-[0.3em] transition-all group"
+          className="mb-10 inline-flex items-center gap-3 font-tribal text-xs font-bold uppercase tracking-[0.24em] text-[#f4c56d]/72 transition hover:text-[#f4c56d]"
         >
-          <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" /> Back to Pantry
+          <ArrowLeft size={16} /> Back to pantry
         </button>
+        <NickLogo size="md" className="mb-8" />
 
-        <div className="bg-white p-10 md:p-16 shadow-card rounded-[3rem] border border-native-black/5 relative overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 lg:gap-24">
-            {/* Image */}
-            <div className="relative group">
-               <div className="absolute inset-0 border border-native-turquoise/20 rounded-[2.5rem] translate-x-4 translate-y-4 transition-transform group-hover:translate-x-6 group-hover:translate-y-6"></div>
-               <div className="relative bg-gray-50 border border-native-black/5 rounded-[2rem] h-[550px] overflow-hidden shadow-sm">
-                  {product.image
-                    ? <img src={product.image} alt={product.name} className="w-full h-full object-cover sepia-[.1] group-hover:sepia-0 group-hover:scale-105 transition-all duration-700" />
-                    : <div className="w-full h-full flex items-center justify-center bg-native-sand/50"><span className="font-display text-[10rem] opacity-10">🥒</span></div>
-                  }
-               </div>
-               <div className="absolute top-8 right-8 bg-native-turquoise text-white p-4 rounded-2xl shadow-ink border border-white/10 animate-in fade-in zoom-in duration-500">
-                  <Star fill="currentColor" size={24} className="drop-shadow-sm" />
-               </div>
-            </div>
-
-            {/* Details */}
-            <div className="flex flex-col justify-center">
-              <span className="text-native-clay font-bold font-tribal uppercase tracking-[0.3em] text-[10px] mb-4 bg-native-clay/5 px-4 py-1.5 rounded-full inline-block w-fit">{product.category}</span>
-              <h1 className="font-display text-3xl md:text-5xl text-native-black mb-6 uppercase leading-[0.9] drop-shadow-sm break-words">{product.name}</h1>
-              <div className="flex items-center gap-6 mb-10">
-                 <p className="text-5xl font-display text-native-black drop-shadow-sm">${product.price.toFixed(2)}</p>
-                 <span className="px-5 py-2 bg-native-turquoise/5 text-native-turquoise text-[10px] font-bold uppercase tracking-[0.2em] rounded-full border border-native-turquoise/10 shadow-sm">In Stock</span>
-              </div>
-              
-              <div className="mb-12 text-native-earth/70 font-sans text-lg leading-relaxed border-y border-native-black/5 py-8">
-                <p>{product.description}</p>
-              </div>
-
-              <div className="flex items-center space-x-8 mb-10">
-                <div className="flex items-center border border-native-black/5 bg-native-sand/30 rounded-full overflow-hidden shadow-inner p-1">
-                  <button 
-                    className="w-14 h-14 flex items-center justify-center text-2xl hover:bg-white hover:text-native-clay font-bold rounded-full transition-all text-native-black shadow-sm"
-                    onClick={() => setQty(Math.max(1, qty - 1))}
-                  >
-                    -
-                  </button>
-                  <span className="px-8 font-display text-3xl w-24 text-center text-native-black">{qty}</span>
-                  <button 
-                    className="w-14 h-14 flex items-center justify-center text-2xl hover:bg-white hover:text-native-clay font-bold rounded-full transition-all text-native-black shadow-sm"
-                    onClick={() => setQty(Math.min(product.stock, qty + 1))}
-                    disabled={qty >= product.stock}
-                  >
-                    +
-                  </button>
+        <div className="grid gap-10 border border-[#f4c56d]/18 bg-[#0b0807]/86 p-4 shadow-[0_28px_90px_rgba(0,0,0,0.42)] md:grid-cols-[0.95fr_1.05fr] md:p-8 lg:gap-14 lg:p-12">
+          <div className="relative">
+            <div className="absolute -bottom-4 -right-4 h-full w-full border border-[#f4c56d]/22" />
+            <div className="relative aspect-[4/5] overflow-hidden border border-[#f4c56d]/18 bg-[#201611]">
+              {product.image ? (
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="h-full w-full object-cover opacity-95 sepia-[.12]"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center font-display text-8xl text-[#f4c56d]/24">PN</div>
+              )}
+              {product.featured && (
+                <div className="absolute right-5 top-5 border border-[#f4c56d]/35 bg-[#120d0b]/78 p-3 text-[#f4c56d] backdrop-blur">
+                  <Star fill="currentColor" size={24} />
                 </div>
-              </div>
-
-              <button
-                onClick={handleAddToCart}
-                disabled={product.stock === 0}
-                className={`
-                  w-full py-6 font-display text-2xl uppercase tracking-[0.2em] flex items-center justify-center space-x-4 transition-all rounded-full shadow-ink hover:shadow-lg hover:-translate-y-1 active:translate-y-0
-                  ${product.stock === 0 
-                    ? 'bg-gray-200 cursor-not-allowed text-gray-400 shadow-none hover:translate-y-0' 
-                    : added 
-                      ? 'bg-native-turquoise text-white border border-native-turquoise shadow-lg' 
-                      : 'bg-native-clay text-white border border-native-clay hover:bg-native-black hover:border-native-black'}
-                `}
-              >
-                {product.stock === 0 ? (
-                  <span>Sold Out</span>
-                ) : added ? (
-                  <>
-                    <Check size={32} className="drop-shadow-sm" />
-                    <span>Added To Basket</span>
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBasket size={32} className="drop-shadow-sm" />
-                    <span>Add to Basket</span>
-                  </>
-                )}
-              </button>
+              )}
             </div>
+          </div>
+
+          <div className="flex flex-col justify-center">
+            <p className="font-tribal text-xs font-bold uppercase tracking-[0.26em] text-native-clay">
+              {product.category}
+            </p>
+            <h1 className="mt-4 font-display text-[3.8rem] leading-[0.88] text-[#f4c56d] drop-shadow-[0_8px_26px_rgba(0,0,0,0.65)] sm:text-6xl lg:text-7xl">
+              {product.name}
+            </h1>
+
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <p className="font-display text-5xl text-[#f1dfb8]">${product.price.toFixed(2)}</p>
+              <span className={`border px-4 py-2 font-tribal text-xs font-bold uppercase tracking-[0.22em] ${
+                product.stock > 0
+                  ? 'border-[#f4c56d]/24 text-[#f4c56d]/82'
+                  : 'border-native-clay/42 text-native-clay'
+              }`}>
+                {product.stock > 0 ? `${product.stock} in stock` : 'Sold out'}
+              </span>
+            </div>
+
+            <div className="my-10 border-y border-[#f4c56d]/16 py-8">
+              <p className="font-sans text-lg font-semibold leading-relaxed text-[#f5f0e6]/76">
+                {product.description}
+              </p>
+            </div>
+
+            <div className="mb-8 flex flex-wrap items-center gap-5">
+              <div className="flex items-center border border-[#f4c56d]/18 bg-black/20">
+                <button
+                  className="flex h-14 w-14 items-center justify-center text-[#f4c56d] transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
+                  onClick={() => setQty(Math.max(1, qty - 1))}
+                  aria-label="Decrease quantity"
+                >
+                  <Minus size={18} />
+                </button>
+                <span className="w-20 text-center font-display text-3xl text-[#f1dfb8]">{qty}</span>
+                <button
+                  className="flex h-14 w-14 items-center justify-center text-[#f4c56d] transition hover:bg-[#f4c56d] hover:text-[#120d0b] disabled:cursor-not-allowed disabled:opacity-35"
+                  onClick={() => setQty(Math.min(product.stock, qty + 1))}
+                  disabled={qty >= product.stock}
+                  aria-label="Increase quantity"
+                >
+                  <Plus size={18} />
+                </button>
+              </div>
+            </div>
+
+            <button
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+              className={`inline-flex w-full items-center justify-center gap-4 border px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] transition ${
+                product.stock === 0
+                  ? 'cursor-not-allowed border-white/12 bg-white/5 text-white/32'
+                  : added
+                    ? 'border-[#f4c56d] bg-[#f4c56d] text-[#120d0b]'
+                    : 'border-native-clay bg-native-clay text-white shadow-[0_16px_38px_rgba(188,75,53,0.35)] hover:-translate-y-1 hover:bg-[#a63d2b]'
+              }`}
+            >
+              {product.stock === 0 ? (
+                <span>Sold Out</span>
+              ) : added ? (
+                <>
+                  <Check size={24} />
+                  <span>Added To Basket</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBasket size={24} />
+                  <span>Add To Basket</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>

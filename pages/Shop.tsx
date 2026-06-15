@@ -1,161 +1,216 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Filter, Flame, Search } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import { Search, Tent } from 'lucide-react';
-import { Category } from '../types';
+import NickLogo from '../components/brand/NickLogo';
 
 const Shop = () => {
   const { products, categories } = useStore();
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
+  const shopRef = useRef<HTMLDivElement | null>(null);
 
-  // Merge store categories with "All" option
-  // Note: We prioritize the rich categories from the store, but if products exist with categories 
-  // NOT in the store list, we still want to filter them, though they won't have hero images.
-  const productCategories = Array.from(new Set(products.map(p => p.category)));
-  const availableCategoryNames = ['All', ...categories.map(c => c.name)];
-  
-  // Ensure we don't miss categories that have products but no rich category object (fallback)
-  productCategories.forEach(c => {
-      if(!availableCategoryNames.includes(c)) availableCategoryNames.push(c);
+  const productCategories = Array.from(new Set(products.map(product => product.category).filter(Boolean)));
+  const availableCategoryNames = ['All', ...categories.map(category => category.name)];
+
+  productCategories.forEach(category => {
+    if (!availableCategoryNames.includes(category)) availableCategoryNames.push(category);
   });
 
-  const filteredProducts = products.filter(p => {
-    const matchesCategory = filter === 'All' || p.category === filter;
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = filter === 'All' || product.category === filter;
+    const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const activeCategory = categories.find(c => c.name === filter);
+  const activeCategory = categories.find(category => category.name === filter);
+
+  useLayoutEffect(() => {
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
+
+    void (async () => {
+      const [{ gsap }, { ScrollTrigger }] = await Promise.all([
+        import('gsap'),
+        import('gsap/ScrollTrigger'),
+      ]);
+
+      if (cancelled || !shopRef.current) return;
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      const ctx = gsap.context(() => {
+        gsap.from('[data-shop-reveal]', {
+          y: 24,
+          opacity: 0,
+          duration: 0.72,
+          stagger: 0.055,
+          ease: 'power3.out',
+        });
+
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          gsap.utils.toArray<HTMLElement>('[data-product-card]').forEach((card, index) => {
+            gsap.from(card, {
+              y: 34,
+              opacity: 0,
+              rotateX: index % 2 === 0 ? 2 : -2,
+              duration: 0.68,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: card,
+                start: 'top 88%',
+                once: true,
+              },
+            });
+          });
+        }
+      }, shopRef);
+
+      cleanup = () => ctx.revert();
+    })();
+
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, [filter, search]);
 
   return (
-    <div className="min-h-screen py-16 px-4 bg-native-sand bg-fabric-texture">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* HERO HEADER - Updates based on category */}
-        <div className="mb-12 text-center bg-white/50 relative overflow-hidden shadow-card rounded-[3rem] border border-native-black/5">
-          {activeCategory ? (
-              <div className="relative h-64 md:h-96 w-full group overflow-hidden">
-                  <div className="absolute inset-0 bg-black/40 z-10 transition-colors group-hover:bg-black/30"></div>
-                  {activeCategory.image
-                    ? <img src={activeCategory.image} alt={activeCategory.name} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
-                    : <div className="w-full h-full bg-native-earth/30" />
-                  }
-                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-8 text-white drop-shadow-2xl">
-                      <h1 className="font-display text-6xl md:text-8xl uppercase leading-[0.8] mb-4 drop-shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">{activeCategory.name}</h1>
-                      <p className="font-tribal font-bold text-lg md:text-2xl tracking-[0.4em] uppercase opacity-90 animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-200">{activeCategory.description}</p>
-                  </div>
-              </div>
-          ) : (
-              <div className="py-16 relative">
-                {/* Background Pattern */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-tribal opacity-10"></div>
-                <div className="absolute bottom-0 left-0 w-full h-1 bg-tribal opacity-10"></div>
-                
-                <h1 className="font-display text-7xl md:text-9xl text-native-black uppercase leading-[0.8] mb-4 drop-shadow-sm">The Shop</h1>
-                <p className="font-tribal font-bold text-xl md:text-2xl mt-6 text-native-clay tracking-[0.4em] uppercase">Provisions & Preserves</p>
-              </div>
-          )}
-        </div>
+    <div ref={shopRef} className="min-h-screen bg-[#120d0b] text-[#f5f0e6]">
+      <section className="relative overflow-hidden px-5 pb-16 pt-32 lg:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_12%,rgba(244,197,109,0.18),transparent_30%),linear-gradient(135deg,rgba(244,197,109,0.08)_1px,transparent_1px),#120d0b] bg-[auto,28px_28px,auto]" />
+        <div className="absolute inset-y-0 left-0 hidden w-28 border-r border-[#f4c56d]/12 bg-[linear-gradient(135deg,rgba(244,197,109,0.15)_1px,transparent_1px),linear-gradient(45deg,rgba(188,75,53,0.16)_1px,transparent_1px)] bg-[length:22px_22px] lg:block" />
 
-        {/* Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8 bg-white/80 backdrop-blur-md p-3 rounded-full border border-native-black/5 shadow-card sticky top-32 z-30 animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="flex flex-wrap items-center gap-2 justify-center md:justify-start pl-4">
-            <span className="font-tribal text-[10px] text-native-earth/60 mr-4 uppercase tracking-[0.3em] font-bold hidden lg:block">Filter By:</span>
-            <button
-                onClick={() => setFilter('All')}
-                className={`px-8 py-3 font-tribal text-xs font-bold uppercase tracking-widest transition-all rounded-full ${ 
-                  filter === 'All' 
-                    ? 'bg-native-turquoise text-white shadow-ink' 
-                    : 'bg-transparent text-native-black hover:bg-native-sand/50'
-                }`}
-              >
-                All
-            </button>
-            {categories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setFilter(cat.name)}
-                className={`px-8 py-3 font-tribal text-xs font-bold uppercase tracking-widest transition-all rounded-full ${ 
-                  filter === cat.name
-                    ? 'bg-native-turquoise text-white shadow-ink' 
-                    : 'bg-transparent text-native-black hover:bg-native-sand/50'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
+        <div className="relative mx-auto max-w-7xl">
+          <div className="grid gap-10 border-b border-[#f4c56d]/18 pb-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+            <div data-shop-reveal>
+              <NickLogo size="md" className="mb-6" />
+              <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
+                Pickle Nick Counter
+              </p>
+              <h1 className="mt-4 font-display text-[4.2rem] leading-[0.9] text-[#f4c56d] drop-shadow-[0_8px_26px_rgba(0,0,0,0.65)] sm:text-7xl md:text-8xl">
+                The Shop
+              </h1>
+            </div>
+
+            <div data-shop-reveal className="max-w-2xl lg:justify-self-end">
+              <p className="font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76">
+                {activeCategory?.description || 'Custom pickles, hot sauce, achar jars, and small-batch provisions built for serious crunch.'}
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d]/82">
+                <span className="border border-[#f4c56d]/22 px-4 py-2">Small Batch</span>
+                <span className="border border-[#f4c56d]/22 px-4 py-2">Custom Heat</span>
+                <span className="border border-[#f4c56d]/22 px-4 py-2">Achar House</span>
+              </div>
+            </div>
           </div>
 
-          <div className="relative w-full md:w-[400px] pr-2">
-            <div className="bg-native-sand/30 border border-native-black/5 flex items-center rounded-full focus-within:bg-white focus-within:border-native-clay/30 transition-all shadow-inner group">
-                <Search className="ml-6 text-native-earth/40 group-focus-within:text-native-clay transition-colors" size={20} />
+          <div data-shop-reveal className="sticky top-24 z-30 mt-8 border border-[#f4c56d]/18 bg-[#120d0b]/88 p-3 shadow-[0_18px_50px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="hidden items-center gap-2 px-3 font-tribal text-xs font-bold uppercase tracking-[0.24em] text-[#f4c56d]/62 lg:inline-flex">
+                  <Filter size={15} /> Filter
+                </span>
+                {availableCategoryNames.map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setFilter(category)}
+                    className={`border px-5 py-3 font-tribal text-xs font-bold uppercase tracking-[0.18em] transition ${
+                      filter === category
+                        ? 'border-native-clay bg-native-clay text-white shadow-[0_12px_28px_rgba(188,75,53,0.28)]'
+                        : 'border-[#f4c56d]/20 text-[#f5f0e6]/72 hover:border-[#f4c56d]/60 hover:text-[#f4c56d]'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+
+              <label className="flex min-w-0 items-center border border-[#f4c56d]/20 bg-black/18 px-5 text-[#f5f0e6] focus-within:border-[#f4c56d]/65 lg:w-[360px]">
+                <Search className="mr-3 text-[#f4c56d]/58" size={19} />
                 <input
-                type="text"
-                placeholder="SEARCH GOODS..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full px-6 py-4 bg-transparent font-tribal text-xs font-bold uppercase tracking-widest outline-none placeholder:text-native-earth/30 text-native-black"
+                  type="text"
+                  placeholder="Search goods"
+                  value={search}
+                  onChange={event => setSearch(event.target.value)}
+                  className="w-full bg-transparent py-4 font-tribal text-sm font-bold uppercase tracking-[0.2em] outline-none placeholder:text-[#f5f0e6]/32"
                 />
+              </label>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Grid */}
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            {filteredProducts.map(product => (
-              <Link key={product.id} to={`/product/${product.id}`} className="group h-full">
-                {/* Rugged Card Style */}
-                <div className="bg-white border border-native-black/5 h-full flex flex-col shadow-card hover:shadow-lg hover:-translate-y-2 transition-all duration-500 relative rounded-[2.5rem] overflow-hidden">
-                  
-                  <div className="aspect-square overflow-hidden bg-native-sand relative">
-                    {product.image
-                      ? <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                      : <div className="w-full h-full flex items-center justify-center"><span className="font-display text-6xl opacity-20">🥒</span></div>
-                    }
+      <section className="bg-[#f1dfb8] px-5 py-16 text-[#120d0b] lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {filteredProducts.map(product => (
+                <Link
+                  key={product.id}
+                  to={`/product/${product.id}`}
+                  data-product-card
+                  className="group flex min-h-full flex-col overflow-hidden border border-[#120d0b]/16 bg-[#120d0b] text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)] transition duration-500 hover:-translate-y-2"
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden bg-[#201611]">
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="h-full w-full object-cover opacity-95 sepia-[.14] transition duration-700 group-hover:scale-[1.08] group-hover:sepia-0"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center font-display text-7xl text-[#f4c56d]/25">PN</div>
+                    )}
                     {product.stock === 0 && (
-                      <div className="absolute inset-0 bg-native-black/70 backdrop-blur-[2px] flex items-center justify-center">
-                        <span className="text-white font-tribal text-xl font-bold uppercase border border-white/30 px-6 py-3 tracking-[0.3em] rounded-full">Barren</span>
+                      <div className="absolute inset-0 flex items-center justify-center bg-[#120d0b]/78 backdrop-blur-[2px]">
+                        <span className="border border-[#f4c56d]/42 px-5 py-3 font-tribal text-xs font-bold uppercase tracking-[0.28em] text-[#f4c56d]">
+                          Sold Out
+                        </span>
                       </div>
                     )}
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-native-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span className="text-native-black font-display text-lg">${product.price.toFixed(2)}</span>
+                    <div className="absolute left-4 top-4 bg-[#f1dfb8] px-4 py-1 font-display text-xl text-[#120d0b]">
+                      ${product.price.toFixed(2)}
                     </div>
                   </div>
-                  
-                  <div className="p-8 flex-1 flex flex-col items-center text-center bg-white">
-                    <span className="text-native-clay text-[10px] font-bold font-tribal uppercase tracking-[0.3em] mb-4 bg-native-clay/5 px-4 py-1 rounded-full">{product.category}</span>
-                    <h3 className="font-display text-3xl text-native-black mb-4 leading-[0.9] uppercase flex-grow drop-shadow-sm">{product.name}</h3>
-                    
-                    <div className="w-12 h-0.5 bg-native-black/5 rounded-full mb-6"></div>
-                    
-                    <div className="flex flex-col w-full gap-4">
-                      <span className="text-3xl font-display text-native-turquoise drop-shadow-sm">${product.price.toFixed(2)}</span>
-                      <span className="text-native-black font-tribal font-bold text-[10px] uppercase tracking-[0.3em] border border-native-black/10 py-4 rounded-full shadow-sm group-hover:bg-native-black group-hover:text-white transition-all duration-300">
-                          View Item
-                      </span>
-                    </div>
+
+                  <div className="flex flex-1 flex-col border-t border-[#f4c56d]/18 p-6">
+                    <p className="font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d]/75">
+                      {product.category}
+                    </p>
+                    <h2 className="mt-3 font-display text-3xl leading-none text-[#f4c56d]">
+                      {product.name}
+                    </h2>
+                    <p className="mt-4 line-clamp-3 flex-1 font-sans text-sm font-medium leading-relaxed text-[#f5f0e6]/72">
+                      {product.description}
+                    </p>
+                    <span className="mt-6 inline-flex items-center justify-center border border-[#f4c56d]/24 px-5 py-3 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay transition group-hover:border-native-clay group-hover:bg-native-clay group-hover:text-white">
+                      Open Jar
+                    </span>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-32 bg-white rounded-[3rem] border border-native-black/5 shadow-card animate-in fade-in zoom-in duration-500">
-            <div className="bg-native-sand/50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                <Tent className="text-native-earth/20" size={48} />
+                </Link>
+              ))}
             </div>
-            <p className="font-display text-5xl text-native-black mb-6 uppercase drop-shadow-sm">No Goods Found</p>
-            <button 
-              onClick={() => {setFilter('All'); setSearch('')}}
-              className="text-native-clay font-bold hover:text-native-black font-tribal text-xs uppercase tracking-[0.3em] underline underline-offset-8 transition-colors"
-            >
-              Reset Filters
-            </button>
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="mx-auto max-w-2xl border border-[#120d0b]/16 bg-[#120d0b] px-8 py-16 text-center text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)]">
+              <Flame className="mx-auto mb-6 text-native-clay" size={48} />
+              <p className="font-display text-5xl leading-none text-[#f4c56d]">No goods found</p>
+              <p className="mt-5 font-sans text-lg font-semibold text-[#f5f0e6]/70">
+                That shelf is empty. Reset the counter and try again.
+              </p>
+              <button
+                onClick={() => {
+                  setFilter('All');
+                  setSearch('');
+                }}
+                className="mt-8 border border-[#f4c56d]/35 px-7 py-4 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d] transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
+              >
+                Reset Filters
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

@@ -56,7 +56,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const showWatermarks = pathname !== '/';
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#120d0b] text-native-sand">
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-[#120d0b] text-native-sand">
       {/* Brand mascots as quiet heritage watermarks */}
       {showWatermarks && siteContent?.general.mascotUrl1 && (
         <img
@@ -76,7 +76,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       )}
 
       <Navbar />
-      <main className="relative z-10 flex-grow">
+      <main className="relative z-10 min-w-0 flex-grow">
         {children}
       </main>
       <Footer />
@@ -94,7 +94,7 @@ const SeoManager = () => {
     const tagline = g.tagline || 'Spirit of the Brine';
     const description = g.seoDescription || `${brand} - artisan pickles and provisions, delivered Australia-wide.`;
     const siteUrl = (g.siteUrl || 'https://picklenick.au').replace(/\/$/, '');
-    const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.svg';
+    const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.jpg';
     const ogImage = faviconUrl.startsWith('http') ? faviconUrl : `${siteUrl}${faviconUrl}`;
 
     // Title

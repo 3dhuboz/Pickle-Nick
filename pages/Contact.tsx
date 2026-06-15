@@ -1,130 +1,137 @@
 import React, { useState } from 'react';
 import { Mail, MapPin, Phone, Send } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
+import NickLogo from '../components/brand/NickLogo';
 
 const Contact = () => {
   const { siteContent, sendMessage } = useStore();
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const general = siteContent?.general;
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
     sendMessage({
-        id: `msg-${Date.now()}`,
-        ...form,
-        read: false,
-        createdAt: new Date().toISOString()
+      id: `msg-${Date.now()}`,
+      ...form,
+      read: false,
+      createdAt: new Date().toISOString(),
     });
     setSent(true);
     setForm({ name: '', email: '', message: '' });
-    setTimeout(() => setSent(false), 5000);
+    window.setTimeout(() => setSent(false), 5000);
   };
 
-  if (!siteContent) return <div></div>;
-
   return (
-    <div className="py-24 px-4 bg-native-black min-h-screen relative overflow-hidden">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-native-clay/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-native-turquoise/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+    <div className="min-h-screen bg-[#120d0b] text-[#f5f0e6]">
+      <section className="relative overflow-hidden px-5 pb-16 pt-32 lg:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_18%,rgba(244,197,109,0.16),transparent_32%),radial-gradient(circle_at_12%_84%,rgba(188,75,53,0.12),transparent_28%),linear-gradient(135deg,rgba(244,197,109,0.08)_1px,transparent_1px),#120d0b] bg-[auto,auto,28px_28px,auto]" />
+        <div className="relative mx-auto max-w-7xl border-b border-[#f4c56d]/18 pb-12">
+          <NickLogo size="md" className="mb-6" />
+          <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
+            Custom Jar Desk
+          </p>
+          <h1 className="mt-4 max-w-4xl font-display text-[4rem] leading-[0.9] text-[#f4c56d] drop-shadow-[0_8px_26px_rgba(0,0,0,0.65)] sm:text-7xl md:text-8xl">
+            Build a Custom Jar
+          </h1>
+          <p className="mt-8 max-w-2xl font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76">
+            Tell Nick the crunch, the heat, and the occasion. The batch can go gentle, savage, smoky, sweet, or somewhere stranger.
+          </p>
+        </div>
+      </section>
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        <h1 className="font-display text-6xl md:text-8xl text-native-sand mb-4 text-center uppercase leading-none drop-shadow-lg">Contact Us</h1>
-        <p className="text-center text-native-turquoise font-sans uppercase tracking-[0.3em] mb-16 font-bold opacity-80">At Your Service</p>
+      <section className="bg-[#f1dfb8] px-5 py-20 text-[#120d0b] lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+          <div className="border border-[#120d0b]/14 bg-[#120d0b] p-8 text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)]">
+            <h2 className="font-display text-4xl leading-none text-[#f4c56d]">
+              Coordinates
+            </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-          {/* Info Card */}
-          <div className="bg-native-sand p-12 rounded-[3rem] shadow-2xl border border-white/10">
-            <h2 className="font-display text-4xl mb-12 uppercase text-native-black border-b border-native-clay/30 pb-4 inline-block">Coordinates</h2>
-            
-            <div className="space-y-10 font-sans text-native-black">
-              <div className="flex items-start group">
-                <div className="bg-native-black text-white p-4 rounded-full mr-6 shadow-ink group-hover:scale-110 transition-transform">
-                   <MapPin size={24} />
+            <div className="mt-10 space-y-8">
+              {[
+                { icon: MapPin, title: 'Counter', value: general?.address || 'Australia' },
+                { icon: Mail, title: 'Email', value: general?.email || 'orders@picklenick.au' },
+                { icon: Phone, title: 'Phone', value: general?.phone || 'By request' },
+              ].map(item => (
+                <div key={item.title} className="grid grid-cols-[auto_1fr] gap-5 border-t border-[#f4c56d]/14 pt-6">
+                  <item.icon className="text-native-clay" size={25} />
+                  <div>
+                    <h3 className="font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d]/76">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 font-sans text-lg font-semibold leading-relaxed text-[#f5f0e6]/76">
+                      {item.value}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-display text-xl uppercase mb-1 text-native-black opacity-60">Headquarters</h3>
-                  <p className="text-lg font-medium">{siteContent.general.address}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start group">
-                <div className="bg-native-black text-white p-4 rounded-full mr-6 shadow-ink group-hover:scale-110 transition-transform">
-                   <Mail size={24} />
-                </div>
-                <div>
-                  <h3 className="font-display text-xl uppercase mb-1 text-native-black opacity-60">Electronic Mail</h3>
-                  <p className="text-lg font-medium">{siteContent.general.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start group">
-                <div className="bg-native-black text-white p-4 rounded-full mr-6 shadow-ink group-hover:scale-110 transition-transform">
-                   <Phone size={24} />
-                </div>
-                <div>
-                  <h3 className="font-display text-xl uppercase mb-1 text-native-black opacity-60">Telephone</h3>
-                  <p className="text-lg font-medium">{siteContent.general.phone}</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Form Card */}
-          <div className="bg-white p-12 rounded-[3rem] shadow-2xl relative overflow-hidden border border-native-black/5">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-native-clay/10 rounded-bl-full"></div>
-            
+          <div className="border border-[#120d0b]/14 bg-[#f7e7c0] p-6 shadow-[0_26px_70px_rgba(18,13,11,0.18)] md:p-10">
             {!sent ? (
-              <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+              <form onSubmit={handleSubmit} className="grid gap-6">
                 <div>
-                  <label className="block font-display text-xl uppercase mb-2 text-native-black opacity-70">Your Name</label>
-                  <input 
-                    type="text" 
+                  <label className="mb-2 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
                     required
                     value={form.name}
-                    onChange={e => setForm({...form, name: e.target.value})}
-                    className="w-full p-5 bg-native-sand/50 rounded-2xl border border-native-black/5 font-sans font-bold focus:border-native-clay/50 focus:bg-white transition-all outline-none shadow-inner" 
-                    placeholder="FULL NAME" 
+                    onChange={event => setForm({ ...form, name: event.target.value })}
+                    className="w-full border border-[#120d0b]/16 bg-[#120d0b]/5 px-5 py-4 font-sans text-lg font-semibold text-[#120d0b] outline-none transition placeholder:text-[#120d0b]/32 focus:border-native-clay focus:bg-white"
+                    placeholder="Full name"
                   />
                 </div>
                 <div>
-                  <label className="block font-display text-xl uppercase mb-2 text-native-black opacity-70">Email Address</label>
-                  <input 
-                    type="email" 
+                  <label className="mb-2 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
                     required
                     value={form.email}
-                    onChange={e => setForm({...form, email: e.target.value})}
-                    className="w-full p-5 bg-native-sand/50 rounded-2xl border border-native-black/5 font-sans font-bold focus:border-native-clay/50 focus:bg-white transition-all outline-none shadow-inner" 
-                    placeholder="EMAIL ADDRESS" 
+                    onChange={event => setForm({ ...form, email: event.target.value })}
+                    className="w-full border border-[#120d0b]/16 bg-[#120d0b]/5 px-5 py-4 font-sans text-lg font-semibold text-[#120d0b] outline-none transition placeholder:text-[#120d0b]/32 focus:border-native-clay focus:bg-white"
+                    placeholder="Email address"
                   />
                 </div>
                 <div>
-                  <label className="block font-display text-xl uppercase mb-2 text-native-black opacity-70">Message</label>
-                  <textarea 
-                    rows={4} 
+                  <label className="mb-2 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">
+                    Message
+                  </label>
+                  <textarea
+                    rows={5}
                     required
                     value={form.message}
-                    onChange={e => setForm({...form, message: e.target.value})}
-                    className="w-full p-5 bg-native-sand/50 rounded-2xl border border-native-black/5 font-sans font-bold focus:border-native-clay/50 focus:bg-white transition-all outline-none shadow-inner resize-none" 
-                    placeholder="HOW CAN WE HELP?"
-                  ></textarea>
+                    onChange={event => setForm({ ...form, message: event.target.value })}
+                    className="w-full resize-none border border-[#120d0b]/16 bg-[#120d0b]/5 px-5 py-4 font-sans text-lg font-semibold text-[#120d0b] outline-none transition placeholder:text-[#120d0b]/32 focus:border-native-clay focus:bg-white"
+                    placeholder="Crunch, heat, quantity, date, or wild idea"
+                  />
                 </div>
-                <button type="submit" className="w-full bg-native-clay text-white font-display text-2xl py-5 rounded-full uppercase hover:bg-native-black transition-all shadow-ink hover:shadow-lg mt-4 tracking-widest">
-                  Send Message
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center gap-3 border border-native-clay bg-native-clay px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-white shadow-[0_16px_38px_rgba(188,75,53,0.28)] transition hover:-translate-y-1 hover:bg-[#a63d2b]"
+                >
+                  Send Brief <Send size={18} />
                 </button>
               </form>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center py-12">
-                 <div className="bg-native-turquoise text-white p-6 rounded-full mb-6 shadow-lg animate-bounce">
-                    <Send size={48} />
-                 </div>
-                 <h3 className="font-display text-3xl uppercase text-native-black mb-4">Message Sent</h3>
-                 <p className="font-sans text-lg text-native-earth">The spirit of your message travels to us now.</p>
+              <div className="flex min-h-[28rem] flex-col items-center justify-center text-center">
+                <div className="mb-7 border border-native-clay bg-native-clay p-6 text-white">
+                  <Send size={42} />
+                </div>
+                <h3 className="font-display text-5xl leading-none text-[#120d0b]">Message sent</h3>
+                <p className="mt-5 max-w-md font-sans text-lg font-semibold leading-relaxed text-[#3d2a21]">
+                  The brief is on Nick's counter.
+                </p>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };
