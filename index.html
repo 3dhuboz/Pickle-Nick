@@ -57,13 +57,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Cormorant+Garamond:wght@500;600;700&family=Hind+Madurai:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Yatra+One&family=Cormorant+Garamond:wght@500;600;700&family=Hind+Madurai:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
-              display: ['"Yatra One"', 'serif'],
+              display: ['"Rye"', '"Yatra One"', 'serif'],
               tribal: ['"Cormorant Garamond"', 'serif'],
               sans: ['"Hind Madurai"', 'sans-serif'],
             },
@@ -115,9 +115,11 @@
     </script>
     <style>
       body {
-        background-color: #f5f0e6;
-        color: #212121;
-        background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+        background-color: #120d0b;
+        color: #f5f0e6;
+        background-image:
+          radial-gradient(circle at 16% 10%, rgba(244, 197, 109, 0.08), transparent 24%),
+          url("https://www.transparenttextures.com/patterns/black-paper.png");
       }
 
       .bg-tribal {

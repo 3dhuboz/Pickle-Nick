@@ -32,7 +32,7 @@ const ScrollToTop = () => {
 };
 
 const PageFallback = () => (
-  <div className="min-h-screen bg-native-sand flex items-center justify-center">
+  <div className="min-h-screen bg-[#120d0b] flex items-center justify-center">
     <div className="h-14 w-14 rounded-full border-4 border-native-clay/25 border-t-native-clay animate-spin" />
   </div>
 );
@@ -52,11 +52,13 @@ const ProtectedCustomerRoute: React.FC<{ children: React.ReactNode }> = ({ child
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { siteContent } = useStore();
+  const { pathname } = useLocation();
+  const showWatermarks = pathname !== '/';
 
   return (
-    <div className="flex flex-col min-h-screen border-x-4 border-native-black/50 max-w-[1600px] mx-auto bg-native-sand shadow-2xl relative rounded-t-3xl mt-4">
+    <div className="flex min-h-screen flex-col bg-[#120d0b] text-native-sand">
       {/* Brand mascots as quiet heritage watermarks */}
-      {siteContent?.general.mascotUrl1 && (
+      {showWatermarks && siteContent?.general.mascotUrl1 && (
         <img
           src={siteContent.general.mascotUrl1}
           alt=""
@@ -64,7 +66,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           style={{ opacity: 0.08 }}
         />
       )}
-      {siteContent?.general.mascotUrl2 && (
+      {showWatermarks && siteContent?.general.mascotUrl2 && (
         <img
           src={siteContent.general.mascotUrl2}
           alt=""
@@ -74,7 +76,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       )}
 
       <Navbar />
-      <main className="flex-grow z-10 relative">
+      <main className="relative z-10 flex-grow">
         {children}
       </main>
       <Footer />

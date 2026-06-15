@@ -1,101 +1,120 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ShoppingBasket, Menu, X, User as UserIcon, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, ShoppingBasket, User as UserIcon, X } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
+
+const navItems = [
+  { to: '/', label: 'Home' },
+  { to: '/shop', label: 'Shop' },
+  { to: '/contact', label: 'Custom Jar' },
+  { to: '/about', label: 'Our Story' },
+  { to: '/contact', label: 'Contact' },
+];
 
 const Navbar = () => {
   const { cart, siteContent, currentUser, logoutCustomer } = useStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const cartItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const isActive = (path: string) => location.pathname === path 
-    ? 'text-native-clay font-bold' 
-    : 'text-native-black/60 hover:text-native-clay transition-colors';
+  const isActive = (path: string) => location.pathname === path;
+
+  if (location.pathname === '/') {
+    return null;
+  }
 
   const handleLogout = async () => {
-      await logoutCustomer();
-      navigate('/');
+    await logoutCustomer();
+    setIsMenuOpen(false);
+    navigate('/');
   };
 
   return (
-    <nav className="sticky top-6 z-40 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="bg-white/80 backdrop-blur-xl shadow-card rounded-full border border-native-black/5 px-6 sm:px-10">
-        <div className="flex justify-between items-center h-24">
-          
-          {/* Logo Image */}
-          <Link to="/" className="flex-shrink-0 flex items-center group relative z-10">
-             <div className="h-16 w-16 bg-white border border-native-black/5 overflow-hidden shadow-sm transform transition-all group-hover:scale-105 group-hover:shadow-md flex items-center justify-center rounded-full">
-                <img 
-                  src={siteContent?.general.logoUrl || "/logo.svg"}
-                  alt="Pickle Nick Logo" 
-                  className="h-full w-full object-cover p-1 sepia-[.15]" 
-                />
-             </div>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-[#120d0b]/90 via-[#120d0b]/62 to-transparent backdrop-blur-md">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link to="/" className="group flex items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-[#f4c56d]/35 bg-[#f5f0e6] shadow-[0_0_26px_rgba(244,197,109,0.18)]">
+            <img
+              src={siteContent?.general.logoUrl || '/logo.svg'}
+              alt="Pickle Nick Logo"
+              className="h-full w-full object-cover p-1 sepia-[.2]"
+            />
+          </span>
+          <span className="hidden font-display text-xl uppercase tracking-[0.16em] text-[#f4c56d] sm:block">
+            Pickle Nick
+          </span>
+        </Link>
+
+        <div className="hidden items-center gap-8 md:flex">
+          {navItems.slice(1).map(item => (
+            <Link
+              key={`${item.to}-${item.label}`}
+              to={item.to}
+              className={`font-tribal text-sm font-bold uppercase tracking-[0.22em] transition-colors ${
+                isActive(item.to) ? 'text-[#f4c56d]' : 'text-[#f5f0e6]/70 hover:text-[#f4c56d]'
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3 text-[#f5f0e6]">
+          <Link
+            to={currentUser ? '/account' : '/login'}
+            className="rounded-full border border-[#f4c56d]/20 bg-white/5 p-3 transition hover:border-[#f4c56d]/60 hover:bg-[#f4c56d]/10"
+            title={currentUser ? 'My Account' : 'Login'}
+          >
+            <UserIcon size={20} />
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-14 lg:space-x-16">
-            <Link to="/" className={`font-tribal text-sm font-bold uppercase tracking-[0.2em] ${isActive('/')}`}>Home</Link>
-            <Link to="/shop" className={`font-tribal text-sm font-bold uppercase tracking-[0.2em] ${isActive('/shop')}`}>Shop</Link>
-            <Link to="/about" className={`font-tribal text-sm font-bold uppercase tracking-[0.2em] ${isActive('/about')}`}>About</Link>
-            <Link to="/contact" className={`font-tribal text-sm font-bold uppercase tracking-[0.2em] ${isActive('/contact')}`}>Contact</Link>
-          </div>
-
-          {/* Icons */}
-          <div className="flex items-center gap-3">
-            {currentUser ? (
-              <Link to="/account" className="flex items-center gap-2 group" title="My Account">
-                <div className="p-3 bg-native-sand/50 border border-native-black/5 rounded-full hover:bg-native-black hover:text-white transition-all shadow-inner">
-                    <UserIcon size={22} />
-                </div>
-              </Link>
-            ) : (
-              <Link to="/login" className="p-3 bg-native-sand/50 border border-native-black/5 rounded-full text-native-black hover:bg-native-black hover:text-white transition-all shadow-inner" title="Login">
-                <UserIcon size={22} />
-              </Link>
+          <Link
+            to="/cart"
+            className="relative rounded-full border border-[#f4c56d]/20 bg-white/5 p-3 transition hover:border-[#f4c56d]/60 hover:bg-[#f4c56d]/10"
+            title="Cart"
+          >
+            <ShoppingBasket size={20} />
+            {cartItemCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-native-clay text-[10px] font-bold text-white">
+                {cartItemCount}
+              </span>
             )}
+          </Link>
 
-            <Link to="/cart" className="relative p-3 text-native-black hover:bg-native-black hover:text-white transition-all group bg-native-sand/50 border border-native-black/5 rounded-full shadow-inner">
-              <ShoppingBasket size={22} />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-native-turquoise text-white font-display text-sm h-6 w-6 rounded-full flex items-center justify-center border border-white shadow-sm animate-in zoom-in duration-300">
-                  {cartItemCount}
-                </span>
-              )}
-            </Link>
-            
-            {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden p-3 text-native-black bg-native-sand/50 border border-native-black/5 rounded-full shadow-inner"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="rounded-full border border-[#f4c56d]/20 bg-white/5 p-3 transition hover:border-[#f4c56d]/60 hover:bg-[#f4c56d]/10 md:hidden"
+            onClick={() => setIsMenuOpen(value => !value)}
+            aria-label="Toggle navigation"
+          >
+            {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden mt-4 bg-white/95 backdrop-blur-xl rounded-[2rem] border border-native-black/5 shadow-card overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="px-6 py-8 space-y-2 flex flex-col text-center">
-            <Link to="/" className="font-tribal text-base font-bold uppercase tracking-[0.2em] text-native-black py-4 hover:bg-native-sand/50 rounded-2xl transition-colors" onClick={() => setIsMenuOpen(false)}>Home</Link>
-            <Link to="/shop" className="font-tribal text-base font-bold uppercase tracking-[0.2em] text-native-black py-4 hover:bg-native-sand/50 rounded-2xl transition-colors" onClick={() => setIsMenuOpen(false)}>Shop</Link>
-            <Link to="/about" className="font-tribal text-base font-bold uppercase tracking-[0.2em] text-native-black py-4 hover:bg-native-sand/50 rounded-2xl transition-colors" onClick={() => setIsMenuOpen(false)}>About</Link>
-            <Link to="/contact" className="font-tribal text-base font-bold uppercase tracking-[0.2em] text-native-black py-4 hover:bg-native-sand/50 rounded-2xl transition-colors" onClick={() => setIsMenuOpen(false)}>Contact</Link>
-            
-            <div className="h-px bg-native-black/5 my-4 mx-8"></div>
-
-            {currentUser ? (
-               <>
-                 <Link to="/account" className="font-tribal text-base font-bold uppercase tracking-[0.2em] text-native-turquoise py-4 hover:bg-native-turquoise/5 rounded-2xl transition-colors" onClick={() => setIsMenuOpen(false)}>My Account</Link>
-                 <button onClick={() => { handleLogout(); setIsMenuOpen(false); }} className="font-tribal text-base font-bold uppercase tracking-[0.2em] text-native-clay py-4 hover:bg-native-clay/5 rounded-2xl transition-colors">Logout</button>
-               </>
-            ) : (
-               <Link to="/login" className="font-tribal text-base font-bold uppercase tracking-[0.2em] text-native-clay py-4 hover:bg-native-clay/5 rounded-2xl transition-colors" onClick={() => setIsMenuOpen(false)}>Login</Link>
+        <div className="border-t border-[#f4c56d]/10 bg-[#120d0b]/96 px-4 pb-6 pt-2 md:hidden">
+          <div className="mx-auto flex max-w-md flex-col gap-1">
+            {navItems.map(item => (
+              <Link
+                key={`${item.to}-${item.label}-mobile`}
+                to={item.to}
+                className="rounded-2xl px-5 py-4 font-tribal text-sm font-bold uppercase tracking-[0.2em] text-[#f5f0e6]/80 transition hover:bg-[#f4c56d]/10 hover:text-[#f4c56d]"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+            {currentUser && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-2xl px-5 py-4 text-left font-tribal text-sm font-bold uppercase tracking-[0.2em] text-native-clay transition hover:bg-native-clay/10"
+              >
+                Logout
+              </button>
             )}
           </div>
         </div>
