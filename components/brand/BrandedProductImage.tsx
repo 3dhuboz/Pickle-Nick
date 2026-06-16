@@ -70,12 +70,16 @@ const variantStyles = {
   card: {
     seal: 'h-16 w-16 sm:h-[4.6rem] sm:w-[4.6rem]',
     label: 'left-3 right-3 bottom-3 rounded-[1.35rem] px-4 py-3',
+    badge: 'left-3 top-3 h-12 w-12 p-[0.2rem]',
+    labelBadge: 'h-8 w-8 p-[0.18rem]',
     title: 'text-xl sm:text-2xl',
     cornerTag: false,
   },
   detail: {
     seal: 'h-20 w-20 sm:h-24 sm:w-24',
     label: 'left-4 right-4 bottom-4 rounded-[1.55rem] px-5 py-4 sm:left-6 sm:right-6 sm:bottom-6',
+    badge: 'left-5 top-5 h-14 w-14 p-[0.22rem] sm:h-[4.1rem] sm:w-[4.1rem]',
+    labelBadge: 'h-9 w-9 p-[0.18rem]',
     title: 'text-2xl sm:text-4xl',
     cornerTag: true,
   },
@@ -127,23 +131,36 @@ const BrandedProductImage = ({
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,3,2,0.08),rgba(5,3,2,0.16)_44%,rgba(5,3,2,0.68)),radial-gradient(circle_at_22%_18%,rgba(245,236,218,0.12),transparent_22%)]" />
       <div className={`pointer-events-none absolute inset-0 ${lineOnly ? 'shadow-[inset_0_-70px_90px_rgba(0,0,0,0.5)]' : 'border border-[#f4c56d]/18 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.035),inset_0_-70px_90px_rgba(0,0,0,0.5)]'}`} />
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-[linear-gradient(180deg,rgba(5,3,2,0.62),transparent)]" />
+      <div className={`pointer-events-none absolute z-20 overflow-hidden rounded-full border border-[#f4c56d]/28 bg-[#efe1bf] shadow-[0_14px_28px_rgba(0,0,0,0.28)] ${styles.badge}`}>
+        <img src={sealSrc} alt="" aria-hidden="true" className="h-full w-full rounded-full object-cover sepia-[.06]" />
+      </div>
 
       {styles.cornerTag && (
-        <div className="absolute right-3 top-3 z-20 hidden rounded-full border border-[#f5ecda]/18 bg-[#090605]/72 px-4 py-2 text-right backdrop-blur-sm sm:block">
-          <span className="block font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f5ecda]/82">
-            Pickle Nick
+        <div className="absolute right-3 top-3 z-20 hidden items-center gap-3 rounded-full border border-[#f5ecda]/18 bg-[#090605]/72 px-3 py-2 text-right backdrop-blur-sm sm:flex">
+          <span className="flex h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[#f4c56d]/26 bg-[#efe1bf] p-[0.15rem] shadow-[0_10px_18px_rgba(0,0,0,0.22)]">
+            <img src={sealSrc} alt="" aria-hidden="true" className="h-full w-full rounded-full object-cover sepia-[.06]" />
           </span>
-          <span className="block font-sans text-[9px] font-medium uppercase tracking-[0.18em] text-[#b69273]">
-            Made to bite back
+          <span>
+            <span className="block font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f5ecda]/82">
+              Pickle Nick
+            </span>
+            <span className="block font-sans text-[9px] font-medium uppercase tracking-[0.18em] text-[#b69273]">
+              Made to bite back
+            </span>
           </span>
         </div>
       )}
 
       {!hideLabel && (
         <div className={`absolute z-20 text-[#f5f0e6] backdrop-blur-sm ${lineOnly ? 'bg-[#090605]/58 shadow-[0_18px_44px_rgba(0,0,0,0.32),inset_0_0_0_1px_rgba(244,197,109,0.08)]' : 'border border-[#f4c56d]/26 bg-[#090605]/86 shadow-[0_18px_44px_rgba(0,0,0,0.42)]'} ${styles.label}`}>
-          <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.22em] text-[#b69273]">
-            {product.category || 'Small Batch'}
-          </p>
+          <div className="flex items-center gap-3">
+            <span className={`flex shrink-0 overflow-hidden rounded-full border border-[#f4c56d]/22 bg-[#efe1bf] shadow-[0_8px_16px_rgba(0,0,0,0.22)] ${styles.labelBadge}`}>
+              <img src={sealSrc} alt="" aria-hidden="true" className="h-full w-full rounded-full object-cover sepia-[.06]" />
+            </span>
+            <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.22em] text-[#b69273]">
+              {product.category || 'Small Batch'}
+            </p>
+          </div>
           <p className={`mt-1 line-clamp-2 font-display leading-none text-[#f4c56d] ${styles.title}`}>
             {product.name}
           </p>

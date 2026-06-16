@@ -151,6 +151,7 @@ const Contact = () => {
 
               <div className="relative z-10">
                 <div className="mb-6">
+                  <NickLogo size="sm" className="mb-3" imageClassName="h-11 w-11" />
                   <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-[#9f3b2e]">
                     Message Sheet
                   </p>

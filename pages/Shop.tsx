@@ -248,6 +248,7 @@ const Shop = () => {
                 </div>
 
                 <div>
+                  <NickLogo size="sm" className="mb-3" imageClassName="h-11 w-11" />
                   <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-[#9f3b2e]">
                     Shelf Highlight
                   </p>

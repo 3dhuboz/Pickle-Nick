@@ -194,12 +194,7 @@ const About = () => {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,255,255,0.52),transparent_24%),radial-gradient(circle_at_86%_18%,rgba(159,59,46,0.12),transparent_22%),repeating-linear-gradient(102deg,rgba(82,47,23,0.05)_0_1px,transparent_1px_12px),repeating-linear-gradient(0deg,rgba(255,255,255,0.12)_0_1px,transparent_1px_14px)] opacity-80" />
               <div className="relative z-10">
                 <div className="flex items-center gap-4">
-                  <img
-                    src={sealMark}
-                    alt=""
-                    aria-hidden="true"
-                    className="h-14 w-14 rounded-full border border-[#120d0b]/10 bg-[#f5ecda]/58 p-1 shadow-[0_12px_24px_rgba(0,0,0,0.12)]"
-                  />
+                  <NickLogo size="sm" imageClassName="h-14 w-14 border-[#120d0b]/10 bg-[#f5ecda]/58 shadow-[0_12px_24px_rgba(0,0,0,0.12)]" />
                   <div>
                     <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-[#9f3b2e]">
                       Batch Values

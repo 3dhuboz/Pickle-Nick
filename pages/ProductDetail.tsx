@@ -224,6 +224,7 @@ const ProductDetail = () => {
 
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_repeat(3,minmax(0,0.82fr))] lg:items-start">
               <div className="pr-2">
+                <NickLogo size="sm" className="mb-3" imageClassName="h-11 w-11" />
                 <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-[#9f3b2e]">
                   Counter Notes
                 </p>

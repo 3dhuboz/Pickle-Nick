@@ -255,24 +255,17 @@ const Home = () => {
 
         <header className="relative z-30 mx-auto max-w-[88rem]">
           <div className="tribal-toprail flex items-center justify-between gap-4 rounded-[2rem] border border-[#f5ecda]/12 bg-[#120c09]/64 px-4 py-3 shadow-[0_22px_54px_rgba(0,0,0,0.28)] backdrop-blur-md">
-            <Link
-              to="/"
-              data-hero-brand
-              className="flex items-center gap-3"
-              aria-label="Pickle Nick home"
-            >
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#f5ecda]/28 bg-[#efe1bf] p-1 shadow-[0_10px_20px_rgba(0,0,0,0.2)]">
-                <img
-                  src={sealMark}
-                  alt="Pickle Nick logo"
-                  className="h-full w-full rounded-full object-cover"
-                />
-              </span>
-              <span className="hidden min-w-0 sm:block">
-                <span className="block font-tribal text-2xl font-semibold leading-none text-[#f5ecda]">Pickle Nick</span>
-                <span className="mt-1 block font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-[#b69273]">Made to bite back</span>
-              </span>
-            </Link>
+            <div data-hero-brand>
+              <NickLogo
+                to="/"
+                size="md"
+                showName
+                subtitle="Made to bite back"
+                className="min-w-0"
+                labelClassName="hidden min-w-0 text-2xl leading-none sm:block"
+                imageClassName="h-14 w-14"
+              />
+            </div>
 
             <nav className="hidden items-center gap-8 md:flex">
               {heroNavItems.map(item => (
@@ -394,6 +387,7 @@ const Home = () => {
             <div className="paper-grain" />
             <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_repeat(4,minmax(0,0.82fr))] lg:items-start">
               <div className="pr-2">
+                <NickLogo size="sm" className="mb-3" imageClassName="h-11 w-11" />
                 <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-[#9f3b2e]">
                   Nick Marked
                 </p>
