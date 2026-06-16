@@ -7,6 +7,7 @@ type BrandedProductImageProps = {
   imageClassName?: string;
   variant?: 'card' | 'detail';
   forceBrandBackdrop?: boolean;
+  lineOnly?: boolean;
   children?: React.ReactNode;
 };
 
@@ -34,6 +35,7 @@ const BrandedProductImage = ({
   imageClassName = '',
   variant = 'card',
   forceBrandBackdrop = false,
+  lineOnly = false,
   children,
 }: BrandedProductImageProps) => {
   const styles = variantStyles[variant];
@@ -55,12 +57,12 @@ const BrandedProductImage = ({
       />
 
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,3,2,0.1),rgba(5,3,2,0.18)_45%,rgba(5,3,2,0.72)),radial-gradient(circle_at_22%_18%,rgba(244,197,109,0.18),transparent_22%)]" />
-      <div className="pointer-events-none absolute inset-0 border border-[#f4c56d]/18 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.035),inset_0_-70px_90px_rgba(0,0,0,0.5)]" />
+      <div className={`pointer-events-none absolute inset-0 ${lineOnly ? 'shadow-[inset_0_-70px_90px_rgba(0,0,0,0.5)]' : 'border border-[#f4c56d]/18 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.035),inset_0_-70px_90px_rgba(0,0,0,0.5)]'}`} />
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-[linear-gradient(180deg,rgba(5,3,2,0.62),transparent)]" />
       <div className="pointer-events-none absolute -right-6 bottom-24 z-10 rotate-[-12deg] font-display text-[7rem] leading-none text-[#f4c56d]/[0.055] sm:text-[8.5rem]">
         PN
       </div>
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-2 bg-[linear-gradient(180deg,#bc4b35,#f4c56d,#5f7f32,#bc4b35)] opacity-70" />
+      <div className={`pointer-events-none absolute inset-y-0 left-0 z-10 bg-[linear-gradient(180deg,#bc4b35,#f4c56d,#5f7f32,#bc4b35)] opacity-70 ${lineOnly ? 'w-px' : 'w-2'}`} />
 
       <div className="absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
         <div className={`rounded-full border border-[#f4c56d]/45 bg-[#0b0807] p-1 shadow-[0_14px_32px_rgba(0,0,0,0.45),0_0_0_4px_rgba(244,197,109,0.06)] ${styles.seal}`}>
@@ -83,7 +85,7 @@ const BrandedProductImage = ({
         </div>
       )}
 
-      <div className={`absolute z-20 border border-[#f4c56d]/26 bg-[#090605]/86 text-[#f5f0e6] shadow-[0_18px_44px_rgba(0,0,0,0.42)] backdrop-blur-sm ${styles.label}`}>
+      <div className={`absolute z-20 text-[#f5f0e6] backdrop-blur-sm ${lineOnly ? 'bg-[#090605]/52 shadow-[0_18px_44px_rgba(0,0,0,0.32)]' : 'border border-[#f4c56d]/26 bg-[#090605]/86 shadow-[0_18px_44px_rgba(0,0,0,0.42)]'} ${styles.label}`}>
         <p className="font-tribal text-[10px] font-bold uppercase tracking-[0.24em] text-native-clay">
           {product.category || 'Small Batch'}
         </p>
@@ -95,7 +97,7 @@ const BrandedProductImage = ({
         </p>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-1 bg-[linear-gradient(90deg,#bc4b35,#f4c56d,#5f7f32,#bc4b35)]" />
+      <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(90deg,#bc4b35,#f4c56d,#5f7f32,#bc4b35)] ${lineOnly ? 'h-px' : 'h-1'}`} />
       {children}
     </div>
   );

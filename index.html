@@ -333,24 +333,24 @@
       .paper-brand-mark {
         position: absolute;
         z-index: 1;
-        width: 8.8rem;
-        height: 8.8rem;
+        width: 8rem;
+        height: 8rem;
         object-fit: cover;
         border-radius: 9999px;
-        opacity: 0.58;
-        filter: sepia(0.18) saturate(0.9) contrast(1.18);
+        opacity: 0.26;
+        filter: sepia(0.18) saturate(0.78) contrast(1.08);
         mix-blend-mode: multiply;
         pointer-events: none;
       }
 
       .paper-brand-mark-left {
-        left: clamp(1.25rem, 4vw, 4.75rem);
+        left: clamp(-4.4rem, -3vw, -2.2rem);
         top: 50%;
         transform: translateY(-50%) rotate(-10deg);
       }
 
       .paper-brand-mark-right {
-        right: clamp(1.25rem, 4vw, 4.75rem);
+        right: clamp(-4.4rem, -3vw, -2.2rem);
         top: 50%;
         transform: translateY(-50%) rotate(11deg);
       }
@@ -493,11 +493,189 @@
         mix-blend-mode: screen;
       }
 
+      .batch-showcase::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 68%;
+        pointer-events: none;
+        background:
+          linear-gradient(90deg, transparent 0, rgba(244, 197, 109, 0.12) 18%, rgba(188, 75, 53, 0.16) 18.08%, transparent 18.4%),
+          linear-gradient(90deg, transparent 52%, rgba(244, 197, 109, 0.09) 52.08%, transparent 52.3%),
+          linear-gradient(180deg, rgba(244, 197, 109, 0.11), transparent 1px),
+          linear-gradient(180deg, transparent 0 42%, rgba(244, 197, 109, 0.11) 42.2%, transparent 42.5%),
+          radial-gradient(ellipse at 27% 30%, rgba(244, 197, 109, 0.08), transparent 28%);
+        opacity: 0.56;
+        mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+      }
+
+      .batch-linework {
+        position: absolute;
+        inset: 5.7rem 4vw 2.5rem;
+        pointer-events: none;
+        opacity: 0.72;
+        background:
+          linear-gradient(90deg, transparent, rgba(244, 197, 109, 0.26), rgba(188, 75, 53, 0.24), transparent) 0 0 / 100% 1px no-repeat,
+          linear-gradient(90deg, transparent, rgba(244, 197, 109, 0.18), transparent) 0 54% / 100% 1px no-repeat,
+          linear-gradient(180deg, transparent, rgba(244, 197, 109, 0.2), transparent) 18rem 0 / 1px 100% no-repeat,
+          linear-gradient(180deg, transparent, rgba(244, 197, 109, 0.16), transparent) calc(100% - 27rem) 0 / 1px 100% no-repeat;
+      }
+
+      .batch-linework::before,
+      .batch-linework::after {
+        content: "";
+        position: absolute;
+        width: 16rem;
+        height: 16rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(244, 197, 109, 0.08);
+        box-shadow:
+          inset 0 0 0 1px rgba(188, 75, 53, 0.05),
+          0 0 45px rgba(244, 197, 109, 0.04);
+      }
+
+      .batch-linework::before {
+        left: 0;
+        bottom: 0.5rem;
+        transform: translateX(-45%);
+      }
+
+      .batch-linework::after {
+        right: 21rem;
+        top: 0.25rem;
+        transform: translateX(48%);
+      }
+
+      .batch-line-link {
+        position: relative;
+      }
+
+      .batch-line-link::before,
+      .batch-line-link::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        pointer-events: none;
+        background: linear-gradient(90deg, #f4c56d, rgba(188, 75, 53, 0.9), transparent);
+        transition: transform 220ms ease, opacity 220ms ease;
+      }
+
+      .batch-line-link::before {
+        top: 0.35rem;
+        opacity: 0.28;
+      }
+
+      .batch-line-link::after {
+        bottom: 0.35rem;
+        opacity: 0.82;
+      }
+
+      .batch-line-link:hover::after,
+      .batch-line-link:focus-visible::after {
+        transform: translateX(0.55rem);
+      }
+
       .batch-product-card {
-        background-image:
-          radial-gradient(circle at 20% 12%, rgba(244, 197, 109, 0.08), transparent 28%),
-          linear-gradient(135deg, rgba(244, 197, 109, 0.065) 1px, transparent 1px);
-        background-size: auto, 24px 24px;
+        isolation: isolate;
+      }
+
+      .batch-product-card::before,
+      .batch-feature::before {
+        content: "";
+        position: absolute;
+        inset: -0.8rem 0 auto;
+        height: 1px;
+        pointer-events: none;
+        background: linear-gradient(90deg, rgba(244, 197, 109, 0.72), rgba(188, 75, 53, 0.34), transparent);
+        opacity: 0.72;
+      }
+
+      .batch-product-card::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 -0.4rem;
+        height: 1px;
+        pointer-events: none;
+        background: linear-gradient(90deg, transparent, rgba(244, 197, 109, 0.48), transparent);
+        opacity: 0;
+        transition: opacity 220ms ease;
+      }
+
+      .batch-product-card:hover::after,
+      .batch-product-card:focus-visible::after {
+        opacity: 1;
+      }
+
+      .batch-product-media,
+      .batch-feature-media {
+        box-shadow:
+          inset 1px 0 0 rgba(188, 75, 53, 0.86),
+          inset 2px 0 0 rgba(244, 197, 109, 0.2),
+          18px 26px 54px rgba(0, 0, 0, 0.34);
+      }
+
+      .batch-product-media::before,
+      .batch-feature-media::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 35;
+        pointer-events: none;
+        background:
+          linear-gradient(90deg, rgba(244, 197, 109, 0.9), transparent 1px),
+          linear-gradient(180deg, rgba(244, 197, 109, 0.72), transparent 1px),
+          linear-gradient(180deg, transparent, rgba(244, 197, 109, 0.52));
+        opacity: 0.72;
+        mask-image: linear-gradient(180deg, #000, #000 72%, transparent);
+      }
+
+      .batch-product-copy {
+        position: relative;
+      }
+
+      .batch-product-copy::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 1.4rem;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(244, 197, 109, 0.42), rgba(188, 75, 53, 0.72), transparent);
+      }
+
+      .batch-feature {
+        isolation: isolate;
+      }
+
+      .batch-feature::after {
+        content: "";
+        position: absolute;
+        left: -1.4rem;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(244, 197, 109, 0.62), rgba(188, 75, 53, 0.16), transparent);
+      }
+
+      .batch-traits span {
+        position: relative;
+        padding-left: 0.95rem;
+      }
+
+      .batch-traits span::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 0.42rem;
+        height: 1px;
+        background: #bc4b35;
+        box-shadow: 0 0 12px rgba(244, 197, 109, 0.55);
       }
 
       @media (max-width: 640px) {
@@ -545,18 +723,18 @@
 
         .paper-brand-mark {
           display: block;
-          width: 5.8rem;
-          height: 5.8rem;
-          opacity: 0.23;
+          width: 5.2rem;
+          height: 5.2rem;
+          opacity: 0.16;
         }
 
         .paper-brand-mark-left {
-          left: -1.6rem;
+          left: -3.4rem;
           top: 50%;
         }
 
         .paper-brand-mark-right {
-          right: -1.6rem;
+          right: -3.4rem;
           top: 50%;
         }
 

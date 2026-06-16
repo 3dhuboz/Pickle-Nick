@@ -320,6 +320,7 @@ const Home = () => {
 
       <section className="batch-showcase relative overflow-hidden bg-[#090605] px-5 pb-12 pt-7 text-[#f5f0e6] lg:px-8">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(244,197,109,0.08),transparent_24%),radial-gradient(circle_at_16%_80%,rgba(188,75,53,0.11),transparent_26%),linear-gradient(135deg,rgba(244,197,109,0.07)_1px,transparent_1px),#090605] bg-[auto,auto,28px_28px,auto]" />
+        <div className="batch-linework" aria-hidden="true" />
         <div className="relative mx-auto grid max-w-[86rem] gap-6 xl:grid-cols-[17.5rem_minmax(0,1fr)_27rem] xl:items-start">
           <div data-depth-card className="pt-3">
             <h2 className="font-display text-[2.8rem] leading-[0.9] text-[#f4c56d] sm:text-[3rem] xl:text-[2.9rem]">
@@ -332,7 +333,7 @@ const Home = () => {
             </p>
             <Link
               to="/shop"
-              className="mt-7 inline-flex min-h-12 items-center justify-center gap-3 border border-[#f4c56d]/44 bg-[#080605]/62 px-6 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d] transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
+              className="batch-line-link mt-7 inline-flex min-h-12 items-center justify-center gap-3 px-1 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d] transition hover:text-[#fff1c3]"
             >
               View all products <ArrowRight size={16} />
             </Link>
@@ -344,15 +345,15 @@ const Home = () => {
                 key={product.id}
                 to={`/product/${product.id}`}
                 data-depth-card
-                className="group batch-product-card overflow-hidden border border-[#f4c56d]/28 bg-[#0d0907] text-[#f5f0e6] shadow-[0_22px_56px_rgba(0,0,0,0.38)] transition hover:-translate-y-2 hover:border-[#f4c56d]/62"
+                className="group batch-product-card relative overflow-visible bg-transparent text-[#f5f0e6] transition hover:-translate-y-2"
               >
-                <div className="relative aspect-[4/5] overflow-hidden bg-[#201611]">
-                  <BrandedProductImage product={product} className="h-full w-full" imageClassName="group-hover:scale-110" forceBrandBackdrop />
+                <div className="batch-product-media relative aspect-[4/5] overflow-hidden bg-[#201611]/18">
+                  <BrandedProductImage product={product} className="h-full w-full" imageClassName="group-hover:scale-110" forceBrandBackdrop lineOnly />
                   {product.featured && (
                     <Star className="absolute right-3 top-3 z-30 text-[#f4c56d] drop-shadow" fill="currentColor" size={22} />
                   )}
                 </div>
-                <div className="border-t border-[#f4c56d]/18 px-4 py-4">
+                <div className="batch-product-copy px-2 py-4">
                   <p className="font-display text-xl leading-none text-[#f4c56d] sm:text-2xl">
                     {product.name}
                   </p>
@@ -365,12 +366,12 @@ const Home = () => {
           </div>
 
           {featuredBatchProduct && (
-            <aside data-depth-card className="hidden border border-[#f4c56d]/34 bg-[#0d0907] p-4 shadow-[0_28px_70px_rgba(0,0,0,0.4)] lg:grid lg:grid-cols-[0.95fr_1fr] lg:gap-5 xl:grid-cols-1">
+            <aside data-depth-card className="batch-feature relative hidden bg-transparent p-0 lg:grid lg:grid-cols-[0.95fr_1fr] lg:gap-5 xl:grid-cols-1">
               <Link
                 to={`/product/${featuredBatchProduct.id}`}
-                className="group relative block aspect-[4/3.8] overflow-hidden border border-[#f4c56d]/18 bg-[#201611] xl:aspect-[4/3]"
+                className="group batch-feature-media relative block aspect-[4/3.8] overflow-hidden bg-[#201611]/18 xl:aspect-[4/3]"
               >
-                <BrandedProductImage product={featuredBatchProduct} className="h-full w-full" imageClassName="group-hover:scale-110" forceBrandBackdrop />
+                <BrandedProductImage product={featuredBatchProduct} className="h-full w-full" imageClassName="group-hover:scale-110" forceBrandBackdrop lineOnly />
               </Link>
               <div className="flex flex-col justify-center xl:pt-1">
                 <p className="font-display text-3xl leading-none text-[#f4c56d] xl:text-4xl">
@@ -382,18 +383,18 @@ const Home = () => {
                 <p className="mt-4 line-clamp-3 font-sans text-sm font-semibold leading-relaxed text-[#f5f0e6]/70">
                   {featuredBatchProduct.description}
                 </p>
-                <div className="mt-5 grid grid-cols-2 gap-2 font-tribal text-[10px] font-bold uppercase tracking-[0.18em] text-[#f4c56d]/78">
-                  <span className="border border-[#f4c56d]/22 px-3 py-2">Crunchy</span>
-                  <span className="border border-[#f4c56d]/22 px-3 py-2">Medium Heat</span>
-                  <span className="col-span-2 border border-[#f4c56d]/22 px-3 py-2">Small Batch</span>
+                <div className="batch-traits mt-5 flex flex-wrap gap-x-5 gap-y-2 font-tribal text-[10px] font-bold uppercase tracking-[0.18em] text-[#f4c56d]/78">
+                  <span>Crunchy</span>
+                  <span>Medium Heat</span>
+                  <span>Small Batch</span>
                 </div>
                 <button
                   type="button"
                   data-add-featured-batch
                   onClick={() => addToCart(featuredBatchProduct, 1)}
-                  className="mt-5 inline-flex min-h-12 items-center justify-center border border-native-clay bg-native-clay px-5 font-tribal text-xs font-bold uppercase tracking-[0.2em] text-white shadow-[0_16px_34px_rgba(188,75,53,0.28)] transition hover:-translate-y-1 hover:bg-[#a63d2b]"
+                  className="batch-line-link mt-5 inline-flex min-h-12 items-center justify-start gap-3 px-1 font-tribal text-xs font-bold uppercase tracking-[0.2em] text-native-clay transition hover:-translate-y-1 hover:text-[#ffcf78]"
                 >
-                  Add to cart
+                  Add to cart <ArrowRight size={16} />
                 </button>
               </div>
             </aside>
