@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
 
-    <link rel="icon" type="image/jpeg" href="/brand/pickle-nick-logo.jpg" />
-    <link rel="apple-touch-icon" href="/brand/pickle-nick-logo.jpg" />
+    <link rel="icon" type="image/png" href="/brand/pickle-nick-seal-made-to-bite-back.png" />
+    <link rel="apple-touch-icon" href="/brand/pickle-nick-seal-made-to-bite-back.png" />
 
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
@@ -24,14 +24,14 @@
     <meta property="og:url" content="https://picklenick.au" />
     <meta property="og:title" content="Pickle Nick - Made To Bite Back" />
     <meta property="og:description" content="Small-batch pickles, hot sauce, and bold jars with Nick's mark." />
-    <meta property="og:image" content="https://picklenick.au/brand/pickle-nick-logo.jpg" />
+    <meta property="og:image" content="https://picklenick.au/brand/pickle-nick-seal-made-to-bite-back.png" />
     <meta property="og:site_name" content="Pickle Nick" />
     <meta property="og:locale" content="en_AU" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Pickle Nick - Made To Bite Back" />
     <meta name="twitter:description" content="Small-batch pickles, hot sauce, and bold jars with Nick's mark." />
-    <meta name="twitter:image" content="https://picklenick.au/brand/pickle-nick-logo.jpg" />
+    <meta name="twitter:image" content="https://picklenick.au/brand/pickle-nick-seal-made-to-bite-back.png" />
 
     <meta name="geo.region" content="AU" />
     <meta name="geo.placename" content="Australia" />
@@ -43,8 +43,8 @@
       "name": "Pickle Nick",
       "description": "Small-batch pickles, hot sauce, and bold jars with Nick's mark.",
       "url": "https://picklenick.au",
-      "logo": "https://picklenick.au/brand/pickle-nick-logo.jpg",
-      "image": "https://picklenick.au/brand/pickle-nick-logo.jpg",
+      "logo": "https://picklenick.au/brand/pickle-nick-seal-made-to-bite-back.png",
+      "image": "https://picklenick.au/brand/pickle-nick-seal-made-to-bite-back.png",
       "priceRange": "$$",
       "address": {
         "@type": "PostalAddress",
@@ -249,6 +249,334 @@
       .pickle-button-secondary:focus-visible {
         border-color: rgba(244, 197, 109, 0.52);
         color: #fff1c3;
+      }
+
+      .tribal-shell {
+        box-shadow:
+          inset 0 -1px 0 rgba(232, 215, 178, 0.08),
+          inset 0 -140px 140px rgba(0, 0, 0, 0.22);
+      }
+
+      .tribal-contours {
+        pointer-events: none;
+        opacity: 0.9;
+        background:
+          radial-gradient(ellipse at 8% 88%, transparent 58%, rgba(110, 116, 86, 0.18) 59%, transparent 60%) 0 100% / 38rem 16rem no-repeat,
+          radial-gradient(ellipse at 88% 12%, transparent 59%, rgba(111, 74, 44, 0.18) 60%, transparent 61%) 100% 0 / 34rem 15rem no-repeat,
+          linear-gradient(90deg, transparent, rgba(232, 215, 178, 0.09), transparent) 0 28% / 100% 1px no-repeat,
+          linear-gradient(90deg, transparent, rgba(110, 116, 86, 0.12), transparent) 0 66% / 100% 1px no-repeat;
+        mask-image: linear-gradient(90deg, transparent, #000 12%, #000 90%, transparent);
+      }
+
+      .tribal-side-etch {
+        pointer-events: none;
+        opacity: 0.48;
+        background:
+          radial-gradient(circle at 22px 22px, rgba(232, 215, 178, 0.14) 0 1px, transparent 2px) 0 0 / 34px 34px,
+          linear-gradient(135deg, rgba(111, 74, 44, 0.18) 0 1px, transparent 1px 18px) 0 0 / 22px 22px,
+          linear-gradient(180deg, rgba(232, 215, 178, 0.06), transparent 28%, transparent 74%, rgba(111, 74, 44, 0.12));
+        border-right: 1px solid rgba(232, 215, 178, 0.08);
+      }
+
+      .tribal-nav-link {
+        position: relative;
+      }
+
+      .tribal-nav-link::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -0.65rem;
+        height: 1px;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, rgba(232, 215, 178, 0.8), rgba(111, 74, 44, 0.38), transparent);
+        opacity: 0;
+        transform: scaleX(0.56);
+        transform-origin: left;
+        transition: opacity 220ms ease, transform 220ms ease;
+      }
+
+      .tribal-nav-link:hover::after,
+      .tribal-nav-link:focus-visible::after {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+
+      .tribal-icon-button,
+      .tribal-contact,
+      .tribal-link-chip {
+        border: 1px solid rgba(232, 215, 178, 0.16);
+        background:
+          linear-gradient(180deg, rgba(245, 236, 218, 0.08), rgba(20, 13, 10, 0.14)),
+          rgba(20, 13, 10, 0.58);
+        color: #f5ecda;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 12px 28px rgba(0, 0, 0, 0.18);
+        backdrop-filter: blur(10px);
+        transition: transform 220ms ease, border-color 220ms ease, color 220ms ease, background-color 220ms ease;
+      }
+
+      .tribal-icon-button:hover,
+      .tribal-icon-button:focus-visible,
+      .tribal-contact:hover,
+      .tribal-contact:focus-visible,
+      .tribal-link-chip:hover,
+      .tribal-link-chip:focus-visible {
+        transform: translateY(-2px);
+        border-color: rgba(232, 215, 178, 0.28);
+        color: #fff7e6;
+      }
+
+      .tribal-hero-title {
+        text-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.2),
+          0 16px 36px rgba(0, 0, 0, 0.44);
+      }
+
+      .tribal-cta {
+        position: relative;
+        isolation: isolate;
+        display: inline-flex;
+        min-height: 3.4rem;
+        min-width: 15rem;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        overflow: hidden;
+        border-radius: 9999px;
+        padding: 0 1.6rem;
+        font-family: "Hind Madurai", sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        line-height: 1;
+        text-transform: uppercase;
+        transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, color 220ms ease;
+      }
+
+      .tribal-cta::before {
+        content: "";
+        position: absolute;
+        inset: 5px;
+        z-index: -1;
+        border-radius: inherit;
+        border: 1px solid currentColor;
+        opacity: 0.12;
+      }
+
+      .tribal-cta::after {
+        content: "";
+        position: absolute;
+        inset: auto 1.2rem 0.6rem;
+        height: 1px;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, transparent, rgba(245, 236, 218, 0.9), transparent);
+        opacity: 0.55;
+        transition: transform 240ms ease, opacity 240ms ease;
+      }
+
+      .tribal-cta:hover,
+      .tribal-cta:focus-visible {
+        transform: translateY(-2px);
+      }
+
+      .tribal-cta:hover::after,
+      .tribal-cta:focus-visible::after {
+        transform: scaleX(0.9) translateX(0.3rem);
+        opacity: 0.9;
+      }
+
+      .tribal-cta svg {
+        flex: 0 0 auto;
+        transition: transform 220ms ease;
+      }
+
+      .tribal-cta:hover svg,
+      .tribal-cta:focus-visible svg {
+        transform: translateX(4px);
+      }
+
+      .tribal-cta-primary {
+        border: 1px solid rgba(232, 215, 178, 0.2);
+        background:
+          linear-gradient(180deg, rgba(245, 236, 218, 0.16), transparent 42%),
+          linear-gradient(135deg, #7b4f31 0%, #2a1b14 100%);
+        color: #fdf5e5;
+        box-shadow:
+          0 18px 44px rgba(34, 19, 13, 0.34),
+          inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      }
+
+      .tribal-cta-primary:hover,
+      .tribal-cta-primary:focus-visible {
+        border-color: rgba(232, 215, 178, 0.32);
+      }
+
+      .tribal-cta-secondary {
+        border: 1px solid rgba(232, 215, 178, 0.14);
+        background:
+          linear-gradient(180deg, rgba(245, 236, 218, 0.08), rgba(20, 13, 10, 0.2)),
+          rgba(20, 13, 10, 0.54);
+        color: #f5ecda;
+        box-shadow:
+          0 14px 34px rgba(0, 0, 0, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+      }
+
+      .tribal-stage::before {
+        content: "";
+        position: absolute;
+        inset: 3rem 2rem 4rem;
+        border-radius: 2.5rem;
+        border: 1px solid rgba(232, 215, 178, 0.08);
+        opacity: 0.8;
+      }
+
+      .tribal-stage::after {
+        content: "";
+        position: absolute;
+        left: 10%;
+        right: 8%;
+        bottom: 1rem;
+        height: 6rem;
+        border-radius: 9999px;
+        background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.42), transparent 72%);
+        filter: blur(10px);
+      }
+
+      .tribal-stage-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 18% 14%, rgba(245, 236, 218, 0.08), transparent 24%),
+          radial-gradient(circle at 82% 22%, rgba(111, 74, 44, 0.1), transparent 28%);
+      }
+
+      .tribal-stage-mark {
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+      }
+
+      .tribal-proof-chip {
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.06),
+          0 14px 34px rgba(0, 0, 0, 0.16);
+      }
+
+      .tribal-seal-watermark {
+        pointer-events: none;
+        border-radius: 9999px;
+        filter: sepia(0.2) saturate(0.78) contrast(1.02);
+      }
+
+      .tribal-seal-watermark--ink {
+        opacity: 0.08;
+        mix-blend-mode: screen;
+      }
+
+      .tribal-seal-watermark--paper {
+        opacity: 0.14;
+        mix-blend-mode: multiply;
+      }
+
+      .batch-shell {
+        box-shadow:
+          inset 0 1px 0 rgba(232, 215, 178, 0.06),
+          inset 0 100px 100px rgba(0, 0, 0, 0.08);
+      }
+
+      .batch-shell-lines {
+        pointer-events: none;
+        opacity: 0.74;
+        background:
+          radial-gradient(ellipse at 14% 12%, transparent 60%, rgba(110, 116, 86, 0.14) 61%, transparent 62%) 0 0 / 30rem 12rem no-repeat,
+          radial-gradient(ellipse at 84% 20%, transparent 60%, rgba(111, 74, 44, 0.16) 61%, transparent 62%) 100% 0 / 28rem 12rem no-repeat,
+          linear-gradient(90deg, transparent, rgba(232, 215, 178, 0.06), transparent) 0 0 / 100% 1px no-repeat;
+        mask-image: linear-gradient(180deg, #000, #000 76%, transparent);
+      }
+
+      .batch-feature-shell,
+      .support-card {
+        position: relative;
+      }
+
+      .batch-feature-shell::before,
+      .support-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 16% 12%, rgba(245, 236, 218, 0.06), transparent 24%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.02), transparent 44%);
+      }
+
+      .support-card {
+        transform-origin: 50% 80%;
+        transition: transform 260ms ease, border-color 260ms ease, box-shadow 260ms ease;
+      }
+
+      .support-card:hover,
+      .support-card:focus-visible {
+        transform: translateY(-4px);
+        border-color: rgba(232, 215, 178, 0.18);
+        box-shadow: 0 28px 58px rgba(0, 0, 0, 0.34);
+      }
+
+      .support-card-copy {
+        position: relative;
+      }
+
+      .support-card-copy::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 5rem;
+        height: 1px;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, #e8d7b2, rgba(111, 74, 44, 0.48), transparent);
+      }
+
+      .support-card-name {
+        text-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+      }
+
+      .tribal-method-row {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1.05rem 0;
+      }
+
+      .tribal-method-row + .tribal-method-row {
+        border-top: 1px solid rgba(24, 17, 13, 0.14);
+      }
+
+      .tribal-method-index {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(24, 17, 13, 0.14);
+        background: rgba(245, 236, 218, 0.56);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.44),
+          0 12px 22px rgba(0, 0, 0, 0.08);
+        font-family: "Hind Madurai", sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #9f3b2e;
       }
 
       .tribal-poster-hero {
@@ -533,26 +861,26 @@
       .paper-brand-mark {
         position: absolute;
         z-index: 1;
-        width: 8rem;
-        height: 8rem;
+        width: 6.25rem;
+        height: 6.25rem;
         object-fit: cover;
         border-radius: 9999px;
-        opacity: 0.26;
-        filter: sepia(0.18) saturate(0.78) contrast(1.08);
+        opacity: 0.13;
+        filter: sepia(0.22) saturate(0.7) contrast(1.04);
         mix-blend-mode: multiply;
         pointer-events: none;
       }
 
       .paper-brand-mark-left {
-        left: clamp(-4.4rem, -3vw, -2.2rem);
+        left: clamp(-5rem, -4vw, -3.4rem);
         top: 50%;
-        transform: translateY(-50%) rotate(-10deg);
+        transform: translateY(-50%) rotate(-8deg);
       }
 
       .paper-brand-mark-right {
-        right: clamp(-4.4rem, -3vw, -2.2rem);
+        right: clamp(-5rem, -4vw, -3.4rem);
         top: 50%;
-        transform: translateY(-50%) rotate(11deg);
+        transform: translateY(-50%) rotate(8deg);
       }
 
       .paper-grain {
@@ -980,23 +1308,24 @@
       .batch-traits span {
         position: relative;
         border-radius: 9999px;
-        padding: 0.52rem 0.84rem 0.48rem 1.08rem;
-        background: rgba(244, 197, 109, 0.06);
+        padding: 0.55rem 0.9rem 0.5rem 1.1rem;
+        background: rgba(245, 236, 218, 0.05);
         box-shadow:
-          inset 0 0 0 1px rgba(244, 197, 109, 0.16),
+          inset 0 0 0 1px rgba(232, 215, 178, 0.14),
           0 10px 22px rgba(0, 0, 0, 0.12);
       }
 
       .batch-traits span::before {
         content: "";
         position: absolute;
-        left: 0.55rem;
+        left: 0.6rem;
         top: 50%;
-        width: 0.28rem;
-        height: 0.28rem;
+        width: 0.3rem;
+        height: 0.3rem;
         border-radius: 9999px;
-        background: #bc4b35;
-        box-shadow: 0 0 12px rgba(244, 197, 109, 0.55);
+        background: #9f3b2e;
+        box-shadow: 0 0 12px rgba(232, 215, 178, 0.42);
+        transform: translateY(-50%);
       }
 
       @media (max-width: 640px) {
@@ -1044,18 +1373,18 @@
 
         .paper-brand-mark {
           display: block;
-          width: 5.2rem;
-          height: 5.2rem;
-          opacity: 0.16;
+          width: 4.4rem;
+          height: 4.4rem;
+          opacity: 0.1;
         }
 
         .paper-brand-mark-left {
-          left: -3.4rem;
+          left: -3.8rem;
           top: 50%;
         }
 
         .paper-brand-mark-right {
-          right: -3.4rem;
+          right: -3.8rem;
           top: 50%;
         }
 

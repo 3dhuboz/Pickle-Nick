@@ -17,7 +17,7 @@ const sizeClasses = {
   lg: 'h-20 w-20',
 };
 
-const NICK_LOGO_SRC = '/brand/pickle-nick-logo.jpg';
+const NICK_LOGO_SRC = '/brand/pickle-nick-seal-made-to-bite-back.png';
 
 const NickLogo = ({
   className = '',

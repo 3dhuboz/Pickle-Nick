@@ -32,14 +32,14 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-[#120d0b]/90 via-[#120d0b]/62 to-transparent backdrop-blur-md">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <nav className="fixed left-0 right-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-[88rem] items-center justify-between gap-4 rounded-[2rem] border border-[#f5ecda]/12 bg-[#120c09]/72 px-4 py-3 shadow-[0_22px_54px_rgba(0,0,0,0.28)] backdrop-blur-md">
         <NickLogo
           to="/"
           size="sm"
           showName
           imageClassName="h-12 w-12"
-          labelClassName="hidden text-xl uppercase tracking-[0.16em] sm:block"
+          labelClassName="hidden text-xl leading-none sm:block"
         />
 
         <div className="hidden items-center gap-8 md:flex">
@@ -47,8 +47,8 @@ const Navbar = () => {
             <Link
               key={`${item.to}-${item.label}`}
               to={item.to}
-              className={`font-tribal text-sm font-bold uppercase tracking-[0.22em] transition-colors ${
-                isActive(item.to) ? 'text-[#f4c56d]' : 'text-[#f5f0e6]/70 hover:text-[#f4c56d]'
+              className={`tribal-nav-link font-sans text-sm font-semibold uppercase tracking-[0.16em] transition-colors ${
+                isActive(item.to) ? 'text-[#f5ecda]' : 'text-[#f5f0e6]/70 hover:text-[#f5ecda]'
               }`}
             >
               {item.label}
@@ -59,7 +59,7 @@ const Navbar = () => {
         <div className="flex items-center gap-3 text-[#f5f0e6]">
           <Link
             to={currentUser ? '/account' : '/login'}
-            className="rounded-full border border-[#f4c56d]/20 bg-white/5 p-3 transition hover:border-[#f4c56d]/60 hover:bg-[#f4c56d]/10"
+            className="tribal-icon-button flex h-11 w-11 items-center justify-center rounded-full"
             title={currentUser ? 'My Account' : 'Login'}
           >
             <UserIcon size={20} />
@@ -67,7 +67,7 @@ const Navbar = () => {
 
           <Link
             to="/cart"
-            className="relative rounded-full border border-[#f4c56d]/20 bg-white/5 p-3 transition hover:border-[#f4c56d]/60 hover:bg-[#f4c56d]/10"
+            className="tribal-icon-button relative flex h-11 w-11 items-center justify-center rounded-full"
             title="Cart"
           >
             <ShoppingBasket size={20} />
@@ -80,7 +80,7 @@ const Navbar = () => {
 
           <button
             type="button"
-            className="rounded-full border border-[#f4c56d]/20 bg-white/5 p-3 transition hover:border-[#f4c56d]/60 hover:bg-[#f4c56d]/10 md:hidden"
+            className="tribal-icon-button flex h-11 w-11 items-center justify-center rounded-full md:hidden"
             onClick={() => setIsMenuOpen(value => !value)}
             aria-label="Toggle navigation"
           >
@@ -90,13 +90,13 @@ const Navbar = () => {
       </div>
 
       {isMenuOpen && (
-        <div className="border-t border-[#f4c56d]/10 bg-[#120d0b]/96 px-4 pb-6 pt-2 md:hidden">
+        <div className="mx-auto mt-3 max-w-[88rem] rounded-[2rem] border border-[#f5ecda]/10 bg-[#120d0b]/96 px-4 pb-4 pt-3 shadow-[0_18px_44px_rgba(0,0,0,0.28)] backdrop-blur-md md:hidden">
           <div className="mx-auto flex max-w-md flex-col gap-1">
             {navItems.map(item => (
               <Link
                 key={`${item.to}-${item.label}-mobile`}
                 to={item.to}
-                className="rounded-2xl px-5 py-4 font-tribal text-sm font-bold uppercase tracking-[0.2em] text-[#f5f0e6]/80 transition hover:bg-[#f4c56d]/10 hover:text-[#f4c56d]"
+                className="rounded-full px-5 py-4 font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#f5f0e6]/80 transition hover:bg-[#f5ecda]/8 hover:text-[#f5ecda]"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.label}
@@ -106,7 +106,7 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-2xl px-5 py-4 text-left font-tribal text-sm font-bold uppercase tracking-[0.2em] text-native-clay transition hover:bg-native-clay/10"
+                className="rounded-full px-5 py-4 text-left font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#9f3b2e] transition hover:bg-[#9f3b2e]/10"
               >
                 Logout
               </button>

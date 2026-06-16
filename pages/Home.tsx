@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BadgeCheck, ChevronDown, Flame, Leaf, Menu, PackageCheck, ShieldCheck, ShoppingBasket, Sparkles, Star } from 'lucide-react';
+import { ArrowRight, BadgeCheck, ChevronDown, Flame, Leaf, Menu, PackageCheck, ShieldCheck, ShoppingBasket, Sparkles } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import NickLogo from '../components/brand/NickLogo';
 import BrandedProductImage from '../components/brand/BrandedProductImage';
@@ -8,6 +8,7 @@ import BrandedProductImage from '../components/brand/BrandedProductImage';
 const BrineDepthScene = lazy(() => import('../components/visual/BrineDepthScene'));
 
 const heroBackground = '/brand/pickle-nick-warrior-tattoo-hero-v2.png';
+const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
 
 const proofPoints = [
   { icon: PackageCheck, title: 'Small Batch', desc: 'Handmade in tiny batches.' },
@@ -31,6 +32,8 @@ const Home = () => {
   const showcaseProducts = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 4);
   const batchProducts = showcaseProducts.slice(0, 4);
   const featuredBatchProduct = showcaseProducts[0] || products[0];
+  const supportingBatchProducts = batchProducts.filter(product => product.id !== featuredBatchProduct?.id).slice(0, 3);
+  const heroProofPoints = proofPoints.slice(0, 4);
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
 
   useLayoutEffect(() => {
@@ -110,6 +113,20 @@ const Home = () => {
               scrollTrigger: {
                 trigger: card,
                 start: 'top 86%',
+                once: true,
+              },
+            });
+          });
+
+          gsap.utils.toArray<HTMLElement>('[data-method-row]').forEach((row, index) => {
+            gsap.from(row, {
+              x: index % 2 === 0 ? -24 : 24,
+              opacity: 0,
+              duration: 0.78,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: row,
+                start: 'top 90%',
                 once: true,
               },
             });
@@ -210,185 +227,191 @@ const Home = () => {
     <div ref={homeRef} className="overflow-hidden bg-[#120d0b] text-[#f5f0e6]">
       <section
         data-hero-section
-        className="tribal-poster-hero relative isolate min-h-[860px] overflow-hidden bg-[#050607] px-5 text-[#f5f0e6] sm:min-h-[820px] lg:min-h-[760px] xl:min-h-[760px] lg:px-8"
+        className="tribal-shell relative isolate overflow-hidden bg-[#0e0907] px-5 pb-6 pt-5 text-[#f5ecda] lg:px-8"
       >
         <img
           data-hero-bg
           src={heroBackground}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full origin-center object-cover object-[64%_44%] opacity-72 sm:object-center"
+          className="absolute inset-0 h-full w-full origin-center object-cover object-[68%_44%] opacity-78 sm:object-[70%_42%]"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,7,0.98)_0%,rgba(3,5,7,0.88)_35%,rgba(3,5,7,0.24)_64%,rgba(3,5,7,0.62)_100%),radial-gradient(circle_at_70%_28%,rgba(32,174,210,0.16),transparent_28%),radial-gradient(circle_at_22%_70%,rgba(188,75,53,0.16),transparent_30%)]" />
-        <div className="poster-blueprint absolute inset-0" aria-hidden="true" />
-        <div className="poster-tribal-band absolute inset-y-0 left-0 hidden w-32 lg:block" aria-hidden="true" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,7,0.2),transparent_18%,transparent_76%,rgba(3,5,7,0.96))]" />
+        <img
+          src={sealMark}
+          alt=""
+          aria-hidden="true"
+          className="tribal-seal-watermark tribal-seal-watermark--ink absolute right-[5%] top-20 hidden w-[17rem] lg:block"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(14,9,7,0.96)_0%,rgba(14,9,7,0.88)_36%,rgba(14,9,7,0.48)_58%,rgba(14,9,7,0.7)_100%),radial-gradient(circle_at_20%_18%,rgba(245,236,218,0.08),transparent_24%),radial-gradient(circle_at_82%_18%,rgba(111,74,44,0.12),transparent_24%)]" />
+        <div className="tribal-contours absolute inset-0" aria-hidden="true" />
+        <div className="tribal-side-etch absolute inset-y-0 left-0 hidden w-24 lg:block" aria-hidden="true" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(14,9,7,0.16),transparent_18%,transparent_78%,rgba(14,9,7,0.9))]" />
 
-        <div data-depth-scene className="pointer-events-none absolute inset-0 z-10 opacity-45 mix-blend-screen">
+        <div data-depth-scene className="pointer-events-none absolute inset-0 z-10 opacity-34 mix-blend-screen">
           <Suspense fallback={null}>
             <BrineDepthScene />
           </Suspense>
         </div>
 
-        <header className="relative z-30 mx-auto flex max-w-[88rem] items-center justify-between pt-7">
-          <Link
-            to="/"
-            data-hero-brand
-            className="flex items-center gap-4 rounded-full border border-[#f4c56d]/22 bg-[#050607]/54 py-2 pl-2 pr-6 shadow-[0_0_38px_rgba(32,174,210,0.08),0_18px_46px_rgba(0,0,0,0.42)] backdrop-blur-md"
-            aria-label="Pickle Nick home"
-          >
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#f1dfb8] p-1">
-              <img
-                src="/brand/pickle-nick-logo.jpg"
-                alt="Pickle Nick logo"
-                className="h-full w-full rounded-full object-cover"
-              />
-            </span>
-            <span className="hidden sm:block">
-              <span className="block font-sans text-xl font-black uppercase leading-none tracking-[0.08em] text-[#f5f0e6]">Pickle Nick</span>
-              <span className="mt-1 block font-tribal text-[10px] font-bold uppercase tracking-[0.26em] text-[#27a9d8]">Made to bite back</span>
-            </span>
-          </Link>
+        <header className="relative z-30 mx-auto max-w-[88rem]">
+          <div className="tribal-toprail flex items-center justify-between gap-4 rounded-[2rem] border border-[#f5ecda]/12 bg-[#120c09]/64 px-4 py-3 shadow-[0_22px_54px_rgba(0,0,0,0.28)] backdrop-blur-md">
+            <Link
+              to="/"
+              data-hero-brand
+              className="flex items-center gap-3"
+              aria-label="Pickle Nick home"
+            >
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#f5ecda]/28 bg-[#efe1bf] p-1 shadow-[0_10px_20px_rgba(0,0,0,0.2)]">
+                <img
+                  src={sealMark}
+                  alt="Pickle Nick logo"
+                  className="h-full w-full rounded-full object-cover"
+                />
+              </span>
+              <span className="hidden min-w-0 sm:block">
+                <span className="block font-tribal text-2xl font-semibold leading-none text-[#f5ecda]">Pickle Nick</span>
+                <span className="mt-1 block font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-[#b69273]">Made to bite back</span>
+              </span>
+            </Link>
 
-          <nav className="hidden items-center gap-8 md:flex lg:gap-11">
-            {heroNavItems.map(item => (
+            <nav className="hidden items-center gap-8 md:flex">
+              {heroNavItems.map(item => (
+                <Link
+                  key={`${item.to}-${item.label}`}
+                  to={item.to}
+                  className="tribal-nav-link inline-flex items-center gap-2 font-sans text-sm font-semibold uppercase tracking-[0.16em] text-[#f5ecda]/68 transition hover:text-[#f5ecda]"
+                >
+                  {item.label}
+                  {item.label === 'Shop' && <ChevronDown size={13} />}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="flex items-center gap-3">
               <Link
-                key={`${item.to}-${item.label}`}
-                to={item.to}
-                className="poster-nav-link inline-flex items-center gap-2 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-[#f5f0e6]/72 transition hover:text-[#fff1c3]"
+                to="/cart"
+                className="tribal-icon-button relative flex h-11 w-11 items-center justify-center rounded-full"
+                aria-label="Cart"
               >
-                {item.label}
-                {item.label === 'Shop' && <ChevronDown size={13} />}
+                <ShoppingBasket size={18} />
+                {cartItemCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#9f3b2e] text-[10px] font-bold text-white">
+                    {cartItemCount}
+                  </span>
+                )}
               </Link>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Link
-              to="/cart"
-              className="relative flex h-12 w-12 items-center justify-center rounded-full border border-[#f4c56d]/28 bg-[#050607]/64 text-[#f4c56d] backdrop-blur transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
-              aria-label="Cart"
-            >
-              <ShoppingBasket size={19} />
-              {cartItemCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-native-clay text-[10px] font-bold text-white">
-                  {cartItemCount}
-                </span>
-              )}
-            </Link>
-            <Link
-              to="/contact"
-              className="hidden min-h-12 items-center justify-center rounded-full border border-[#27a9d8]/50 bg-[#050607]/42 px-7 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f5f0e6] backdrop-blur transition hover:bg-[#27a9d8] hover:text-[#031018] xl:inline-flex"
-            >
-              Talk to Nick
-            </Link>
-            <Link
-              to="/shop"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#f4c56d]/28 bg-[#050607]/64 text-[#f4c56d] backdrop-blur transition hover:bg-[#f4c56d] hover:text-[#120d0b] md:hidden"
-              aria-label="Open shop"
-            >
-              <Menu size={20} />
-            </Link>
+              <Link
+                to="/contact"
+                className="tribal-contact hidden min-h-11 items-center justify-center rounded-full px-6 font-sans text-xs font-semibold uppercase tracking-[0.18em] xl:inline-flex"
+              >
+                Talk to Nick
+              </Link>
+              <Link
+                to="/shop"
+                className="tribal-icon-button flex h-11 w-11 items-center justify-center rounded-full md:hidden"
+                aria-label="Open shop"
+              >
+                <Menu size={19} />
+              </Link>
+            </div>
           </div>
         </header>
 
-        <div className="relative z-40 mx-auto grid max-w-[88rem] gap-10 pb-48 pt-8 sm:pb-44 lg:grid-cols-[minmax(0,0.95fr)_minmax(28rem,0.78fr)] lg:items-center lg:pb-40 lg:pt-8">
-          <div className="max-w-[53rem]">
-            <h1 data-hero-copy className="poster-hero-title font-sans text-[4rem] font-black uppercase leading-[0.95] tracking-[0.05em] text-white sm:text-7xl lg:text-[5.4rem] xl:text-[6.15rem]">
+        <div className="relative z-20 mx-auto grid max-w-[88rem] gap-8 pb-4 pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,29rem)] lg:items-center lg:gap-10 lg:pb-4">
+          <div className="max-w-[35rem]">
+            <h1 data-hero-copy className="tribal-hero-title font-tribal text-[4.2rem] font-semibold leading-[0.84] text-[#f5ecda] sm:text-[5.2rem] lg:text-[6.4rem]">
               <span className="block">Pickle</span>
               <span className="block">Nick</span>
             </h1>
-            <p data-hero-copy className="mt-4 max-w-2xl font-sans text-2xl font-light leading-tight text-[#f5f0e6]/94 sm:text-3xl">
-              Small-batch pickles. Hot sauce. Brine with a bite.
+            <p data-hero-copy className="mt-4 font-display text-[2rem] leading-none text-[#9f3b2e] drop-shadow-[0_10px_22px_rgba(0,0,0,0.45)] sm:text-[2.45rem]">
+              Bold. Brined. Brilliant.
             </p>
-            <p data-hero-copy className="mt-4 max-w-xl font-sans text-base font-semibold leading-relaxed text-[#f5f0e6]/78 sm:text-lg">
-              American tribal tattoo linework, clean poster geometry, and Nick's stamped mark on every jar. Rugged heat without the fake folklore.
+            <p data-hero-copy className="mt-5 max-w-2xl font-sans text-[1.58rem] font-semibold leading-tight text-[#f5ecda] sm:text-[1.9rem]">
+              Small-batch pickles, hot sauce, and brine with bite.
+            </p>
+            <p data-hero-copy className="mt-4 max-w-xl font-sans text-base font-medium leading-relaxed text-[#f5ecda]/70 sm:text-lg">
+              Clean lines, dark leather depth, stamped seals, and tattoo-flash restraint built around Nick&apos;s mark.
             </p>
 
-            <div data-hero-actions className="relative z-50 mt-5 flex flex-col gap-4 sm:flex-row">
+            <div data-hero-actions className="mt-8 flex flex-col gap-4 sm:flex-row">
               <Link
                 to="/shop"
-                className="pickle-button pickle-button-primary group"
+                className="tribal-cta tribal-cta-primary group"
               >
                 <span>Shop the batch</span>
                 <ArrowRight size={18} />
               </Link>
               <Link
                 to="/contact"
-                className="pickle-button pickle-button-secondary group"
+                className="tribal-cta tribal-cta-secondary group"
               >
                 <span>Talk to Nick</span>
                 <ArrowRight size={18} />
               </Link>
             </div>
-
-            <div className="poster-callouts relative z-40 mt-6 hidden max-w-3xl grid-cols-3 gap-3 sm:grid">
-              <span>Small Batch</span>
-              <span>Nick Marked</span>
-              <span>Clean Heat</span>
-            </div>
           </div>
 
-          <div data-hero-plate className="poster-product-stage relative z-20 hidden min-h-[34rem] lg:block">
-            <div className="poster-node poster-node-top">Nick Mark</div>
-            <div className="poster-node poster-node-mid">Smoked Heat</div>
-            <div className="poster-node poster-node-low">Crunch Point</div>
-            <div className="poster-product-card absolute right-0 top-0 w-[28rem] overflow-hidden rounded-[2.4rem] bg-[#050607]/76 p-4 shadow-[0_42px_110px_rgba(0,0,0,0.62)] backdrop-blur-md xl:w-[32rem]">
-              {featuredBatchProduct && (
+          <div data-hero-plate className="tribal-stage relative hidden min-h-[30rem] lg:block">
+            {featuredBatchProduct && (
+              <div className="tribal-stage-panel relative overflow-hidden rounded-[2.35rem] border border-[#f5ecda]/12 bg-[#140d0a]/76 p-4 shadow-[0_36px_90px_rgba(0,0,0,0.46)] backdrop-blur-md">
+                <div className="tribal-stage-mark absolute right-4 top-4 rounded-full border border-[#f5ecda]/14 bg-[#140d0a]/72 px-4 py-2 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b69273]">
+                  Nick Marked
+                </div>
                 <BrandedProductImage
                   product={featuredBatchProduct}
                   variant="detail"
-                  className="h-[31rem] rounded-[2rem]"
+                  className="h-[22rem] rounded-[1.8rem]"
                   imageClassName="scale-105"
                   forceBrandBackdrop
                   lineOnly
+                  hideLabel
                 />
-              )}
-            </div>
+                <div className="mt-4 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-[#b69273]">
+                      Featured Batch
+                    </p>
+                    <p className="mt-2 font-tribal text-3xl font-semibold leading-none text-[#f5ecda]">
+                      {featuredBatchProduct.name}
+                    </p>
+                  </div>
+                  <p className="font-sans text-lg font-semibold text-[#f5ecda]">
+                    ${featuredBatchProduct.price.toFixed(2)}
+                  </p>
+                </div>
+                <p className="mt-3 max-w-md font-sans text-sm font-medium leading-relaxed text-[#f5ecda]/66">
+                  {featuredBatchProduct.description}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="pickle-paper paper-proof-strip absolute inset-x-0 bottom-0 z-30 px-5 pb-6 pt-7 text-[#120d0b] sm:pb-6 sm:pt-6">
-          <span className="paper-grain" aria-hidden="true" />
-          <img
-            src="/brand/pickle-nick-logo.jpg"
-            alt=""
-            aria-hidden="true"
-            className="paper-brand-mark paper-brand-mark-left"
-          />
-          <img
-            src="/brand/pickle-nick-logo.jpg"
-            alt=""
-            aria-hidden="true"
-            className="paper-brand-mark paper-brand-mark-right"
-          />
-          <div className="mx-auto grid max-w-[86rem] gap-3 sm:gap-4 lg:grid-cols-[0.72fr_1.58fr] lg:items-center">
-            <div>
-              <p className="font-tribal text-[10px] font-bold uppercase tracking-[0.24em] text-native-clay sm:text-xs">
-                Nick's Brine House
-              </p>
-              <p className="mt-1 font-display text-3xl leading-none sm:text-4xl">
-                Made to bite back
-              </p>
-              <p className="mt-2 hidden max-w-md font-sans text-sm font-semibold leading-relaxed text-[#3d2a21]/78 sm:block">
-                Old ways. Bold heat. Small-batch jars stamped with Nick's mark.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 font-tribal text-[9px] font-bold uppercase tracking-[0.14em] text-[#3d2a21]/70 sm:hidden">
-                <span>Small batch</span>
-                <span>Bold heat</span>
-                <span>Nick marked</span>
+        <div className="relative z-30 mx-auto -mt-3 max-w-[88rem] lg:-mt-8">
+          <div className="paper-proof-strip pickle-paper relative overflow-hidden rounded-[2.5rem] px-6 py-6 sm:px-8 lg:px-10">
+            <img src={sealMark} alt="" aria-hidden="true" className="paper-brand-mark paper-brand-mark-left" />
+            <img src={sealMark} alt="" aria-hidden="true" className="paper-brand-mark paper-brand-mark-right" />
+            <div className="paper-grain" />
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_repeat(4,minmax(0,0.82fr))] lg:items-start">
+              <div className="pr-2">
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-[#9f3b2e]">
+                  Nick Marked
+                </p>
+                <h2 className="mt-2 font-tribal text-[2.25rem] font-semibold leading-[0.92] text-[#120d0b] sm:text-[2.75rem]">
+                  Made to bite back
+                </h2>
+                <p className="mt-2 max-w-md font-sans text-sm font-semibold leading-relaxed text-[#3d2a21]/80 sm:text-base">
+                  Old ways. Bold heat. Small runs stamped with Nick&apos;s seal.
+                </p>
               </div>
-            </div>
-
-            <div className="hidden grid-cols-3 gap-2 sm:grid sm:gap-3 lg:grid-cols-6">
-              {proofPoints.map(point => (
+              {heroProofPoints.map(point => (
                 <div key={point.title} data-paper-proof className="paper-proof">
-                  <point.icon className="shrink-0 text-native-clay" size={24} />
+                  <point.icon className="mt-1 shrink-0 text-[#9f3b2e]" size={18} />
                   <div className="min-w-0">
-                    <h3 className="font-tribal text-[9px] font-bold uppercase leading-snug tracking-[0.12em] text-[#120d0b] sm:text-[10px] md:text-xs">
+                    <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-[#120d0b]">
                       {point.title}
-                    </h3>
-                    <p className="mt-1 hidden font-sans text-xs font-semibold leading-snug text-[#3d2a21]/74 md:block">
+                    </p>
+                    <p className="mt-1 font-sans text-sm font-medium leading-snug text-[#3d2a21]/80">
                       {point.desc}
                     </p>
                   </div>
@@ -399,172 +422,231 @@ const Home = () => {
         </div>
       </section>
 
-      <section data-batch-poster className="batch-showcase relative overflow-hidden bg-[#090605] px-5 pb-14 pt-8 text-[#f5f0e6] lg:px-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(244,197,109,0.08),transparent_24%),radial-gradient(circle_at_16%_80%,rgba(188,75,53,0.11),transparent_26%),linear-gradient(135deg,rgba(244,197,109,0.07)_1px,transparent_1px),#090605] bg-[auto,auto,28px_28px,auto]" />
-        <div className="batch-linework" aria-hidden="true" />
-        <div className="relative mx-auto grid max-w-[86rem] gap-7 xl:grid-cols-[17.5rem_minmax(0,1fr)_27rem] xl:items-start">
-          <div data-depth-card className="batch-intro pt-3">
-            <div className="mb-5 h-20 w-20 rounded-full bg-[#f1ddb0] p-1 shadow-[0_0_0_1px_rgba(244,197,109,0.35),0_22px_38px_rgba(0,0,0,0.28)]">
-              <img src="/brand/pickle-nick-logo.jpg" alt="Pickle Nick" className="h-full w-full rounded-full object-cover" />
+      <section data-batch-poster className="batch-shell relative overflow-hidden bg-[#120c09] px-5 pb-16 pt-12 text-[#f5ecda] lg:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_12%,rgba(245,236,218,0.05),transparent_22%),radial-gradient(circle_at_84%_18%,rgba(111,74,44,0.12),transparent_26%),linear-gradient(180deg,rgba(245,236,218,0.02),transparent_22%,transparent_78%,rgba(0,0,0,0.16))]" />
+        <div className="batch-shell-lines absolute inset-0" aria-hidden="true" />
+        <img
+          src={sealMark}
+          alt=""
+          aria-hidden="true"
+          className="tribal-seal-watermark tribal-seal-watermark--ink absolute bottom-8 right-[-2rem] hidden w-48 lg:block"
+        />
+        <div className="relative mx-auto max-w-[88rem]">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3">
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-[#b69273]">
+                  The Batch
+                </p>
+                <img
+                  src={sealMark}
+                  alt=""
+                  aria-hidden="true"
+                  className="hidden h-10 w-10 rounded-full border border-[#f5ecda]/10 bg-[#140d0a]/60 p-1 opacity-80 lg:block"
+                />
+              </div>
+              <h2 className="mt-3 font-tribal text-[3rem] font-semibold leading-[0.9] text-[#f5ecda] sm:text-[3.6rem]">
+                Clean heat, small runs
+              </h2>
+              <p className="mt-4 max-w-xl font-sans text-base font-medium leading-relaxed text-[#f5ecda]/66 sm:text-lg">
+                One featured batch in front, supporting jars behind it, and a cleaner shelf cut from the same poster world as the hero.
+              </p>
             </div>
-            <h2 className="batch-poster-title font-display text-[2.8rem] leading-[0.9] text-[#f4c56d] sm:text-[3rem] xl:text-[2.9rem]">
-              <span className="block whitespace-nowrap">Shop The</span>
-              <span className="block">Batch</span>
-            </h2>
-            <div className="batch-intro-line mt-4 h-px w-44" />
-            <p className="mt-5 max-w-xs font-sans text-base font-semibold leading-relaxed text-[#f5f0e6]/72">
-              Small-batch pickles and hot sauces that punch above their weight.
-            </p>
             <Link
               to="/shop"
-              className="batch-pill-link mt-7 inline-flex min-h-12 items-center justify-center gap-3 rounded-full px-6 font-tribal text-xs font-bold uppercase tracking-[0.2em] text-[#f4c56d] transition hover:text-[#fff1c3]"
+              className="tribal-link-chip inline-flex min-h-11 items-center justify-center gap-3 self-start rounded-full px-5 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-[#f5ecda]"
             >
               View all products <ArrowRight size={16} />
             </Link>
           </div>
 
-          <div className="batch-product-grid grid grid-cols-2 gap-4 sm:grid-cols-4 xl:gap-5">
-            {batchProducts.map(product => (
-              <Link
-                key={product.id}
-                to={`/product/${product.id}`}
-                data-depth-card
-                data-poster-card
-                className="group batch-product-card relative overflow-hidden rounded-[1.85rem] bg-[#120c09]/58 p-2 text-[#f5f0e6] transition duration-500"
-              >
-                <div data-poster-media className="batch-product-media relative aspect-[4/5] overflow-hidden rounded-[1.45rem] bg-[#201611]/18">
-                  <BrandedProductImage product={product} className="h-full w-full" imageClassName="group-hover:scale-110" forceBrandBackdrop lineOnly hideLabel />
-                  {product.featured && (
-                    <span className="absolute right-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-[#0a0705]/70 text-[#f4c56d] shadow-[0_0_22px_rgba(244,197,109,0.22)] backdrop-blur">
-                      <Star fill="currentColor" size={18} />
-                    </span>
-                  )}
+          <div className="mt-9 grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+            {featuredBatchProduct && (
+              <article data-depth-card className="batch-feature-shell overflow-hidden rounded-[2.3rem] border border-[#f5ecda]/12 bg-[#16100d]/78 p-4 shadow-[0_28px_72px_rgba(0,0,0,0.34)] backdrop-blur-md">
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-center">
+                  <Link
+                    to={`/product/${featuredBatchProduct.id}`}
+                    className="group relative block overflow-hidden rounded-[1.8rem]"
+                  >
+                    <BrandedProductImage
+                      product={featuredBatchProduct}
+                      variant="detail"
+                      className="h-[23rem] rounded-[1.8rem]"
+                      imageClassName="group-hover:scale-105"
+                      forceBrandBackdrop
+                      lineOnly
+                      hideLabel
+                    />
+                  </Link>
+                  <div className="px-2 pb-2 lg:px-0">
+                    <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-[#b69273]">
+                      Featured Batch
+                    </p>
+                    <h3 className="mt-3 font-tribal text-[2.65rem] font-semibold leading-[0.92] text-[#f5ecda]">
+                      {featuredBatchProduct.name}
+                    </h3>
+                    <p className="mt-3 font-sans text-lg font-semibold text-[#f5ecda]">
+                      ${featuredBatchProduct.price.toFixed(2)}
+                    </p>
+                    <p className="mt-4 max-w-lg font-sans text-base font-medium leading-relaxed text-[#f5ecda]/64">
+                      {featuredBatchProduct.description}
+                    </p>
+                    <div className="batch-traits mt-5 flex flex-wrap gap-2 font-sans text-[11px] font-semibold uppercase tracking-[0.16em] text-[#f5ecda]/78">
+                      <span>Crunchy</span>
+                      <span>Medium Heat</span>
+                      <span>Small Batch</span>
+                    </div>
+                    <button
+                      type="button"
+                      data-add-featured-batch
+                      onClick={() => addToCart(featuredBatchProduct, 1)}
+                      className="tribal-cta tribal-cta-primary mt-6 min-h-11 px-6 text-xs"
+                    >
+                      <span>Add to cart</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
                 </div>
-                <div data-poster-copy className="batch-product-copy px-3 py-4">
-                  <p className="batch-product-name font-display text-xl leading-none text-[#f4c56d] sm:text-2xl">
-                    {product.name}
-                  </p>
-                  <p className="mt-2 font-tribal text-sm font-bold uppercase tracking-[0.16em] text-native-clay">
-                    ${product.price.toFixed(2)}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
+              </article>
+            )}
 
-          {featuredBatchProduct && (
-            <aside data-depth-card className="batch-feature relative hidden overflow-hidden rounded-[2.25rem] bg-[#120c09]/62 p-3 lg:grid lg:grid-cols-[0.95fr_1fr] lg:gap-5 xl:grid-cols-1">
-              <Link
-                to={`/product/${featuredBatchProduct.id}`}
-                className="group batch-feature-media relative block aspect-[4/3.8] overflow-hidden rounded-[1.8rem] bg-[#201611]/18 xl:aspect-[4/3]"
-              >
-                <BrandedProductImage product={featuredBatchProduct} className="h-full w-full" imageClassName="group-hover:scale-110" forceBrandBackdrop lineOnly />
-              </Link>
-              <div className="flex flex-col justify-center px-2 pb-2 xl:pt-2">
-                <p className="font-display text-3xl leading-none text-[#f4c56d] xl:text-4xl">
-                  {featuredBatchProduct.name}
-                </p>
-                <p className="mt-2 font-display text-2xl leading-none text-native-clay">
-                  ${featuredBatchProduct.price.toFixed(2)}
-                </p>
-                <p className="mt-4 line-clamp-3 font-sans text-sm font-semibold leading-relaxed text-[#f5f0e6]/70">
-                  {featuredBatchProduct.description}
-                </p>
-                <div className="batch-traits mt-5 flex flex-wrap gap-2 font-tribal text-[10px] font-bold uppercase tracking-[0.18em] text-[#f4c56d]/78">
-                  <span>Crunchy</span>
-                  <span>Medium Heat</span>
-                  <span>Small Batch</span>
-                </div>
-                <button
-                  type="button"
-                  data-add-featured-batch
-                  onClick={() => addToCart(featuredBatchProduct, 1)}
-                  className="batch-pill-link mt-5 inline-flex min-h-12 items-center justify-center gap-3 rounded-full px-6 font-tribal text-xs font-bold uppercase tracking-[0.2em] text-native-clay transition hover:-translate-y-1 hover:text-[#ffcf78]"
+            <div className="grid gap-4">
+              {supportingBatchProducts.map(product => (
+                <Link
+                  key={product.id}
+                  to={`/product/${product.id}`}
+                  data-depth-card
+                  data-poster-card
+                  className="support-card group overflow-hidden rounded-[2rem] border border-[#f5ecda]/10 bg-[#17110e]/72 p-3 shadow-[0_20px_54px_rgba(0,0,0,0.28)] backdrop-blur-md transition"
                 >
-                  Add to cart <ArrowRight size={16} />
-                </button>
-              </div>
-            </aside>
-          )}
+                  <div className="grid items-center gap-4 sm:grid-cols-[8.7rem_minmax(0,1fr)]">
+                    <div data-poster-media className="overflow-hidden rounded-[1.45rem]">
+                      <BrandedProductImage
+                        product={product}
+                        className="h-[10.5rem] rounded-[1.45rem]"
+                        imageClassName="group-hover:scale-105"
+                        forceBrandBackdrop
+                        lineOnly
+                        hideLabel
+                      />
+                    </div>
+                    <div data-poster-copy className="support-card-copy px-1 py-1">
+                      <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.22em] text-[#b69273]">
+                        {product.category || 'Small Batch'}
+                      </p>
+                      <p className="support-card-name mt-2 font-tribal text-[2rem] font-semibold leading-[0.92] text-[#f5ecda]">
+                        {product.name}
+                      </p>
+                      <p className="mt-2 font-sans text-sm font-semibold text-[#f5ecda]">
+                        ${product.price.toFixed(2)}
+                      </p>
+                      <p className="mt-3 line-clamp-2 max-w-md font-sans text-sm font-medium leading-relaxed text-[#f5ecda]/58">
+                        {product.description}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <section data-batch-notes-section className="relative overflow-hidden bg-[#120d0b] px-5 py-10 text-[#f5f0e6] lg:px-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(188,75,53,0.16),transparent_31%),radial-gradient(circle_at_82%_22%,rgba(244,197,109,0.12),transparent_34%),linear-gradient(135deg,rgba(244,197,109,0.055)_1px,transparent_1px),#120d0b] bg-[auto,auto,30px_30px,auto]" />
+      <section data-batch-notes-section className="relative overflow-hidden bg-[#120d0b] px-5 pb-20 pt-8 text-[#f5f0e6] lg:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(245,236,218,0.04),transparent_26%),radial-gradient(circle_at_84%_16%,rgba(111,74,44,0.12),transparent_30%),linear-gradient(180deg,rgba(245,236,218,0.02),transparent_22%,transparent_78%,rgba(0,0,0,0.18))]" />
 
-        <div className="relative mx-auto max-w-7xl">
-          <div data-depth-card className="grid overflow-hidden border border-[#f4c56d]/20 bg-[#080605] shadow-[0_32px_90px_rgba(0,0,0,0.38)] lg:grid-cols-[0.92fr_1.08fr]">
-            <div className="relative border-b border-[#f4c56d]/14 p-7 md:p-10 lg:border-b-0 lg:border-r lg:p-12">
-              <div className="absolute -bottom-24 -left-16 h-72 w-72 rounded-full border border-[#f4c56d]/10 opacity-40" />
+        <div className="relative mx-auto max-w-[88rem] overflow-hidden rounded-[2.8rem] border border-[#f5ecda]/12 bg-[linear-gradient(135deg,rgba(18,13,11,0.96),rgba(10,7,5,0.92))] shadow-[0_34px_96px_rgba(0,0,0,0.38)]">
+          <img
+            src={sealMark}
+            alt=""
+            aria-hidden="true"
+            className="tribal-seal-watermark tribal-seal-watermark--ink absolute left-[-3rem] top-8 hidden w-40 lg:block"
+          />
+          <img
+            src={sealMark}
+            alt=""
+            aria-hidden="true"
+            className="tribal-seal-watermark tribal-seal-watermark--paper absolute bottom-6 right-[-2.5rem] hidden w-44 lg:block"
+          />
+
+          <div data-depth-card className="grid lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
+            <div className="relative px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
               <NickLogo
                 size="md"
                 showName
-                subtitle="Nick's batch desk"
-                className="relative mb-7"
+                subtitle="Made to bite back"
+                className="relative mb-6"
                 labelClassName="text-3xl leading-none"
               />
-              <p className="font-tribal text-sm font-bold uppercase tracking-[0.3em] text-native-clay">
-                Batch Notes
+              <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-[#b69273]">
+                Nick Marked
               </p>
-              <h2 className="mt-4 max-w-xl font-display text-[2.55rem] leading-[0.92] text-[#f4c56d] sm:text-5xl md:text-[3.45rem]">
-                Nick's mark, proper heat
+              <h2 className="mt-3 max-w-xl font-tribal text-[3rem] font-semibold leading-[0.9] text-[#f5ecda] sm:text-[3.45rem]">
+                Stamped in small runs
               </h2>
-              <p className="mt-6 max-w-xl font-sans text-lg font-semibold leading-relaxed text-[#f5f0e6]/76">
-                The range stays small: crunchy pickles, punchy sauces, and brine that earns the label before it leaves Nick's counter.
+              <p className="mt-5 max-w-xl font-sans text-base font-medium leading-relaxed text-[#f5ecda]/68 sm:text-lg">
+                The seal, the label, and the batch stay front and center. Cleaner lines. Better depth. No filler props, just jars with presence.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  to="/contact"
-                  className="pickle-button pickle-button-primary group"
+                  to="/about"
+                  className="tribal-cta tribal-cta-secondary min-h-11 px-6 text-xs"
                 >
-                  <span>Ask about stock</span>
-                  <ArrowRight size={18} />
+                  <span>Our story</span>
+                  <ArrowRight size={16} />
                 </Link>
                 <Link
-                  to="/shop"
-                  className="pickle-button pickle-button-secondary group"
+                  to="/contact"
+                  className="tribal-link-chip inline-flex min-h-11 items-center justify-center gap-3 rounded-full px-5 font-sans text-xs font-semibold uppercase tracking-[0.18em] text-[#f5ecda]"
                 >
-                  <span>Shop the batch</span>
-                  <ArrowRight size={18} />
+                  Talk to Nick <ArrowRight size={16} />
                 </Link>
               </div>
             </div>
 
-            <div className="paper-panel relative bg-[#f1dfb8] p-7 text-[#120d0b] md:p-10 lg:p-12">
-              <div className="absolute right-6 top-6 hidden font-display text-[8rem] leading-none text-[#120d0b]/[0.035] sm:block">
-                PN
-              </div>
-              <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
-                Tattoo Notes
-              </p>
-              <h3 className="mt-3 max-w-md font-display text-4xl leading-none sm:text-[2.9rem]">
-                Made in small runs, not made to look polite
-              </h3>
-
-              <div className="mt-7 divide-y divide-[#120d0b]/14 border-y border-[#120d0b]/14">
-                {[
-                  { number: '01', title: 'Crunch', desc: 'Jars selected for snap, brine hold, and the first bite.' },
-                  { number: '02', title: 'Heat', desc: 'Bright, smoky, sharp, or deep enough to leave a mark.' },
-                  { number: '03', title: 'Mark', desc: "Nick's seal, old tattoo flash, and a small-batch finish." },
-                ].map(item => (
-                  <div key={item.number} data-depth-card className="grid gap-4 py-4 sm:grid-cols-[4.5rem_1fr] sm:items-start">
-                    <span className="font-display text-4xl leading-none text-native-clay">{item.number}</span>
-                    <div>
-                      <h4 className="font-tribal text-sm font-bold uppercase tracking-[0.24em] text-[#120d0b]">{item.title}</h4>
-                      <p className="mt-2 font-sans text-base font-semibold leading-relaxed text-[#3d2a21]/78">{item.desc}</p>
-                    </div>
+            <div className="relative overflow-hidden bg-[linear-gradient(180deg,rgba(235,219,185,0.98),rgba(223,202,160,0.92))] px-6 py-8 text-[#18110d] sm:px-8 lg:px-10 lg:py-10">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,255,255,0.52),transparent_24%),radial-gradient(circle_at_86%_18%,rgba(159,59,46,0.12),transparent_22%),repeating-linear-gradient(102deg,rgba(82,47,23,0.05)_0_1px,transparent_1px_12px),repeating-linear-gradient(0deg,rgba(255,255,255,0.12)_0_1px,transparent_1px_14px)] opacity-80" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-4">
+                  <img
+                    src={sealMark}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-14 w-14 rounded-full border border-[#120d0b]/10 bg-[#f5ecda]/58 p-1 shadow-[0_12px_24px_rgba(0,0,0,0.12)]"
+                  />
+                  <div>
+                    <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-[#9f3b2e]">
+                      Seal Notes
+                    </p>
+                    <p className="mt-1 font-tribal text-3xl font-semibold leading-none text-[#120d0b]">
+                      Nick&apos;s mark, proper finish
+                    </p>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-                <p className="font-tribal text-xs font-bold uppercase tracking-[0.26em] text-[#120d0b]/55">
-                  Made to bite back
-                </p>
-                <span className="border border-native-clay/35 px-4 py-2 font-display text-2xl leading-none text-native-clay">
-                  Brine House
-                </span>
+                <div className="mt-6">
+                  {[
+                    { number: '01', kicker: 'Crunch', title: 'Snap first', desc: 'Jars are chosen for bite, hold, and the kind of crunch that lands before the heat does.' },
+                    { number: '02', kicker: 'Heat', title: 'Burn clean', desc: 'Bright, smoky, sharp, or deep enough to leave a mark, but always easy to read at first glance.' },
+                    { number: '03', kicker: 'Seal', title: 'Stamp it', desc: "Nick's seal keeps showing up across the page so the brand feels authored, not decorated after the fact." },
+                  ].map(item => (
+                    <div key={item.number} data-method-row className="tribal-method-row">
+                      <span className="tribal-method-index">{item.number}</span>
+                      <div>
+                        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-[#9f3b2e]">
+                          {item.kicker}
+                        </p>
+                        <h3 className="mt-1 font-tribal text-[1.8rem] font-semibold leading-[0.94] text-[#120d0b] sm:text-[2rem]">
+                          {item.title}
+                        </h3>
+                        <p className="mt-2 max-w-xl font-sans text-base font-medium leading-relaxed text-[#3d2a21]/82">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

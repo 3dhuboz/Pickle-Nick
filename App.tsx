@@ -23,6 +23,8 @@ import AdminLayout from './components/layout/AdminLayout';
 // Icons
 import { Download } from 'lucide-react';
 
+const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
+
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -58,7 +60,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-[#120d0b] text-native-sand">
       {showWatermarks && (
         <img
-          src="/brand/pickle-nick-logo.jpg"
+          src={sealMark}
           alt=""
           className="pointer-events-none fixed bottom-10 left-8 z-[1] hidden w-48 rounded-full xl:block"
           style={{ opacity: 0.08 }}
@@ -66,7 +68,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       )}
       {showWatermarks && (
         <img
-          src="/brand/pickle-nick-logo.jpg"
+          src={sealMark}
           alt=""
           className="pointer-events-none fixed right-8 top-28 z-[1] hidden w-40 rounded-full xl:block"
           style={{ opacity: 0.055 }}
@@ -92,7 +94,7 @@ const SeoManager = () => {
     const tagline = g.tagline || 'Made To Bite Back';
     const description = g.seoDescription || `${brand} makes small-batch pickles, hot sauce, and bold jars with Nick's mark.`;
     const siteUrl = (g.siteUrl || 'https://picklenick.au').replace(/\/$/, '');
-    const faviconUrl = '/brand/pickle-nick-logo.jpg';
+    const faviconUrl = sealMark;
     const ogImage = `${siteUrl}${faviconUrl}`;
 
     // Title

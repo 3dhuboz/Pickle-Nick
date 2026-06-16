@@ -17,7 +17,7 @@ const About = () => {
           <div>
             <NickLogo size="md" className="mb-6" />
             <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
-              Brine House
+              Nick Marked
             </p>
             <h1 className="mt-4 font-display text-[4rem] leading-[0.9] text-[#f4c56d] drop-shadow-[0_8px_26px_rgba(0,0,0,0.65)] sm:text-7xl md:text-8xl">
               Our Story
