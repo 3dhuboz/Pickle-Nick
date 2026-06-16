@@ -10,7 +10,7 @@ type BrandedProductImageProps = {
   children?: React.ReactNode;
 };
 
-const sealSrc = '/brand/pickle-nick-seal-made-to-bite-back.png';
+const logoSrc = '/brand/pickle-nick-logo.jpg';
 const fallbackSrc = '/brand/pickle-nick-product-card-backdrop.png';
 
 const variantStyles = {
@@ -65,8 +65,8 @@ const BrandedProductImage = ({
       <div className="absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
         <div className={`rounded-full border border-[#f4c56d]/45 bg-[#0b0807] p-1 shadow-[0_14px_32px_rgba(0,0,0,0.45),0_0_0_4px_rgba(244,197,109,0.06)] ${styles.seal}`}>
           <img
-            src={sealSrc}
-            alt="Pickle Nick Made To Bite Back seal"
+            src={logoSrc}
+            alt="Pickle Nick logo"
             className="h-full w-full rounded-full object-cover"
           />
         </div>

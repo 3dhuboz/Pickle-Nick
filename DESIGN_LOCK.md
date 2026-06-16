@@ -10,7 +10,7 @@ Accepted direction: American tribal / warrior tattoo pickle brand, with Nick's s
 - Small edge navigation with warm brass/parchment text.
 - "Pickle Nick" as the main first impression, supported by "Bold. Brined. Brilliant."
 - Nick-branded pickle jars and sauce bottles as the hero object.
-- All public logo, favicon, social image, email header, nav, footer, admin shell, and product-card seal usage must resolve to `public/brand/pickle-nick-seal-made-to-bite-back.png`.
+- All public logo, favicon, social image, email header, nav, footer, admin shell, paper stamp, and product-card logo usage must resolve to Nick's real logo at `public/brand/pickle-nick-logo.jpg`.
 - Visual language: American tribal tattoo geometry, warrior badge/seal motifs, old leather, brass, chilli red, turmeric gold, deep pickle green, parchment labels, dark indigo/black.
 - Real CTAs: "Shop the Batch" and "Talk to Nick"; do not promise made-to-order jars.
 - Hero CTAs should feel like printed jar-label plaques: clipped sides, brass linework, red/ink variants, and subtle hover motion.

@@ -27,7 +27,7 @@ const sendEmail = async (
     return true;
 };
 
-const LOGO_URL = 'https://picklenick.au/brand/pickle-nick-seal-made-to-bite-back.png';
+const LOGO_URL = 'https://picklenick.au/brand/pickle-nick-logo.jpg';
 
 const emailWrapper = (content: string, brandName: string) => `<!DOCTYPE html>
 <html lang="en">

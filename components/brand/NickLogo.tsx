@@ -17,7 +17,7 @@ const sizeClasses = {
   lg: 'h-20 w-20',
 };
 
-const NICK_SEAL_SRC = '/brand/pickle-nick-seal-made-to-bite-back.png';
+const NICK_LOGO_SRC = '/brand/pickle-nick-logo.jpg';
 
 const NickLogo = ({
   className = '',
@@ -31,7 +31,7 @@ const NickLogo = ({
   const content = (
     <>
       <span className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#f4c56d]/35 bg-[#f1dfb8] p-1 shadow-[0_0_32px_rgba(244,197,109,0.18)] ${sizeClasses[size]} ${imageClassName}`}>
-        <img src={NICK_SEAL_SRC} alt="Pickle Nick Logo" className="h-full w-full rounded-full object-cover sepia-[.12]" />
+        <img src={NICK_LOGO_SRC} alt="Pickle Nick Logo" className="h-full w-full rounded-full object-cover sepia-[.12]" />
       </span>
       {showName && (
         <span className={labelClassName}>

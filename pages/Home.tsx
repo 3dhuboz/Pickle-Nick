@@ -160,8 +160,8 @@ const Home = () => {
             aria-label="Pickle Nick home"
           >
             <img
-              src="/brand/pickle-nick-seal-made-to-bite-back.png"
-              alt="Pickle Nick Made To Bite Back seal"
+              src="/brand/pickle-nick-logo.jpg"
+              alt="Pickle Nick logo"
               className="h-full w-full rounded-full object-cover"
             />
           </Link>
@@ -244,7 +244,7 @@ const Home = () => {
           >
             <div className="absolute -left-8 -top-8 h-24 w-24 rounded-full border border-[#f4c56d]/35 bg-[#090605] p-1 shadow-[0_18px_38px_rgba(0,0,0,0.45)]">
               <img
-                src="/brand/pickle-nick-seal-made-to-bite-back.png"
+                src="/brand/pickle-nick-logo.jpg"
                 alt=""
                 aria-hidden="true"
                 className="h-full w-full rounded-full object-cover"
@@ -267,15 +267,16 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="pickle-paper paper-proof-strip absolute inset-x-0 bottom-0 z-30 px-5 pb-3 pt-6 text-[#120d0b] sm:pb-3 sm:pt-4">
+        <div className="pickle-paper paper-proof-strip absolute inset-x-0 bottom-0 z-30 px-5 pb-6 pt-7 text-[#120d0b] sm:pb-6 sm:pt-6">
+          <span className="paper-grain" aria-hidden="true" />
           <img
-            src="/brand/pickle-nick-seal-made-to-bite-back.png"
+            src="/brand/pickle-nick-logo.jpg"
             alt=""
             aria-hidden="true"
             className="paper-brand-mark paper-brand-mark-left"
           />
           <img
-            src="/brand/pickle-nick-seal-made-to-bite-back.png"
+            src="/brand/pickle-nick-logo.jpg"
             alt=""
             aria-hidden="true"
             className="paper-brand-mark paper-brand-mark-right"

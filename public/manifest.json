@@ -9,14 +9,14 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/brand/pickle-nick-seal-made-to-bite-back.png",
+      "src": "/brand/pickle-nick-logo.jpg",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/jpeg"
     },
     {
-      "src": "/brand/pickle-nick-seal-made-to-bite-back.png",
+      "src": "/brand/pickle-nick-logo.jpg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/jpeg"
     }
   ]
 }
