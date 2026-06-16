@@ -8,6 +8,7 @@ type BrandedProductImageProps = {
   variant?: 'card' | 'detail';
   forceBrandBackdrop?: boolean;
   lineOnly?: boolean;
+  hideLabel?: boolean;
   children?: React.ReactNode;
 };
 
@@ -17,13 +18,13 @@ const fallbackSrc = '/brand/pickle-nick-product-card-backdrop.png';
 const variantStyles = {
   card: {
     seal: 'h-16 w-16 sm:h-[4.6rem] sm:w-[4.6rem]',
-    label: 'left-3 right-3 bottom-3 px-4 py-3',
+    label: 'left-3 right-3 bottom-3 rounded-[1.35rem] px-4 py-3',
     title: 'text-xl sm:text-2xl',
     cornerTag: false,
   },
   detail: {
     seal: 'h-20 w-20 sm:h-24 sm:w-24',
-    label: 'left-4 right-4 bottom-4 px-5 py-4 sm:left-6 sm:right-6 sm:bottom-6',
+    label: 'left-4 right-4 bottom-4 rounded-[1.55rem] px-5 py-4 sm:left-6 sm:right-6 sm:bottom-6',
     title: 'text-2xl sm:text-4xl',
     cornerTag: true,
   },
@@ -36,6 +37,7 @@ const BrandedProductImage = ({
   variant = 'card',
   forceBrandBackdrop = false,
   lineOnly = false,
+  hideLabel = false,
   children,
 }: BrandedProductImageProps) => {
   const styles = variantStyles[variant];
@@ -62,7 +64,7 @@ const BrandedProductImage = ({
       <div className="pointer-events-none absolute -right-6 bottom-24 z-10 rotate-[-12deg] font-display text-[7rem] leading-none text-[#f4c56d]/[0.055] sm:text-[8.5rem]">
         PN
       </div>
-      <div className={`pointer-events-none absolute inset-y-0 left-0 z-10 bg-[linear-gradient(180deg,#bc4b35,#f4c56d,#5f7f32,#bc4b35)] opacity-70 ${lineOnly ? 'w-px' : 'w-2'}`} />
+      <div className={`pointer-events-none absolute inset-y-8 left-0 z-10 rounded-full bg-[linear-gradient(180deg,#bc4b35,#f4c56d,#5f7f32,#bc4b35)] opacity-70 ${lineOnly ? 'w-px' : 'w-2'}`} />
 
       <div className="absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
         <div className={`rounded-full border border-[#f4c56d]/45 bg-[#0b0807] p-1 shadow-[0_14px_32px_rgba(0,0,0,0.45),0_0_0_4px_rgba(244,197,109,0.06)] ${styles.seal}`}>
@@ -75,7 +77,7 @@ const BrandedProductImage = ({
       </div>
 
       {styles.cornerTag && (
-        <div className="absolute right-3 top-3 z-20 hidden border border-[#f4c56d]/24 bg-[#090605]/72 px-3 py-2 text-right backdrop-blur-sm sm:block">
+        <div className="absolute right-3 top-3 z-20 hidden rounded-full border border-[#f4c56d]/24 bg-[#090605]/72 px-4 py-2 text-right backdrop-blur-sm sm:block">
           <span className="block font-tribal text-[10px] font-bold uppercase tracking-[0.24em] text-[#f4c56d]/76">
             Pickle Nick
           </span>
@@ -85,19 +87,21 @@ const BrandedProductImage = ({
         </div>
       )}
 
-      <div className={`absolute z-20 text-[#f5f0e6] backdrop-blur-sm ${lineOnly ? 'bg-[#090605]/52 shadow-[0_18px_44px_rgba(0,0,0,0.32)]' : 'border border-[#f4c56d]/26 bg-[#090605]/86 shadow-[0_18px_44px_rgba(0,0,0,0.42)]'} ${styles.label}`}>
-        <p className="font-tribal text-[10px] font-bold uppercase tracking-[0.24em] text-native-clay">
-          {product.category || 'Small Batch'}
-        </p>
-        <p className={`mt-1 line-clamp-2 font-display leading-none text-[#f4c56d] ${styles.title}`}>
-          {product.name}
-        </p>
-        <p className="mt-2 font-tribal text-[10px] font-bold uppercase tracking-[0.22em] text-[#f5f0e6]/62">
-          Made to bite back
-        </p>
-      </div>
+      {!hideLabel && (
+        <div className={`absolute z-20 text-[#f5f0e6] backdrop-blur-sm ${lineOnly ? 'bg-[#090605]/58 shadow-[0_18px_44px_rgba(0,0,0,0.32),inset_0_0_0_1px_rgba(244,197,109,0.08)]' : 'border border-[#f4c56d]/26 bg-[#090605]/86 shadow-[0_18px_44px_rgba(0,0,0,0.42)]'} ${styles.label}`}>
+          <p className="font-tribal text-[10px] font-bold uppercase tracking-[0.24em] text-native-clay">
+            {product.category || 'Small Batch'}
+          </p>
+          <p className={`mt-1 line-clamp-2 font-display leading-none text-[#f4c56d] ${styles.title}`}>
+            {product.name}
+          </p>
+          <p className="mt-2 font-tribal text-[10px] font-bold uppercase tracking-[0.22em] text-[#f5f0e6]/62">
+            Made to bite back
+          </p>
+        </div>
+      )}
 
-      <div className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[linear-gradient(90deg,#bc4b35,#f4c56d,#5f7f32,#bc4b35)] ${lineOnly ? 'h-px' : 'h-1'}`} />
+      <div className={`pointer-events-none absolute inset-x-8 bottom-0 z-10 rounded-full bg-[linear-gradient(90deg,#bc4b35,#f4c56d,#5f7f32,#bc4b35)] ${lineOnly ? 'h-px' : 'h-1'}`} />
       {children}
     </div>
   );
