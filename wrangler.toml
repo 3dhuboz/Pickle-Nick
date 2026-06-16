@@ -1,6 +1,7 @@
 name = "pickle-nick-worker"
 main = "worker/index.ts"
 compatibility_date = "2025-12-01"
+pages_build_output_dir = "dist"
 
 [vars]
 R2_PUBLIC_URL = "https://picklenick.au/api/r2/file"

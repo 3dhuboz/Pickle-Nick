@@ -33,7 +33,7 @@ const Navbar = () => {
 
   return (
     <nav className="fixed left-0 right-0 top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-[88rem] items-center justify-between gap-4 rounded-[2rem] border border-[#f5ecda]/12 bg-[#120c09]/72 px-4 py-3 shadow-[0_22px_54px_rgba(0,0,0,0.28)] backdrop-blur-md">
+      <div className="relative mx-auto flex max-w-[88rem] items-center justify-between gap-4 overflow-hidden rounded-[2rem] border border-[#f5ecda]/12 bg-[linear-gradient(180deg,rgba(18,12,9,0.94),rgba(18,12,9,0.82))] px-4 py-3 shadow-[0_22px_54px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm">
         <NickLogo
           to="/"
           size="sm"
@@ -90,7 +90,7 @@ const Navbar = () => {
       </div>
 
       {isMenuOpen && (
-        <div className="mx-auto mt-3 max-w-[88rem] rounded-[2rem] border border-[#f5ecda]/10 bg-[#120d0b]/96 px-4 pb-4 pt-3 shadow-[0_18px_44px_rgba(0,0,0,0.28)] backdrop-blur-md md:hidden">
+        <div className="mx-auto mt-3 max-w-[88rem] rounded-[2rem] border border-[#f5ecda]/10 bg-[linear-gradient(180deg,rgba(18,13,11,0.98),rgba(10,7,5,0.94))] px-4 pb-4 pt-3 shadow-[0_18px_44px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-sm md:hidden">
           <div className="mx-auto flex max-w-md flex-col gap-1">
             {navItems.map(item => (
               <Link
