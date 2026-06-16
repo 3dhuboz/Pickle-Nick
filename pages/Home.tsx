@@ -307,7 +307,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="bg-[#f1dfb8] px-5 pb-10 pt-20 text-[#120d0b] lg:px-8">
+      <section className="paper-section bg-[#f1dfb8] px-5 pb-10 pt-20 text-[#120d0b] lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mb-12 grid gap-8 border-b border-[#120d0b]/15 pb-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
             <div data-depth-card>
@@ -415,7 +415,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="relative bg-[#f1dfb8] p-7 text-[#120d0b] md:p-10 lg:p-12">
+            <div className="paper-panel relative bg-[#f1dfb8] p-7 text-[#120d0b] md:p-10 lg:p-12">
               <div className="absolute right-6 top-6 hidden font-display text-[8rem] leading-none text-[#120d0b]/[0.035] sm:block">
                 PN
               </div>

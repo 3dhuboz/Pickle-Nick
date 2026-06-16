@@ -14,6 +14,7 @@ Accepted direction: American tribal / warrior tattoo pickle brand, with Nick's s
 - Real CTAs: "Shop the Batch" and "Build a Custom Jar".
 - Hero CTAs should feel like printed jar-label plaques: clipped sides, brass linework, red/ink variants, and subtle hover motion.
 - The first viewport parchment must read as torn paper from the initial mock, not a flat beige footer bar.
+- Parchment surfaces should use a shared fibrous paper material with stains, deckled edge shadow, and subtle grain across the hero strip and downstream paper panels.
 - Three.js depth should be subtle atmosphere over the approved mock, not a recreated jar scene.
 - GSAP motion should reveal hierarchy and add physical depth without hiding content.
 - First viewport should show a hint of the parchment next section: "Made to bite back".

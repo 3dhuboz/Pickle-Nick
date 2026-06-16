@@ -259,18 +259,34 @@
         box-shadow: 0 16px 34px rgba(18, 13, 11, 0.2);
       }
 
-      .pickle-paper {
+      .pickle-paper,
+      .paper-section,
+      .paper-panel {
         position: relative;
         background-color: #f1dfb8;
         background-image:
-          radial-gradient(circle at 12% 15%, rgba(188, 75, 53, 0.13), transparent 18%),
-          radial-gradient(circle at 88% 65%, rgba(18, 13, 11, 0.08), transparent 22%),
-          linear-gradient(90deg, rgba(18, 13, 11, 0.055) 1px, transparent 1px),
-          linear-gradient(180deg, #f6e3b8 0%, #ead09a 100%);
-        background-size: auto, auto, 42px 42px, auto;
+          radial-gradient(ellipse at 16% -18%, rgba(255, 248, 218, 0.82), transparent 38%),
+          radial-gradient(circle at 12% 24%, rgba(188, 75, 53, 0.13), transparent 17%),
+          radial-gradient(circle at 86% 68%, rgba(81, 45, 22, 0.13), transparent 24%),
+          radial-gradient(circle at 62% 9%, rgba(119, 78, 37, 0.1), transparent 18%),
+          repeating-linear-gradient(102deg, rgba(82, 47, 23, 0.035) 0 1px, transparent 1px 10px),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px 13px),
+          url("https://www.transparenttextures.com/patterns/natural-paper.png"),
+          linear-gradient(180deg, #f6e4b7 0%, #ebd19c 54%, #e2c081 100%);
+        background-size: auto, auto, auto, auto, auto, auto, 280px 280px, auto;
+      }
+
+      .paper-section,
+      .paper-panel {
+        overflow: hidden;
+      }
+
+      .pickle-paper {
         box-shadow:
           0 -24px 64px rgba(0, 0, 0, 0.48),
-          inset 0 1px 0 rgba(255, 248, 225, 0.62);
+          inset 0 1px 0 rgba(255, 248, 225, 0.7),
+          inset 0 16px 28px rgba(255, 248, 225, 0.16),
+          inset 0 -18px 30px rgba(113, 70, 31, 0.12);
       }
 
       .pickle-paper::before {
@@ -282,23 +298,53 @@
         height: 36px;
         background-color: #f1dfb8;
         background-image:
-          radial-gradient(circle at 12% 15%, rgba(188, 75, 53, 0.13), transparent 18%),
-          radial-gradient(circle at 88% 65%, rgba(18, 13, 11, 0.08), transparent 22%),
-          linear-gradient(90deg, rgba(18, 13, 11, 0.055) 1px, transparent 1px),
-          linear-gradient(180deg, #f6e3b8 0%, #ead09a 100%);
-        background-size: auto, auto, 42px 42px, auto;
-        clip-path: polygon(0 58%, 4% 45%, 8% 62%, 13% 42%, 18% 60%, 24% 48%, 31% 64%, 38% 46%, 45% 60%, 53% 43%, 61% 63%, 69% 48%, 76% 59%, 84% 44%, 91% 62%, 96% 49%, 100% 58%, 100% 100%, 0 100%);
-        filter: drop-shadow(0 -8px 12px rgba(0, 0, 0, 0.18));
+          radial-gradient(ellipse at 16% -18%, rgba(255, 248, 218, 0.82), transparent 38%),
+          radial-gradient(circle at 12% 24%, rgba(188, 75, 53, 0.13), transparent 17%),
+          radial-gradient(circle at 86% 68%, rgba(81, 45, 22, 0.13), transparent 24%),
+          repeating-linear-gradient(102deg, rgba(82, 47, 23, 0.035) 0 1px, transparent 1px 10px),
+          url("https://www.transparenttextures.com/patterns/natural-paper.png"),
+          linear-gradient(180deg, #f6e4b7 0%, #ebd19c 54%, #e2c081 100%);
+        background-size: auto, auto, auto, auto, 280px 280px, auto;
+        clip-path: polygon(0 60%, 3% 51%, 6% 65%, 10% 47%, 14% 58%, 19% 44%, 24% 63%, 30% 49%, 36% 65%, 42% 47%, 49% 62%, 56% 45%, 63% 64%, 70% 50%, 77% 61%, 84% 46%, 90% 64%, 96% 50%, 100% 60%, 100% 100%, 0 100%);
+        filter: drop-shadow(0 -8px 12px rgba(0, 0, 0, 0.22));
       }
 
-      .pickle-paper::after {
+      .pickle-paper::after,
+      .paper-section::before,
+      .paper-panel::before {
         content: "";
         position: absolute;
         left: 0;
         right: 0;
         top: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(18, 13, 11, 0.34), transparent);
+        bottom: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(82, 47, 23, 0.18), transparent 14px),
+          radial-gradient(circle at 9% 42%, rgba(92, 52, 24, 0.13) 0 1px, transparent 2px),
+          radial-gradient(circle at 78% 36%, rgba(92, 52, 24, 0.08) 0 1px, transparent 2px),
+          repeating-linear-gradient(88deg, transparent 0 18px, rgba(91, 56, 25, 0.05) 19px, transparent 20px),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 11px);
+        mix-blend-mode: multiply;
+        opacity: 0.62;
+      }
+
+      .pickle-paper > *,
+      .paper-section > *,
+      .paper-panel > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .paper-section::after,
+      .paper-panel::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 248, 225, 0.58),
+          inset 0 -24px 42px rgba(109, 69, 33, 0.1);
       }
 
       .paper-proof {
