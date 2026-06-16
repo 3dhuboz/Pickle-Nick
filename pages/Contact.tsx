@@ -30,13 +30,13 @@ const Contact = () => {
         <div className="relative mx-auto max-w-7xl border-b border-[#f4c56d]/18 pb-12">
           <NickLogo size="md" className="mb-6" />
           <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
-            Custom Jar Desk
+            Nick's Counter
           </p>
           <h1 className="mt-4 max-w-4xl font-display text-[4rem] leading-[0.9] text-[#f4c56d] drop-shadow-[0_8px_26px_rgba(0,0,0,0.65)] sm:text-7xl md:text-8xl">
-            Build a Custom Jar
+            Contact Pickle Nick
           </h1>
           <p className="mt-8 max-w-2xl font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76">
-            Tell Nick the crunch, the heat, and the occasion. The batch can go gentle, savage, smoky, sweet, or somewhere stranger.
+            Ask about stock, events, wholesale, or the current small-batch range.
           </p>
         </div>
       </section>
@@ -108,14 +108,14 @@ const Contact = () => {
                     value={form.message}
                     onChange={event => setForm({ ...form, message: event.target.value })}
                     className="w-full resize-none border border-[#120d0b]/16 bg-[#120d0b]/5 px-5 py-4 font-sans text-lg font-semibold text-[#120d0b] outline-none transition placeholder:text-[#120d0b]/32 focus:border-native-clay focus:bg-white"
-                    placeholder="Crunch, heat, quantity, date, or wild idea"
+                    placeholder="Stock, quantity, event date, or question"
                   />
                 </div>
                 <button
                   type="submit"
                   className="inline-flex items-center justify-center gap-3 border border-native-clay bg-native-clay px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-white shadow-[0_16px_38px_rgba(188,75,53,0.28)] transition hover:-translate-y-1 hover:bg-[#a63d2b]"
                 >
-                  Send Brief <Send size={18} />
+                  Send Message <Send size={18} />
                 </button>
               </form>
             ) : (
@@ -125,7 +125,7 @@ const Contact = () => {
                 </div>
                 <h3 className="font-display text-5xl leading-none text-[#120d0b]">Message sent</h3>
                 <p className="mt-5 max-w-md font-sans text-lg font-semibold leading-relaxed text-[#3d2a21]">
-                  The brief is on Nick's counter.
+                  Your message is on Nick's counter.
                 </p>
               </div>
             )}

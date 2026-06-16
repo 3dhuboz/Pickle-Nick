@@ -7,7 +7,6 @@ import NickLogo from '../brand/NickLogo';
 const navItems = [
   { to: '/', label: 'Home' },
   { to: '/shop', label: 'Shop' },
-  { to: '/contact', label: 'Custom Jar' },
   { to: '/about', label: 'Our Story' },
   { to: '/contact', label: 'Contact' },
 ];

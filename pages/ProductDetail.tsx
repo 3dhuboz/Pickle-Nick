@@ -88,7 +88,7 @@ const ProductDetail = () => {
             <div className="mt-5 grid grid-cols-3 border-y border-[#f4c56d]/14 text-center font-tribal text-[10px] font-bold uppercase tracking-[0.2em] text-[#f5f0e6]/58 sm:text-xs">
               <span className="border-r border-[#f4c56d]/14 px-2 py-4">Nick marked</span>
               <span className="border-r border-[#f4c56d]/14 px-2 py-4">Small batch</span>
-              <span className="px-2 py-4">Custom heat</span>
+              <span className="px-2 py-4">Bold heat</span>
             </div>
 
             <div className="my-8 border-b border-[#f4c56d]/16 pb-6">

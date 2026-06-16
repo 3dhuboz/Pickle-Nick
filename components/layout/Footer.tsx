@@ -46,7 +46,7 @@ const Footer = () => {
           <ul className="mt-6 space-y-4 font-display text-2xl leading-none text-[#f4c56d]">
             <li><Link to="/shop" className="transition hover:text-[#f1dfb8]">Shop</Link></li>
             <li><Link to="/about" className="transition hover:text-[#f1dfb8]">Our Story</Link></li>
-            <li><Link to="/contact" className="transition hover:text-[#f1dfb8]">Custom Jar</Link></li>
+            <li><Link to="/contact" className="transition hover:text-[#f1dfb8]">Contact</Link></li>
             <li><Link to="/admin/login" className="font-sans text-sm font-semibold text-[#f5f0e6]/28 transition hover:text-[#f5f0e6]/65">Admin Login</Link></li>
           </ul>
         </div>

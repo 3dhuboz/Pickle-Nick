@@ -7,7 +7,7 @@ import NickLogo from '../components/brand/NickLogo';
 const About = () => {
   const { siteContent } = useStore();
   const heading = siteContent?.about.heading || 'Old ways. Bold bite.';
-  const story = siteContent?.about.text || 'Pickle Nick is built around small batches, real crunch, toasted spice, and custom jars made with a little theatre.';
+  const story = siteContent?.about.text || 'Pickle Nick is built around small batches, real crunch, toasted spice, and jars that earn the seal before they leave the counter.';
 
   return (
     <div className="min-h-screen bg-[#120d0b] text-[#f5f0e6]">
@@ -24,7 +24,7 @@ const About = () => {
             </h1>
           </div>
           <p className="max-w-2xl font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76 lg:justify-self-end">
-            Custom pickles with rugged heat, tattoo-flash labels, and small-batch attitude.
+            Small-batch pickles with rugged heat, tattoo-flash labels, and Nick's unmistakable mark.
           </p>
         </div>
       </section>

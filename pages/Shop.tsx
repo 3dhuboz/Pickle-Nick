@@ -98,11 +98,11 @@ const Shop = () => {
             <div data-shop-reveal className="grid gap-6 lg:justify-self-end xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-end">
               <div className="max-w-2xl">
                 <p className="font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76">
-                  {activeCategory?.description || 'Custom pickles, hot sauce, brine jars, and small-batch provisions built for serious crunch.'}
+                  {activeCategory?.description || 'Small-batch pickles, hot sauce, brine jars, and provisions built for serious crunch.'}
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3 font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f4c56d]/82">
                   <span className="border border-[#f4c56d]/22 px-4 py-2">Small Batch</span>
-                  <span className="border border-[#f4c56d]/22 px-4 py-2">Custom Heat</span>
+                  <span className="border border-[#f4c56d]/22 px-4 py-2">Bold Heat</span>
                   <span className="border border-[#f4c56d]/22 px-4 py-2">Tattoo Batch</span>
                 </div>
               </div>

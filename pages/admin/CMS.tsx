@@ -233,8 +233,6 @@ const CMS = () => {
     if (!content) return <div>Loading Scrolls...</div>;
 
     const visuals = [
-        { label: "Brand Logo", path: "general.logoUrl", value: content.general.logoUrl },
-        { label: "Favicon / Browser Icon", path: "general.faviconUrl", value: content.general.faviconUrl || content.general.logoUrl, square: true },
         { label: "Founder (The Alchemist)", path: "home.founderImage", value: content.home.founderImage },
         { label: "Gallery Banner (Gravel)", path: "home.galleryImage1", value: content.home.galleryImage1 },
         { label: "Gallery Detail (Rows)", path: "home.galleryImage2", value: content.home.galleryImage2 },

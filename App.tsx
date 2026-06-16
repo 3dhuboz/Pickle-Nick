@@ -90,10 +90,10 @@ const SeoManager = () => {
     const g = siteContent.general;
     const brand = g.brandName || 'Pickle Nick';
     const tagline = g.tagline || 'Made To Bite Back';
-    const description = g.seoDescription || `${brand} makes custom pickles, hot sauce, and small-batch jars with Nick's mark.`;
+    const description = g.seoDescription || `${brand} makes small-batch pickles, hot sauce, and bold jars with Nick's mark.`;
     const siteUrl = (g.siteUrl || 'https://picklenick.au').replace(/\/$/, '');
-    const faviconUrl = g.faviconUrl || g.logoUrl || '/logo.jpg';
-    const ogImage = faviconUrl.startsWith('http') ? faviconUrl : `${siteUrl}${faviconUrl}`;
+    const faviconUrl = '/brand/pickle-nick-seal-made-to-bite-back.png';
+    const ogImage = `${siteUrl}${faviconUrl}`;
 
     // Title
     document.title = `${brand} | ${tagline}`;
@@ -105,8 +105,7 @@ const SeoManager = () => {
       el.href = href;
       if (type) el.type = type;
     };
-    const ext = faviconUrl.split('.').pop()?.toLowerCase() || 'jpg';
-    const mimeType = ext === 'png' ? 'image/png' : ext === 'svg' ? 'image/svg+xml' : ext === 'ico' ? 'image/x-icon' : 'image/jpeg';
+    const mimeType = 'image/png';
     setLink('icon', faviconUrl, mimeType);
     setLink('shortcut icon', faviconUrl, mimeType);
     setLink('apple-touch-icon', faviconUrl);

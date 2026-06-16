@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useStore } from '../../context/StoreContext';
 
 type NickLogoProps = {
   className?: string;
@@ -18,6 +17,8 @@ const sizeClasses = {
   lg: 'h-20 w-20',
 };
 
+const NICK_SEAL_SRC = '/brand/pickle-nick-seal-made-to-bite-back.png';
+
 const NickLogo = ({
   className = '',
   imageClassName = '',
@@ -27,13 +28,10 @@ const NickLogo = ({
   to,
   size = 'md',
 }: NickLogoProps) => {
-  const { siteContent } = useStore();
-  const logoUrl = siteContent?.general.logoUrl || '/brand/pickle-nick-seal-made-to-bite-back.png';
-
   const content = (
     <>
       <span className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#f4c56d]/35 bg-[#f1dfb8] p-1 shadow-[0_0_32px_rgba(244,197,109,0.18)] ${sizeClasses[size]} ${imageClassName}`}>
-        <img src={logoUrl} alt="Pickle Nick Logo" className="h-full w-full rounded-full object-cover sepia-[.12]" />
+        <img src={NICK_SEAL_SRC} alt="Pickle Nick Logo" className="h-full w-full rounded-full object-cover sepia-[.12]" />
       </span>
       {showName && (
         <span className={labelClassName}>

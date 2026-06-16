@@ -9,12 +9,15 @@ Accepted direction: American tribal / warrior tattoo pickle brand, with Nick's s
 - No bulky rounded white top header or cream app-shell frame.
 - Small edge navigation with warm brass/parchment text.
 - "Pickle Nick" as the main first impression, supported by "Bold. Brined. Brilliant."
-- Custom pickle jars and sauce bottles as the hero object.
+- Nick-branded pickle jars and sauce bottles as the hero object.
+- All public logo, favicon, social image, email header, nav, footer, admin shell, and product-card seal usage must resolve to `public/brand/pickle-nick-seal-made-to-bite-back.png`.
 - Visual language: American tribal tattoo geometry, warrior badge/seal motifs, old leather, brass, chilli red, turmeric gold, deep pickle green, parchment labels, dark indigo/black.
-- Real CTAs: "Shop the Batch" and "Build a Custom Jar".
+- Real CTAs: "Shop the Batch" and "Talk to Nick"; do not promise made-to-order jars.
 - Hero CTAs should feel like printed jar-label plaques: clipped sides, brass linework, red/ink variants, and subtle hover motion.
 - The first viewport parchment must read as torn paper from the initial mock, not a flat beige footer bar.
 - Parchment surfaces should use a shared fibrous paper material with stains, deckled edge shadow, and subtle grain across the hero strip and downstream paper panels.
+- The accepted homepage composition is now the compact mock rhythm: dark product hero, torn proof-paper strip, then the dark "Shop The Batch" product rail visible immediately underneath.
+- Decorative paper-side artwork should be Nick seal/logo watermarks, not skull, animal, country-India, or random stock-style motifs.
 - Three.js depth should be subtle atmosphere over the approved mock, not a recreated jar scene.
 - GSAP motion should reveal hierarchy and add physical depth without hiding content.
 - First viewport should show a hint of the parchment next section: "Made to bite back".
