@@ -12,6 +12,8 @@ Accepted direction: American tribal / warrior tattoo pickle brand, with Nick's s
 - Custom pickle jars and sauce bottles as the hero object.
 - Visual language: American tribal tattoo geometry, warrior badge/seal motifs, old leather, brass, chilli red, turmeric gold, deep pickle green, parchment labels, dark indigo/black.
 - Real CTAs: "Shop the Batch" and "Build a Custom Jar".
+- Hero CTAs should feel like printed jar-label plaques: clipped sides, brass linework, red/ink variants, and subtle hover motion.
+- The first viewport parchment must read as torn paper from the initial mock, not a flat beige footer bar.
 - Three.js depth should be subtle atmosphere over the approved mock, not a recreated jar scene.
 - GSAP motion should reveal hierarchy and add physical depth without hiding content.
 - First viewport should show a hint of the parchment next section: "Made to bite back".

@@ -48,7 +48,7 @@ const Home = () => {
       const ctx = gsap.context(() => {
         mm = gsap.matchMedia();
 
-        gsap.set('[data-hero-brand], [data-hero-copy], [data-hero-actions], [data-hero-badge], [data-hero-plate]', {
+        gsap.set('[data-hero-brand], [data-hero-copy], [data-hero-actions], [data-paper-proof], [data-hero-plate]', {
           y: 24,
           opacity: 0,
         });
@@ -58,25 +58,13 @@ const Home = () => {
           .to('[data-hero-brand]', { y: 0, opacity: 1, duration: 0.78 })
           .to('[data-hero-copy]', { y: 0, opacity: 1, duration: 0.82 }, '-=0.52')
           .to('[data-hero-actions]', { y: 0, opacity: 1, duration: 0.72 }, '-=0.46')
-          .to('[data-hero-badge]', { y: 0, opacity: 1, duration: 0.78, stagger: 0.08 }, '-=0.58')
+          .to('[data-paper-proof]', { y: 0, opacity: 1, duration: 0.72, stagger: 0.06 }, '-=0.52')
           .to('[data-hero-plate]', { y: 0, opacity: 1, duration: 0.78 }, '-=0.74');
 
         mm.add('(prefers-reduced-motion: no-preference)', () => {
           gsap.to('[data-hero-bg]', {
             scale: 1.08,
             yPercent: -2.2,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: '[data-hero-section]',
-              start: 'top top',
-              end: 'bottom top',
-              scrub: true,
-            },
-          });
-
-          gsap.to('[data-hero-badge]', {
-            yPercent: -5,
-            rotate: -1.2,
             ease: 'none',
             scrollTrigger: {
               trigger: '[data-hero-section]',
@@ -204,7 +192,7 @@ const Home = () => {
           </div>
         </header>
 
-        <div className="relative z-20 mx-auto flex min-h-[calc(100svh-5.5rem)] max-w-7xl items-center pb-28 pt-10">
+        <div className="relative z-20 mx-auto flex min-h-[calc(100svh-5.5rem)] max-w-7xl items-center pb-48 pt-10 sm:pb-44 lg:pb-48">
           <div className="max-w-[48rem]">
             <div data-hero-brand className="mb-5 inline-flex items-center gap-4">
               <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-[#f4c56d]/42 bg-[#080605] p-1 shadow-[0_18px_46px_rgba(0,0,0,0.58),0_0_0_5px_rgba(244,197,109,0.07)] sm:h-20 sm:w-20">
@@ -237,41 +225,24 @@ const Home = () => {
             <div data-hero-actions className="mt-7 flex flex-col gap-4 sm:flex-row">
               <Link
                 to="/shop"
-                className="group inline-flex items-center justify-center gap-3 border border-native-clay bg-native-clay px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-white shadow-[0_18px_44px_rgba(188,75,53,0.34)] transition hover:-translate-y-1 hover:bg-[#a63d2b]"
+                className="pickle-button pickle-button-primary group"
               >
-                Shop the batch <ArrowRight size={18} className="transition group-hover:translate-x-1" />
+                <span>Shop the batch</span>
+                <ArrowRight size={18} />
               </Link>
               <Link
                 to="/contact"
-                className="inline-flex items-center justify-center border border-[#f4c56d]/34 bg-[#080605]/52 px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-[#f4c56d] backdrop-blur transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
+                className="pickle-button pickle-button-secondary group"
               >
-                Build a custom jar
+                <span>Build a custom jar</span>
+                <ArrowRight size={18} />
               </Link>
-            </div>
-
-            <div className="mt-8 hidden max-w-2xl grid-cols-3 gap-3 md:grid">
-              {[
-                ['01', 'Small batch'],
-                ['02', 'Tattoo heat'],
-                ['03', 'Nick marked'],
-              ].map(([number, label]) => (
-                <div
-                  key={number}
-                  data-hero-badge
-                  className="border border-[#f4c56d]/18 bg-[#080605]/58 px-4 py-3 backdrop-blur-sm"
-                >
-                  <span className="block font-display text-3xl leading-none text-[#f4c56d]">{number}</span>
-                  <span className="mt-2 block font-tribal text-[10px] font-bold uppercase tracking-[0.22em] text-[#f5f0e6]/68">
-                    {label}
-                  </span>
-                </div>
-              ))}
             </div>
           </div>
 
           <div
             data-hero-plate
-            className="absolute bottom-28 right-0 hidden w-[18rem] rotate-[-2deg] border border-[#f4c56d]/28 bg-[#090605]/76 p-5 text-[#f5f0e6] shadow-[0_26px_70px_rgba(0,0,0,0.52)] backdrop-blur-md xl:block"
+            className="absolute bottom-36 right-0 hidden w-[18rem] rotate-[-2deg] border border-[#f4c56d]/28 bg-[#090605]/76 p-5 text-[#f5f0e6] shadow-[0_26px_70px_rgba(0,0,0,0.52)] backdrop-blur-md xl:block"
           >
             <div className="absolute -left-8 -top-8 h-24 w-24 rounded-full border border-[#f4c56d]/35 bg-[#090605] p-1 shadow-[0_18px_38px_rgba(0,0,0,0.45)]">
               <img
@@ -298,13 +269,39 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 z-30 border-t border-[#f4c56d]/14 bg-[#f1dfb8] px-5 py-5 text-[#120d0b] shadow-[0_-18px_44px_rgba(0,0,0,0.34)]">
-          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
-            <p className="font-display text-2xl leading-none sm:text-3xl">Made to bite back</p>
-            <div className="flex flex-wrap gap-4 font-tribal text-[10px] font-bold uppercase tracking-[0.2em] text-[#120d0b]/66 sm:text-xs">
-              <span>Hand packed</span>
-              <span>Tattoo flash labels</span>
-              <span>Custom heat</span>
+        <div className="pickle-paper absolute inset-x-0 bottom-0 z-30 px-5 pb-4 pt-7 text-[#120d0b] sm:pb-5 sm:pt-8">
+          <div className="mx-auto grid max-w-7xl gap-3 sm:gap-4 lg:grid-cols-[0.85fr_1.35fr] lg:items-center">
+            <div>
+              <p className="font-tribal text-[10px] font-bold uppercase tracking-[0.24em] text-native-clay sm:text-xs">
+                Nick's Brine House
+              </p>
+              <p className="mt-1 font-display text-3xl leading-none sm:text-4xl">
+                Made to bite back
+              </p>
+              <p className="mt-2 hidden max-w-md font-sans text-sm font-semibold leading-relaxed text-[#3d2a21]/78 sm:block">
+                Old ways. Bold heat. Small-batch jars stamped with Nick's mark.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 font-tribal text-[9px] font-bold uppercase tracking-[0.14em] text-[#3d2a21]/70 sm:hidden">
+                <span>Small batch</span>
+                <span>Bold heat</span>
+                <span>Nick marked</span>
+              </div>
+            </div>
+
+            <div className="hidden grid-cols-4 gap-2 sm:grid sm:gap-3">
+              {proofPoints.map(point => (
+                <div key={point.title} data-paper-proof className="paper-proof">
+                  <point.icon className="shrink-0 text-native-clay" size={24} />
+                  <div className="min-w-0">
+                    <h3 className="font-tribal text-[9px] font-bold uppercase leading-snug tracking-[0.12em] text-[#120d0b] sm:text-[10px] md:text-xs">
+                      {point.title}
+                    </h3>
+                    <p className="mt-1 hidden font-sans text-xs font-semibold leading-snug text-[#3d2a21]/74 md:block">
+                      {point.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -327,9 +324,10 @@ const Home = () => {
               </p>
               <Link
                 to="/shop"
-                className="group inline-flex items-center justify-center gap-3 self-start border border-[#120d0b] px-7 py-4 font-tribal text-sm font-bold uppercase tracking-[0.2em] transition hover:bg-[#120d0b] hover:text-[#f1dfb8] md:self-auto"
+                className="pickle-button pickle-button-ink group self-start md:self-auto"
               >
-                View all jars <ArrowRight size={18} className="transition group-hover:translate-x-1" />
+                <span>View all jars</span>
+                <ArrowRight size={18} />
               </Link>
             </div>
           </div>
@@ -402,15 +400,17 @@ const Home = () => {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/contact"
-                  className="group inline-flex items-center justify-center gap-3 border border-native-clay bg-native-clay px-7 py-4 font-tribal text-sm font-bold uppercase tracking-[0.2em] text-white transition hover:-translate-y-1 hover:bg-[#a63d2b]"
+                  className="pickle-button pickle-button-primary group"
                 >
-                  Start a brief <ArrowRight size={18} className="transition group-hover:translate-x-1" />
+                  <span>Start a brief</span>
+                  <ArrowRight size={18} />
                 </Link>
                 <Link
                   to="/shop"
-                  className="inline-flex items-center justify-center border border-[#f4c56d]/28 px-7 py-4 font-tribal text-sm font-bold uppercase tracking-[0.2em] text-[#f4c56d] transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
+                  className="pickle-button pickle-button-secondary group"
                 >
-                  Shop the batch
+                  <span>Shop the batch</span>
+                  <ArrowRight size={18} />
                 </Link>
               </div>
             </div>

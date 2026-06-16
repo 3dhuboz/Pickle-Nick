@@ -145,6 +145,212 @@
         height: 18px;
       }
 
+      .pickle-button {
+        position: relative;
+        isolation: isolate;
+        display: inline-flex;
+        min-height: 62px;
+        min-width: 17rem;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        overflow: hidden;
+        border: 1px solid rgba(244, 197, 109, 0.48);
+        padding: 0 1.9rem;
+        clip-path: polygon(13px 0, calc(100% - 13px) 0, 100% 50%, calc(100% - 13px) 100%, 13px 100%, 0 50%);
+        font-family: "Cormorant Garamond", serif;
+        font-size: 0.92rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        line-height: 1;
+        text-align: center;
+        text-transform: uppercase;
+        transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, color 220ms ease, background-color 220ms ease;
+      }
+
+      .pickle-button::before {
+        content: "";
+        position: absolute;
+        inset: 5px 7px;
+        z-index: -1;
+        border: 1px solid currentColor;
+        opacity: 0.24;
+        clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
+      }
+
+      .pickle-button::after {
+        content: "";
+        position: absolute;
+        inset: -24% auto -24% -62%;
+        width: 48%;
+        transform: skewX(-22deg);
+        background: linear-gradient(90deg, transparent, rgba(255, 238, 188, 0.38), transparent);
+        opacity: 0;
+        transition: left 580ms ease, opacity 220ms ease;
+      }
+
+      .pickle-button:hover,
+      .pickle-button:focus-visible {
+        transform: translateY(-3px);
+      }
+
+      .pickle-button:hover::after,
+      .pickle-button:focus-visible::after {
+        left: 118%;
+        opacity: 1;
+      }
+
+      .pickle-button svg {
+        flex: 0 0 auto;
+        transition: transform 220ms ease;
+      }
+
+      .pickle-button:hover svg,
+      .pickle-button:focus-visible svg {
+        transform: translateX(4px);
+      }
+
+      .pickle-button-primary {
+        border-color: rgba(244, 197, 109, 0.46);
+        background:
+          linear-gradient(180deg, rgba(255, 220, 150, 0.16), transparent 38%),
+          linear-gradient(180deg, #bd4b35 0%, #8f2f24 100%);
+        color: #fff8e7;
+        box-shadow:
+          0 18px 44px rgba(188, 75, 53, 0.36),
+          inset 0 1px 0 rgba(255, 238, 188, 0.18),
+          inset 0 -12px 20px rgba(59, 15, 10, 0.18);
+      }
+
+      .pickle-button-primary:hover,
+      .pickle-button-primary:focus-visible {
+        border-color: rgba(244, 197, 109, 0.76);
+        box-shadow:
+          0 24px 54px rgba(188, 75, 53, 0.44),
+          inset 0 1px 0 rgba(255, 238, 188, 0.22),
+          inset 0 -12px 20px rgba(59, 15, 10, 0.2);
+      }
+
+      .pickle-button-secondary {
+        border-color: rgba(244, 197, 109, 0.38);
+        background:
+          linear-gradient(180deg, rgba(244, 197, 109, 0.08), rgba(8, 6, 5, 0.2)),
+          rgba(8, 6, 5, 0.72);
+        color: #f4c56d;
+        box-shadow:
+          0 16px 38px rgba(0, 0, 0, 0.34),
+          inset 0 1px 0 rgba(244, 197, 109, 0.14);
+        backdrop-filter: blur(10px);
+      }
+
+      .pickle-button-secondary:hover,
+      .pickle-button-secondary:focus-visible {
+        border-color: rgba(244, 197, 109, 0.7);
+        color: #fff1c3;
+      }
+
+      .pickle-button-ink {
+        min-width: 15rem;
+        border-color: rgba(18, 13, 11, 0.55);
+        background:
+          linear-gradient(180deg, rgba(244, 197, 109, 0.1), rgba(18, 13, 11, 0.05)),
+          #120d0b;
+        color: #f1dfb8;
+        box-shadow: 0 16px 34px rgba(18, 13, 11, 0.2);
+      }
+
+      .pickle-paper {
+        position: relative;
+        background-color: #f1dfb8;
+        background-image:
+          radial-gradient(circle at 12% 15%, rgba(188, 75, 53, 0.13), transparent 18%),
+          radial-gradient(circle at 88% 65%, rgba(18, 13, 11, 0.08), transparent 22%),
+          linear-gradient(90deg, rgba(18, 13, 11, 0.055) 1px, transparent 1px),
+          linear-gradient(180deg, #f6e3b8 0%, #ead09a 100%);
+        background-size: auto, auto, 42px 42px, auto;
+        box-shadow:
+          0 -24px 64px rgba(0, 0, 0, 0.48),
+          inset 0 1px 0 rgba(255, 248, 225, 0.62);
+      }
+
+      .pickle-paper::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -30px;
+        height: 36px;
+        background-color: #f1dfb8;
+        background-image:
+          radial-gradient(circle at 12% 15%, rgba(188, 75, 53, 0.13), transparent 18%),
+          radial-gradient(circle at 88% 65%, rgba(18, 13, 11, 0.08), transparent 22%),
+          linear-gradient(90deg, rgba(18, 13, 11, 0.055) 1px, transparent 1px),
+          linear-gradient(180deg, #f6e3b8 0%, #ead09a 100%);
+        background-size: auto, auto, 42px 42px, auto;
+        clip-path: polygon(0 58%, 4% 45%, 8% 62%, 13% 42%, 18% 60%, 24% 48%, 31% 64%, 38% 46%, 45% 60%, 53% 43%, 61% 63%, 69% 48%, 76% 59%, 84% 44%, 91% 62%, 96% 49%, 100% 58%, 100% 100%, 0 100%);
+        filter: drop-shadow(0 -8px 12px rgba(0, 0, 0, 0.18));
+      }
+
+      .pickle-paper::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(18, 13, 11, 0.34), transparent);
+      }
+
+      .paper-proof {
+        position: relative;
+        display: flex;
+        min-width: 0;
+        align-items: flex-start;
+        gap: 0.6rem;
+        border-left: 1px solid rgba(18, 13, 11, 0.16);
+        padding: 0.35rem 0 0.35rem 0.78rem;
+      }
+
+      .paper-proof::before {
+        content: "";
+        position: absolute;
+        left: -1px;
+        top: 0.36rem;
+        height: 1.55rem;
+        width: 2px;
+        background: #bc4b35;
+        opacity: 0.72;
+      }
+
+      @media (max-width: 640px) {
+        .pickle-button {
+          min-height: 58px;
+          min-width: 0;
+          width: 100%;
+          padding: 0 1.1rem;
+          font-size: 0.78rem;
+          letter-spacing: 0.14em;
+        }
+
+        .pickle-paper::before {
+          top: -23px;
+          height: 28px;
+        }
+
+        .paper-proof {
+          flex-direction: column;
+          align-items: center;
+          gap: 0.24rem;
+          border-left: 0;
+          padding: 0.15rem 0.1rem 0;
+          text-align: center;
+        }
+
+        .paper-proof::before {
+          display: none;
+        }
+      }
+
       ::-webkit-scrollbar {
         width: 12px;
       }
