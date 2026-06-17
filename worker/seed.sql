@@ -4,7 +4,7 @@
 -- App settings (default)
 INSERT OR IGNORE INTO app_settings (key, data, updated_at) VALUES (
   'main',
-  '{"fbAppId":"","fbAppSecret":"","squareApplicationId":"","squareAccessToken":"","squareLocationId":"","lowStockThreshold":10,"gstEnabled":true,"gstRate":10,"emailConfig":{"enabled":false,"adminEmail":"","fromName":"Pickle Nick","fromEmail":"noreply@picklenick.au","emailProvider":"resend","resendApiKey":"","smtpEndpoint":""},"shippingConfig":{"carrierName":"Australia Post","trackingBaseUrl":"https://auspost.com.au/mypost/track/#/details/","freeShippingThreshold":100,"defaultWeightGrams":500,"rates":[{"maxWeightGrams":500,"standardPrice":9.95,"expressPrice":14.95},{"maxWeightGrams":1000,"standardPrice":12.95,"expressPrice":19.95},{"maxWeightGrams":2000,"standardPrice":16.95,"expressPrice":24.95},{"maxWeightGrams":5000,"standardPrice":22.95,"expressPrice":34.95}]}}',
+  '{"fbAppId":"","fbAppSecret":"","squareApplicationId":"","squareAccessToken":"","squareLocationId":"","lowStockThreshold":10,"gstEnabled":true,"gstRate":10,"emailConfig":{"enabled":false,"adminEmail":"","fromName":"Pickle Nick","fromEmail":"noreply@picklenick.au","emailProvider":"resend","resendApiKey":"","smtpEndpoint":""},"shippingConfig":{"carrierName":"Australia Post","trackingBaseUrl":"https://auspost.com.au/mypost/track/#/details/","freeShippingThreshold":90,"defaultWeightGrams":500,"rates":[{"maxWeightGrams":500,"standardPrice":8.95,"expressPrice":13.95},{"maxWeightGrams":1000,"standardPrice":10.95,"expressPrice":16.95},{"maxWeightGrams":2000,"standardPrice":13.95,"expressPrice":21.95},{"maxWeightGrams":5000,"standardPrice":16.95,"expressPrice":26.95},{"maxWeightGrams":10000,"standardPrice":22.95,"expressPrice":34.95}]}}',
   unixepoch() * 1000
 );
 

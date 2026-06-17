@@ -60,6 +60,20 @@ const SectionHeader = ({ title, icon: Icon, description, configured }: { title: 
     </div>
 );
 
+const DEFAULT_SHIPPING_CONFIG: ShippingConfig = {
+  carrierName: 'Australia Post',
+  trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/',
+  freeShippingThreshold: 90,
+  defaultWeightGrams: 500,
+  rates: [
+    { maxWeightGrams: 500, standardPrice: 8.95, expressPrice: 13.95 },
+    { maxWeightGrams: 1000, standardPrice: 10.95, expressPrice: 16.95 },
+    { maxWeightGrams: 2000, standardPrice: 13.95, expressPrice: 21.95 },
+    { maxWeightGrams: 5000, standardPrice: 16.95, expressPrice: 26.95 },
+    { maxWeightGrams: 10000, standardPrice: 22.95, expressPrice: 34.95 },
+  ],
+};
+
 const Settings = () => {
   const { settings, updateSettings } = useStore();
   const { getToken } = useAuth();
@@ -67,19 +81,7 @@ const Settings = () => {
   const [emailConfig, setEmailConfig] = useState<EmailConfig>(settings.emailConfig || {
     enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/email/send'
   });
-  const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(settings.shippingConfig || {
-      carrierName: 'Australia Post',
-      trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/',
-      freeShippingThreshold: 75,
-      defaultWeightGrams: 500,
-      rates: [
-        { maxWeightGrams: 500, standardPrice: 9.50, expressPrice: 15.90 },
-        { maxWeightGrams: 1000, standardPrice: 12.50, expressPrice: 19.90 },
-        { maxWeightGrams: 3000, standardPrice: 16.00, expressPrice: 26.50 },
-        { maxWeightGrams: 5000, standardPrice: 20.00, expressPrice: 33.00 },
-        { maxWeightGrams: 10000, standardPrice: 25.00, expressPrice: 42.00 }
-      ]
-  });
+  const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(settings.shippingConfig || DEFAULT_SHIPPING_CONFIG);
   const [isTestingEmail, setIsTestingEmail] = useState(false);
   const [isTestingSquare, setIsTestingSquare] = useState(false);
   const [squareTestResult, setSquareTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -95,19 +97,7 @@ const Settings = () => {
     setEmailConfig(settings.emailConfig || {
        enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/email/send'
     });
-    setShippingConfig(settings.shippingConfig || {
-        carrierName: 'Australia Post',
-        trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/',
-        freeShippingThreshold: 75,
-        defaultWeightGrams: 500,
-        rates: [
-          { maxWeightGrams: 500, standardPrice: 9.50, expressPrice: 15.90 },
-          { maxWeightGrams: 1000, standardPrice: 12.50, expressPrice: 19.90 },
-          { maxWeightGrams: 3000, standardPrice: 16.00, expressPrice: 26.50 },
-          { maxWeightGrams: 5000, standardPrice: 20.00, expressPrice: 33.00 },
-          { maxWeightGrams: 10000, standardPrice: 25.00, expressPrice: 42.00 }
-        ]
-    });
+    setShippingConfig(settings.shippingConfig || DEFAULT_SHIPPING_CONFIG);
   }, [settings]);
 
   const handleSave = () => {

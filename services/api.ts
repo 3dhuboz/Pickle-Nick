@@ -41,14 +41,14 @@ export const INITIAL_SETTINGS: AppSettings = {
   shippingConfig: {
     carrierName: 'Australia Post',
     trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/',
-    freeShippingThreshold: 75,
+    freeShippingThreshold: 90,
     defaultWeightGrams: 500,
     rates: [
-      { maxWeightGrams: 500, standardPrice: 9.50, expressPrice: 15.90 },
-      { maxWeightGrams: 1000, standardPrice: 12.50, expressPrice: 19.90 },
-      { maxWeightGrams: 3000, standardPrice: 16.00, expressPrice: 26.50 },
-      { maxWeightGrams: 5000, standardPrice: 20.00, expressPrice: 33.00 },
-      { maxWeightGrams: 10000, standardPrice: 25.00, expressPrice: 42.00 },
+      { maxWeightGrams: 500, standardPrice: 8.95, expressPrice: 13.95 },
+      { maxWeightGrams: 1000, standardPrice: 10.95, expressPrice: 16.95 },
+      { maxWeightGrams: 2000, standardPrice: 13.95, expressPrice: 21.95 },
+      { maxWeightGrams: 5000, standardPrice: 16.95, expressPrice: 26.95 },
+      { maxWeightGrams: 10000, standardPrice: 22.95, expressPrice: 34.95 },
     ],
   },
 };
