@@ -26,6 +26,7 @@ interface StoreContextType {
   updateOrderStatus: (id: string, status: Order['status'], tracking?: string) => void;
   updateOrder: (order: Order) => Promise<void>;
   addToCart: (product: Product, quantity: number) => void;
+  updateCartQuantity: (productId: string, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
   loginAdmin: () => void;
@@ -206,6 +207,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return [...prev, { productId: product.id, quantity, price: product.price, name: product.name }];
     });
   };
+  const updateCartQuantity = (productId: string, quantity: number) => {
+    setCart(prev => {
+      if (quantity <= 0) return prev.filter(item => item.productId !== productId);
+      return prev.map(item => item.productId === productId ? { ...item, quantity } : item);
+    });
+  };
   const removeFromCart = (productId: string) => setCart(prev => prev.filter(item => item.productId !== productId));
   const clearCart = () => setCart([]);
 
@@ -268,7 +275,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <StoreContext.Provider value={{
       products, categories, orders, users, posts, cart, isAdmin, settings, siteContent, messages, currentUser, installPrompt,
       addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory,
-      placeOrder, updateOrderStatus, updateOrder, addToCart, removeFromCart, clearCart,
+      placeOrder, updateOrderStatus, updateOrder, addToCart, updateCartQuantity, removeFromCart, clearCart,
       loginAdmin, logoutAdmin, loginCustomer, logoutCustomer,
       addPost, deletePost, updateSettings, updateSiteContent, sendMessage, deleteMessage,
       refreshData, updateUser, deleteUser, resetStore, reseedStore, triggerInstall,

@@ -7,7 +7,9 @@ import {
   CreditCard,
   Loader2,
   Lock,
+  Minus,
   Package,
+  Plus,
   ShieldCheck,
   Trash2,
   Truck,
@@ -58,8 +60,12 @@ const fieldClass = (hasError?: boolean) =>
       : 'border-[#120d0b]/16 bg-[#120d0b]/5 text-[#120d0b] focus:border-native-clay focus:bg-white'
   }`;
 
+const formatWeightLabel = (grams: number) => (
+  grams >= 1000 ? `${(grams / 1000).toFixed(grams % 1000 === 0 ? 0 : 1)} kg` : `${grams} g`
+);
+
 const Cart = () => {
-  const { cart, removeFromCart, placeOrder, settings, currentUser, products } = useStore();
+  const { cart, removeFromCart, updateCartQuantity, placeOrder, settings, currentUser, products } = useStore();
   const [step, setStep] = useState<CheckoutStep>('cart');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,22 +89,32 @@ const Cart = () => {
   const tax = settings.gstEnabled ? subtotal * (settings.gstRate / 100) : 0;
   const shippingConfig = settings.shippingConfig;
   const defaultWeight = shippingConfig?.defaultWeightGrams || 500;
+  const shippingRates = [...(shippingConfig?.rates || [])].sort((a, b) => a.maxWeightGrams - b.maxWeightGrams);
   const totalWeightGrams = cart.reduce((acc, item) => {
     const product = products.find(p => p.id === item.productId);
     return acc + (product?.weight || defaultWeight) * item.quantity;
   }, 0);
+  const selectedTierIndex = shippingRates.findIndex(rate => totalWeightGrams <= rate.maxWeightGrams);
+  const selectedTier = shippingRates[
+    selectedTierIndex >= 0 ? selectedTierIndex : Math.max(shippingRates.length - 1, 0)
+  ];
+  const tierLowerBound = selectedTierIndex > 0 ? shippingRates[selectedTierIndex - 1].maxWeightGrams : 0;
+  const freeShippingThreshold = shippingConfig?.freeShippingThreshold ?? 75;
+  const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+  const shippingBandLabel = selectedTier
+    ? tierLowerBound > 0
+      ? `${formatWeightLabel(tierLowerBound)} - ${formatWeightLabel(selectedTier.maxWeightGrams)}`
+      : `Up to ${formatWeightLabel(selectedTier.maxWeightGrams)}`
+    : null;
 
   const calcShipping = useCallback((method: 'standard' | 'express'): number => {
-    const rates = shippingConfig?.rates || [];
-    if (rates.length === 0) return method === 'express' ? 15 : 10;
-    const sorted = [...rates].sort((a, b) => a.maxWeightGrams - b.maxWeightGrams);
-    const tier = sorted.find(rate => totalWeightGrams <= rate.maxWeightGrams) || sorted[sorted.length - 1];
+    if (shippingRates.length === 0) return method === 'express' ? 15 : 10;
+    const tier = shippingRates.find(rate => totalWeightGrams <= rate.maxWeightGrams) || shippingRates[shippingRates.length - 1];
     if (method === 'standard') {
-      const threshold = shippingConfig?.freeShippingThreshold ?? 75;
-      return subtotal >= threshold ? 0 : tier.standardPrice;
+      return subtotal >= freeShippingThreshold ? 0 : tier.standardPrice;
     }
     return tier.expressPrice;
-  }, [shippingConfig, subtotal, totalWeightGrams]);
+  }, [freeShippingThreshold, shippingRates, subtotal, totalWeightGrams]);
 
   const standardCost = calcShipping('standard');
   const expressCost = calcShipping('express');
@@ -309,10 +325,42 @@ const Cart = () => {
                         {cart.map(item => (
                           <div key={item.productId} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-[#f4c56d]/10 pb-5 last:border-0 last:pb-0 sm:gap-5">
                             <div className="min-w-0">
-                              <h3 className="break-words font-display text-3xl leading-none text-[#f4c56d]">{item.name}</h3>
-                              <p className="mt-2 font-sans text-sm font-semibold text-[#f5f0e6]/58">
-                                Qty: {item.quantity} x ${item.price.toFixed(2)}
-                              </p>
+                              {(() => {
+                                const product = products.find(p => p.id === item.productId);
+                                const maxQty = Math.max(product?.stock || item.quantity, item.quantity);
+                                return (
+                                  <>
+                                    <h3 className="break-words font-display text-3xl leading-none text-[#f4c56d]">{item.name}</h3>
+                                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                                      <div className="flex items-center rounded-full border border-[#f4c56d]/16 bg-[#f5ecda]/4">
+                                        <button
+                                          type="button"
+                                          onClick={() => updateCartQuantity(item.productId, item.quantity - 1)}
+                                          className="flex h-11 w-11 items-center justify-center rounded-full text-[#f5f0e6] transition hover:bg-[#f4c56d]/8"
+                                          aria-label={`Decrease quantity for ${item.name}`}
+                                        >
+                                          <Minus size={16} />
+                                        </button>
+                                        <span className="w-12 text-center font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#f5f0e6]">
+                                          {item.quantity}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => updateCartQuantity(item.productId, Math.min(maxQty, item.quantity + 1))}
+                                          disabled={item.quantity >= maxQty}
+                                          className="flex h-11 w-11 items-center justify-center rounded-full text-[#f5f0e6] transition hover:bg-[#f4c56d]/8 disabled:cursor-not-allowed disabled:opacity-35"
+                                          aria-label={`Increase quantity for ${item.name}`}
+                                        >
+                                          <Plus size={16} />
+                                        </button>
+                                      </div>
+                                      <p className="font-sans text-sm font-semibold text-[#f5f0e6]/58">
+                                        ${item.price.toFixed(2)} each
+                                      </p>
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </div>
                             <p className="font-display text-xl text-[#f1dfb8] sm:text-2xl">${(item.quantity * item.price).toFixed(2)}</p>
                             <button
@@ -468,12 +516,25 @@ const Cart = () => {
                             <p className="mt-4 font-display text-3xl leading-none text-native-clay">
                               {option.cost === 0 ? 'FREE' : `$${option.cost.toFixed(2)}`}
                             </p>
+                            {option.method === 'standard' && (
+                              <p className="mt-2 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[#3d2a21]/55">
+                                {subtotal >= freeShippingThreshold
+                                  ? `Free over $${freeShippingThreshold.toFixed(0)} unlocked`
+                                  : `$${amountToFreeShipping.toFixed(2)} to free standard`}
+                              </p>
+                            )}
                           </button>
                         ))}
                       </div>
-                      <p className="mt-3 text-center font-sans text-sm font-semibold text-[#3d2a21]/56">
-                        Order weight: {(totalWeightGrams / 1000).toFixed(2)} kg
-                      </p>
+                      <div className="mt-4 space-y-1 text-center font-sans text-sm font-semibold text-[#3d2a21]/60">
+                        <p>Order weight: {(totalWeightGrams / 1000).toFixed(2)} kg</p>
+                        {shippingBandLabel && (
+                          <p>
+                            Shipping band: {shippingBandLabel}
+                            {subtotal < freeShippingThreshold && ` • Free standard over $${freeShippingThreshold.toFixed(0)}`}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     <div className="mt-10 flex items-center justify-between border-t border-[#120d0b]/14 pt-7">
