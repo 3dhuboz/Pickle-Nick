@@ -18,6 +18,13 @@ import {
 import { useStore } from '../context/StoreContext';
 import NickLogo from '../components/brand/NickLogo';
 import { mountSquareCard, processPayment } from '../services/paymentService';
+import {
+  calculateShippingCost,
+  cloneShippingConfig,
+  formatWeightLabel,
+  getFreeShippingProgress,
+  getShippingTierDetails,
+} from '../lib/shipping';
 
 const AU_STATES = [
   { value: '', label: 'Select State/Territory' },
@@ -60,10 +67,6 @@ const fieldClass = (hasError?: boolean) =>
       : 'border-[#120d0b]/16 bg-[#120d0b]/5 text-[#120d0b] focus:border-native-clay focus:bg-white'
   }`;
 
-const formatWeightLabel = (grams: number) => (
-  grams >= 1000 ? `${(grams / 1000).toFixed(grams % 1000 === 0 ? 0 : 1)} kg` : `${grams} g`
-);
-
 const Cart = () => {
   const { cart, removeFromCart, updateCartQuantity, placeOrder, settings, currentUser, products } = useStore();
   const [step, setStep] = useState<CheckoutStep>('cart');
@@ -87,39 +90,39 @@ const Cart = () => {
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const tax = settings.gstEnabled ? subtotal * (settings.gstRate / 100) : 0;
-  const shippingConfig = settings.shippingConfig;
+  const shippingConfig = cloneShippingConfig(settings.shippingConfig);
   const defaultWeight = shippingConfig?.defaultWeightGrams || 500;
-  const shippingRates = [...(shippingConfig?.rates || [])].sort((a, b) => a.maxWeightGrams - b.maxWeightGrams);
   const totalWeightGrams = cart.reduce((acc, item) => {
     const product = products.find(p => p.id === item.productId);
     return acc + (product?.weight || defaultWeight) * item.quantity;
   }, 0);
-  const selectedTierIndex = shippingRates.findIndex(rate => totalWeightGrams <= rate.maxWeightGrams);
-  const selectedTier = shippingRates[
-    selectedTierIndex >= 0 ? selectedTierIndex : Math.max(shippingRates.length - 1, 0)
-  ];
-  const tierLowerBound = selectedTierIndex > 0 ? shippingRates[selectedTierIndex - 1].maxWeightGrams : 0;
-  const freeShippingThreshold = shippingConfig?.freeShippingThreshold ?? 75;
-  const amountToFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
-  const shippingBandLabel = selectedTier
-    ? tierLowerBound > 0
-      ? `${formatWeightLabel(tierLowerBound)} - ${formatWeightLabel(selectedTier.maxWeightGrams)}`
-      : `Up to ${formatWeightLabel(selectedTier.maxWeightGrams)}`
-    : null;
+  const { label: shippingBandLabel } = getShippingTierDetails(shippingConfig, totalWeightGrams);
+  const {
+    threshold: freeShippingThreshold,
+    amountRemaining: amountToFreeShipping,
+    progressPercent: freeShippingProgressPercent,
+    unlocked: freeShippingUnlocked,
+  } = getFreeShippingProgress(shippingConfig, subtotal);
 
   const calcShipping = useCallback((method: 'standard' | 'express'): number => {
-    if (shippingRates.length === 0) return method === 'express' ? 15 : 10;
-    const tier = shippingRates.find(rate => totalWeightGrams <= rate.maxWeightGrams) || shippingRates[shippingRates.length - 1];
-    if (method === 'standard') {
-      return subtotal >= freeShippingThreshold ? 0 : tier.standardPrice;
-    }
-    return tier.expressPrice;
-  }, [freeShippingThreshold, shippingRates, subtotal, totalWeightGrams]);
+    return calculateShippingCost({
+      shippingConfig,
+      totalWeightGrams,
+      subtotal,
+      method,
+    });
+  }, [shippingConfig, subtotal, totalWeightGrams]);
 
   const standardCost = calcShipping('standard');
   const expressCost = calcShipping('express');
   const shippingCost = shippingMethod === 'express' ? expressCost : standardCost;
   const total = subtotal + tax + shippingCost;
+  const summaryShippingLabel =
+    step === 'cart'
+      ? 'Est. standard shipping'
+      : shippingMethod === 'express'
+        ? 'Express shipping'
+        : 'Standard shipping';
 
   useEffect(() => {
     if (!currentUser) return;
@@ -619,11 +622,36 @@ const Cart = () => {
                     ))}
                   </div>
 
+                  <div className="mt-7 rounded-[1.75rem] border border-[#f4c56d]/12 bg-[#f5ecda]/[0.03] p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-tribal text-[11px] font-bold uppercase tracking-[0.2em] text-[#f4c56d]">
+                          Free Standard
+                        </p>
+                        <p className="mt-2 font-sans text-sm font-semibold text-[#f5f0e6]/72">
+                          {freeShippingUnlocked
+                            ? `Unlocked over $${freeShippingThreshold.toFixed(0)}`
+                            : `$${amountToFreeShipping.toFixed(2)} to go`}
+                        </p>
+                      </div>
+                      <div className="text-right font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[#f5f0e6]/52">
+                        <p>{formatWeightLabel(totalWeightGrams)}</p>
+                        {shippingBandLabel && <p className="mt-2">{shippingBandLabel} band</p>}
+                      </div>
+                    </div>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#f5ecda]/10">
+                      <div
+                        className="h-full rounded-full bg-[linear-gradient(90deg,#9f3b2e_0%,#d37a55_48%,#f4c56d_100%)] transition-[width] duration-300"
+                        style={{ width: `${freeShippingProgressPercent}%` }}
+                      />
+                    </div>
+                  </div>
+
                   <div className="mt-7 space-y-3 border-t border-[#f4c56d]/14 pt-6 font-sans text-sm font-semibold text-[#f5f0e6]/62">
                     <div className="flex justify-between"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
                     {settings.gstEnabled && <div className="flex justify-between"><span>GST {settings.gstRate}%</span><span>${tax.toFixed(2)}</span></div>}
                     <div className="flex justify-between">
-                      <span>{shippingMethod === 'express' ? 'Express' : 'Standard'} shipping</span>
+                      <span>{summaryShippingLabel}</span>
                       <span>{shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}</span>
                     </div>
                   </div>

@@ -4,8 +4,9 @@ import { ArrowLeft, ArrowRight, Check, Flame, Minus, PackageCheck, Plus, ShieldC
 import { useStore } from '../context/StoreContext';
 import BrandedProductImage from '../components/brand/BrandedProductImage';
 import NickLogo from '../components/brand/NickLogo';
+import { calculateShippingCost, cloneShippingConfig, getFreeShippingProgress, getShippingTierDetails } from '../lib/shipping';
 
-const sealMark = '/brand/pickle-nick-logo.jpg';
+const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
 
 const detailProofs = [
   { icon: PackageCheck, title: 'Small Batch', desc: 'Packed in short runs.' },
@@ -16,7 +17,7 @@ const detailProofs = [
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { products, addToCart } = useStore();
+  const { products, addToCart, settings } = useStore();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const detailRef = useRef<HTMLDivElement | null>(null);
@@ -91,6 +92,22 @@ const ProductDetail = () => {
     );
   }
 
+  const shippingConfig = cloneShippingConfig(settings.shippingConfig);
+  const previewSubtotal = product.price * qty;
+  const previewWeightGrams = (product.weight || shippingConfig.defaultWeightGrams) * qty;
+  const previewStandardShipping = calculateShippingCost({
+    shippingConfig,
+    totalWeightGrams: previewWeightGrams,
+    subtotal: previewSubtotal,
+    method: 'standard',
+  });
+  const previewTier = getShippingTierDetails(shippingConfig, previewWeightGrams);
+  const {
+    threshold: freeShippingThreshold,
+    amountRemaining: freeShippingRemaining,
+    unlocked: freeShippingUnlocked,
+  } = getFreeShippingProgress(shippingConfig, previewSubtotal);
+
   const handleAddToCart = () => {
     addToCart(product, qty);
     setAdded(true);
@@ -163,6 +180,31 @@ const ProductDetail = () => {
                 <span>Crunchy</span>
                 <span>Bold Heat</span>
                 <span>Small Batch</span>
+              </div>
+
+              <div className="mt-6 rounded-[1.7rem] border border-[#f5ecda]/10 bg-[#120d0b]/45 px-4 py-4 sm:px-5">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-[#b69273]">
+                      Shipping Preview
+                    </p>
+                    <p className="mt-2 font-sans text-sm font-semibold text-[#f5ecda] sm:text-base">
+                      {previewStandardShipping === 0
+                        ? 'Free standard for this quantity'
+                        : `Est. standard $${previewStandardShipping.toFixed(2)} for ${qty} jar${qty > 1 ? 's' : ''}`}
+                    </p>
+                  </div>
+                  {previewTier.label && (
+                    <div className="rounded-full border border-[#f5ecda]/12 bg-[#f5ecda]/5 px-4 py-2 font-sans text-[10px] font-semibold uppercase tracking-[0.18em] text-[#f5ecda]/74">
+                      {previewTier.label}
+                    </div>
+                  )}
+                </div>
+                <p className="mt-3 font-sans text-sm font-medium leading-relaxed text-[#f5ecda]/62">
+                  {freeShippingUnlocked
+                    ? `Free standard unlocked over $${freeShippingThreshold.toFixed(0)}.`
+                    : `Free standard over $${freeShippingThreshold.toFixed(0)}. Add $${freeShippingRemaining.toFixed(2)} more to unlock it.`}
+                </p>
               </div>
 
               <div className="mt-8 flex flex-wrap items-center gap-4">

@@ -13,7 +13,7 @@ type BrandedProductImageProps = {
 };
 
 const fallbackSrc = '/brand/pickle-nick-product-card-backdrop.png';
-const sealSrc = '/brand/pickle-nick-logo.jpg';
+const sealSrc = '/brand/pickle-nick-seal-made-to-bite-back.png';
 
 const getPosterTheme = (product: Pick<Product, 'name' | 'image' | 'category'>) => {
   const signature = `${product.category || ''} ${product.name}`.toLowerCase();

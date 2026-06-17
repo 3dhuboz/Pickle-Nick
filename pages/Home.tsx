@@ -8,7 +8,7 @@ import BrandedProductImage from '../components/brand/BrandedProductImage';
 const BrineDepthScene = lazy(() => import('../components/visual/BrineDepthScene'));
 
 const heroBackground = '/brand/pickle-nick-warrior-tattoo-hero-v2.png';
-const sealMark = '/brand/pickle-nick-logo.jpg';
+const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
 
 const proofPoints = [
   { icon: PackageCheck, title: 'Small Batch', desc: 'Handmade in tiny batches.' },
@@ -454,9 +454,9 @@ const Home = () => {
             </Link>
           </div>
 
-          <div className="mt-9 grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+          <div className="mt-9 grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:items-start">
             {featuredBatchProduct && (
-              <article data-depth-card className="batch-feature-shell overflow-hidden rounded-[2.3rem] border border-[#f5ecda]/12 bg-[#16100d]/78 p-4 shadow-[0_28px_72px_rgba(0,0,0,0.34)] backdrop-blur-md">
+              <article data-depth-card className="batch-feature-shell self-start overflow-hidden rounded-[2.3rem] border border-[#f5ecda]/12 bg-[#16100d]/78 p-4 shadow-[0_28px_72px_rgba(0,0,0,0.34)] backdrop-blur-md">
                 <div className="grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-center">
                   <Link
                     to={`/product/${featuredBatchProduct.id}`}
@@ -472,7 +472,7 @@ const Home = () => {
                       hideLabel
                     />
                   </Link>
-                  <div className="px-2 pb-2 lg:px-0">
+                  <div className="px-2 pb-2 lg:flex lg:min-h-[23rem] lg:flex-col lg:justify-center lg:px-0">
                     <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-[#b69273]">
                       Featured Batch
                     </p>

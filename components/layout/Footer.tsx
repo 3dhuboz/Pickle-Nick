@@ -4,7 +4,7 @@ import { Facebook, Instagram, Leaf, Twitter } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import NickLogo from '../brand/NickLogo';
 
-const sealMark = '/brand/pickle-nick-logo.jpg';
+const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
 
 const Footer = () => {
   const { siteContent } = useStore();
@@ -25,17 +25,30 @@ const Footer = () => {
           className="tribal-seal-watermark tribal-seal-watermark--paper absolute bottom-2 right-[-1.5rem] hidden w-32 lg:block"
         />
 
-        <div className="grid gap-12 md:grid-cols-[1.15fr_0.7fr_0.9fr]">
-          <div>
+        <div className="grid gap-12 md:grid-cols-[1.15fr_0.7fr_0.9fr] md:items-start">
+          <div className="relative max-w-lg">
+            <img
+              src={sealMark}
+              alt=""
+              aria-hidden="true"
+              className="tribal-seal-watermark tribal-seal-watermark--ink absolute left-0 top-0 hidden w-24 md:block"
+            />
             <NickLogo
-              size="lg"
+              size="md"
               showName
               subtitle={siteContent?.general.tagline || 'Made To Bite Back'}
-              labelClassName="text-4xl leading-none"
+              className="relative z-10 gap-4"
+              imageClassName="h-16 w-16 p-[0.22rem]"
+              labelClassName="text-[clamp(2.75rem,4.2vw,3.7rem)] leading-[0.88]"
             />
-            <p className="mt-7 max-w-md font-sans text-lg font-semibold leading-relaxed text-[#f5f0e6]/64">
+            <p className="mt-5 max-w-md font-sans text-[1.05rem] font-semibold leading-relaxed text-[#f5f0e6]/68">
               Small-batch jars with warm spice, sharp brine, and a proper crunch.
             </p>
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f5ecda]/46">
+              <span>Hand packed</span>
+              <span>Slow brined</span>
+              <span>Nick marked</span>
+            </div>
           </div>
 
           <div>

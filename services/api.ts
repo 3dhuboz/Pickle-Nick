@@ -1,4 +1,5 @@
 import { Product, Order, User, SocialPost, AppSettings, SiteContent, ContactMessage, Category } from '../types';
+import { DEFAULT_SHIPPING_CONFIG } from '../lib/shipping';
 
 // In dev, Vite proxies /api → localhost:8787. In production, use the Worker URL.
 const DEFAULT_WORKER_URL = import.meta.env.DEV ? '' : 'https://picklenick.au';
@@ -38,19 +39,7 @@ export const INITIAL_SETTINGS: AppSettings = {
     emailProvider: 'resend',
     smtpEndpoint: '/api/email/send',
   },
-  shippingConfig: {
-    carrierName: 'Australia Post',
-    trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/',
-    freeShippingThreshold: 90,
-    defaultWeightGrams: 500,
-    rates: [
-      { maxWeightGrams: 500, standardPrice: 8.95, expressPrice: 13.95 },
-      { maxWeightGrams: 1000, standardPrice: 10.95, expressPrice: 16.95 },
-      { maxWeightGrams: 2000, standardPrice: 13.95, expressPrice: 21.95 },
-      { maxWeightGrams: 5000, standardPrice: 16.95, expressPrice: 26.95 },
-      { maxWeightGrams: 10000, standardPrice: 22.95, expressPrice: 34.95 },
-    ],
-  },
+  shippingConfig: DEFAULT_SHIPPING_CONFIG,
 };
 
 // ── ApiService ────────────────────────────────────────────────────────────────

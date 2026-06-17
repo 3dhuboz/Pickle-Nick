@@ -5,6 +5,7 @@ import { Save, Cloud, Database, AlertCircle, DollarSign, Mail, Server, Send, Loa
 import { AppSettings, EmailConfig, ShippingConfig } from '../../types';
 import { FacebookService, FacebookPage } from '../../services/facebookService';
 import { EmailService } from '../../services/emailService';
+import { cloneShippingConfig, DEFAULT_SHIPPING_CONFIG } from '../../lib/shipping';
 
 const HelpTip = ({ text }: { text: string }) => (
     <div className="flex items-start gap-3 bg-blue-50 text-blue-700 p-4 text-sm rounded-xl border border-blue-100 mt-2">
@@ -60,20 +61,6 @@ const SectionHeader = ({ title, icon: Icon, description, configured }: { title: 
     </div>
 );
 
-const DEFAULT_SHIPPING_CONFIG: ShippingConfig = {
-  carrierName: 'Australia Post',
-  trackingBaseUrl: 'https://auspost.com.au/mypost/track/#/details/',
-  freeShippingThreshold: 90,
-  defaultWeightGrams: 500,
-  rates: [
-    { maxWeightGrams: 500, standardPrice: 8.95, expressPrice: 13.95 },
-    { maxWeightGrams: 1000, standardPrice: 10.95, expressPrice: 16.95 },
-    { maxWeightGrams: 2000, standardPrice: 13.95, expressPrice: 21.95 },
-    { maxWeightGrams: 5000, standardPrice: 16.95, expressPrice: 26.95 },
-    { maxWeightGrams: 10000, standardPrice: 22.95, expressPrice: 34.95 },
-  ],
-};
-
 const Settings = () => {
   const { settings, updateSettings } = useStore();
   const { getToken } = useAuth();
@@ -81,7 +68,7 @@ const Settings = () => {
   const [emailConfig, setEmailConfig] = useState<EmailConfig>(settings.emailConfig || {
     enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/email/send'
   });
-  const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(settings.shippingConfig || DEFAULT_SHIPPING_CONFIG);
+  const [shippingConfig, setShippingConfig] = useState<ShippingConfig>(cloneShippingConfig(settings.shippingConfig || DEFAULT_SHIPPING_CONFIG));
   const [isTestingEmail, setIsTestingEmail] = useState(false);
   const [isTestingSquare, setIsTestingSquare] = useState(false);
   const [squareTestResult, setSquareTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -97,7 +84,7 @@ const Settings = () => {
     setEmailConfig(settings.emailConfig || {
        enabled: false, adminEmail: '', fromName: 'Pickle Nick', fromEmail: '', smtpEndpoint: '/api/email/send'
     });
-    setShippingConfig(settings.shippingConfig || DEFAULT_SHIPPING_CONFIG);
+    setShippingConfig(cloneShippingConfig(settings.shippingConfig || DEFAULT_SHIPPING_CONFIG));
   }, [settings]);
 
   const handleSave = () => {

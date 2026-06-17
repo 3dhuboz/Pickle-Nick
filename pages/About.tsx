@@ -4,7 +4,7 @@ import { ArrowRight, Flame, Leaf, Timer } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import NickLogo from '../components/brand/NickLogo';
 
-const sealMark = '/brand/pickle-nick-logo.jpg';
+const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
 
 const storyPoints = [
   { icon: Leaf, title: 'The Produce', desc: 'Chosen for crunch, colour, and the way it holds sharp spice after packing.' },
@@ -177,20 +177,56 @@ const About = () => {
             className="tribal-seal-watermark tribal-seal-watermark--ink absolute left-[-3rem] top-8 hidden w-40 lg:block"
           />
 
-          <div className="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-            <div className="px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
-              <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-[#b69273]">
-                Story Notes
-              </p>
-              <h2 className="mt-3 max-w-xl font-tribal text-[3rem] font-semibold leading-[0.9] text-[#f5ecda] sm:text-[3.45rem]">
-                {heading}
-              </h2>
-              <div className="mt-5 max-w-xl whitespace-pre-line font-sans text-base font-medium leading-relaxed text-[#f5ecda]/68 sm:text-lg">
-                {story}
+          <div className="grid lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
+            <div className="px-6 py-8 sm:px-8 lg:flex lg:min-h-[35rem] lg:flex-col lg:justify-between lg:px-10 lg:py-10">
+              <div>
+                <p className="font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-[#b69273]">
+                  Story Notes
+                </p>
+                <h2 className="mt-3 max-w-xl font-tribal text-[3rem] font-semibold leading-[0.9] text-[#f5ecda] sm:text-[3.45rem]">
+                  {heading}
+                </h2>
+                <div className="mt-5 max-w-xl whitespace-pre-line font-sans text-base font-medium leading-relaxed text-[#f5ecda]/68 sm:text-lg">
+                  {story}
+                </div>
+              </div>
+
+              <div className="mt-8 rounded-[2.2rem] border border-[#f5ecda]/12 bg-[linear-gradient(180deg,rgba(245,236,218,0.06),rgba(18,13,11,0.3))] p-5 shadow-[0_22px_44px_rgba(0,0,0,0.24)] backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                  <span className="flex h-16 w-16 shrink-0 overflow-hidden rounded-full border border-[#f5ecda]/16 bg-[#f0dfbb] p-[0.24rem] shadow-[0_14px_28px_rgba(0,0,0,0.24)]">
+                    <img src={sealMark} alt="" aria-hidden="true" className="h-full w-full rounded-full object-cover" />
+                  </span>
+                  <div>
+                    <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.24em] text-[#b69273]">
+                      Nick&apos;s Mark
+                    </p>
+                    <p className="mt-1 font-tribal text-[2rem] font-semibold leading-none text-[#f5ecda]">
+                      Signed for the shelf
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-full border border-[#f5ecda]/10 px-4 py-3">
+                    <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.22em] text-[#b69273]">
+                      Batch Standard
+                    </p>
+                    <p className="mt-1 font-sans text-sm font-medium leading-relaxed text-[#f5ecda]/72">
+                      Real ingredients, clean crunch, and no filler hiding in the jar.
+                    </p>
+                  </div>
+                  <div className="rounded-full border border-[#f5ecda]/10 px-4 py-3">
+                    <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.22em] text-[#b69273]">
+                      House Rule
+                    </p>
+                    <p className="mt-1 font-sans text-sm font-medium leading-relaxed text-[#f5ecda]/72">
+                      If it does not feel like a proper hand-packed run, it does not get Nick&apos;s seal.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="relative overflow-hidden bg-[linear-gradient(180deg,rgba(235,219,185,0.98),rgba(223,202,160,0.92))] px-6 py-8 text-[#18110d] sm:px-8 lg:px-10 lg:py-10">
+            <div className="relative overflow-hidden bg-[linear-gradient(180deg,rgba(235,219,185,0.98),rgba(223,202,160,0.92))] px-6 py-8 text-[#18110d] sm:px-8 lg:min-h-[35rem] lg:px-10 lg:py-10">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(255,255,255,0.52),transparent_24%),radial-gradient(circle_at_86%_18%,rgba(159,59,46,0.12),transparent_22%),repeating-linear-gradient(102deg,rgba(82,47,23,0.05)_0_1px,transparent_1px_12px),repeating-linear-gradient(0deg,rgba(255,255,255,0.12)_0_1px,transparent_1px_14px)] opacity-80" />
               <div className="relative z-10">
                 <div className="flex items-center gap-4">
