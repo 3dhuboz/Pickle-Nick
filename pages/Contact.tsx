@@ -4,7 +4,7 @@ import { Mail, MapPin, Phone, Send } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import NickLogo from '../components/brand/NickLogo';
 
-const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
+const sealMark = '/brand/pickle-nick-logo.jpg';
 
 const Contact = () => {
   const { siteContent, sendMessage } = useStore();

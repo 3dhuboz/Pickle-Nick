@@ -8,7 +8,7 @@ import BrandedProductImage from '../components/brand/BrandedProductImage';
 const BrineDepthScene = lazy(() => import('../components/visual/BrineDepthScene'));
 
 const heroBackground = '/brand/pickle-nick-warrior-tattoo-hero-v2.png';
-const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
+const sealMark = '/brand/pickle-nick-logo.jpg';
 
 const proofPoints = [
   { icon: PackageCheck, title: 'Small Batch', desc: 'Handmade in tiny batches.' },

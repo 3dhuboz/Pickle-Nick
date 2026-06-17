@@ -4,7 +4,7 @@ import { ArrowRight, Flame, Leaf, Timer } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import NickLogo from '../components/brand/NickLogo';
 
-const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
+const sealMark = '/brand/pickle-nick-logo.jpg';
 
 const storyPoints = [
   { icon: Leaf, title: 'The Produce', desc: 'Chosen for crunch, colour, and the way it holds sharp spice after packing.' },

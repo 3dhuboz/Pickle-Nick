@@ -23,7 +23,7 @@ import AdminLayout from './components/layout/AdminLayout';
 // Icons
 import { Download } from 'lucide-react';
 
-const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
+const sealMark = '/brand/pickle-nick-logo.jpg';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();

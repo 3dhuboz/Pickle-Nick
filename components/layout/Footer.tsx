@@ -4,7 +4,7 @@ import { Facebook, Instagram, Leaf, Twitter } from 'lucide-react';
 import { useStore } from '../../context/StoreContext';
 import NickLogo from '../brand/NickLogo';
 
-const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
+const sealMark = '/brand/pickle-nick-logo.jpg';
 
 const Footer = () => {
   const { siteContent } = useStore();

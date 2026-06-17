@@ -5,7 +5,7 @@ import { useStore } from '../context/StoreContext';
 import BrandedProductImage from '../components/brand/BrandedProductImage';
 import NickLogo from '../components/brand/NickLogo';
 
-const sealMark = '/brand/pickle-nick-seal-made-to-bite-back.png';
+const sealMark = '/brand/pickle-nick-logo.jpg';
 
 const detailProofs = [
   { icon: PackageCheck, title: 'Small Batch', desc: 'Packed in short runs.' },
