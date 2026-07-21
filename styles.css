@@ -530,9 +530,9 @@ select:focus-visible {
 .home-hero__seal {
   position: absolute;
   z-index: 0;
-  top: clamp(138px, 19vh, 210px);
-  right: clamp(32px, 8vw, 128px);
-  width: clamp(190px, 20vw, 318px);
+  top: clamp(120px, 15vh, 150px);
+  right: clamp(20px, 3vw, 52px);
+  width: clamp(150px, 13vw, 220px);
   aspect-ratio: 1;
   pointer-events: none;
   transform: rotate(-5deg);
@@ -2342,8 +2342,8 @@ select:focus-visible {
 
   .home-hero__seal {
     top: 108px;
-    right: -32px;
-    width: 174px;
+    right: -18px;
+    width: 132px;
   }
 
   .home-hero__seal img {
