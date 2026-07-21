@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import gsap from 'gsap';
 import { useStore } from '../../context/StoreContext';
 import { 
   LayoutDashboard, 
@@ -23,6 +24,39 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const mainRef = useRef<HTMLElement | null>(null);
+  const topbarRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  const sectionTitle = [
+    ['/admin/dashboard', 'Dashboard'],
+    ['/admin/orders', 'Orders'],
+    ['/admin/inventory', 'Inventory'],
+    ['/admin/users', 'Customers'],
+    ['/admin/social', 'Social Spirit'],
+    ['/admin/inbox', 'Inbox'],
+    ['/admin/cms', 'Content'],
+    ['/admin/settings', 'Settings'],
+  ].find(([path]) => location.pathname.startsWith(path))?.[1] || 'Command Center';
+
+  useLayoutEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const context = gsap.context(() => {
+      gsap.fromTo(
+        topbarRef.current,
+        { opacity: 0.65, y: -8 },
+        { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' },
+      );
+      gsap.fromTo(
+        contentRef.current,
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.62, ease: 'power3.out', clearProps: 'transform' },
+      );
+    }, mainRef);
+
+    return () => context.revert();
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logoutAdmin();
@@ -34,9 +68,9 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       to={to}
       onClick={() => setDrawerOpen(false)}
       className={({ isActive }) => `
-        group flex items-center justify-between px-4 py-3 mx-2 rounded-xl transition-all duration-200
+        admin-nav-item group flex items-center justify-between px-4 py-3 mx-2 transition-all duration-200
         ${isActive 
-          ? 'bg-native-clay text-white shadow-md shadow-native-clay/20' 
+          ? 'is-active text-white'
           : 'text-native-sand/60 hover:bg-white/5 hover:text-white'
         }
       `}
@@ -50,7 +84,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 
   const SectionHeader = ({ label }: { label: string }) => (
-    <div className="px-6 mt-6 mb-2">
+      <div className="admin-nav-section px-6 mt-6 mb-2">
       <p className="text-[10px] font-tribal uppercase tracking-[0.2em] text-native-sand/30 font-bold">{label}</p>
     </div>
   );
@@ -58,7 +92,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const SidebarContent = () => (
     <>
       {/* Brand Header */}
-      <div className="px-5 py-5 border-b border-white/5">
+      <div className="admin-brand px-5 py-5 border-b border-white/5">
         <div className="flex items-center gap-3">
           <NickLogo
             size="sm"
@@ -71,7 +105,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+      <nav className="admin-sidebar__nav flex-1 py-6 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         <SectionHeader label="Overview" />
         <NavItem to="/admin/dashboard" icon={LayoutDashboard} label="Dashboard" />
         
@@ -90,7 +124,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </nav>
 
       {/* Footer */}
-      <div className="p-6 border-t border-white/5 bg-black/20 space-y-1">
+      <div className="admin-sidebar__footer p-6 border-t border-white/5 bg-black/20 space-y-1">
         <NavLink
           to="/"
           onClick={() => setDrawerOpen(false)}
@@ -114,17 +148,17 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div
-      className="min-h-screen bg-[#f8f5f2] flex font-sans text-native-black"
+      className="admin-shell min-h-screen flex font-sans text-native-black"
       style={{ colorScheme: 'light' }}
     >
 
       {/* Desktop Sidebar */}
-      <aside className="w-72 bg-native-black text-native-sand fixed h-screen hidden md:flex flex-col shadow-2xl z-20">
+      <aside className="admin-sidebar w-72 text-native-sand fixed h-screen hidden md:flex flex-col z-20">
         <SidebarContent />
       </aside>
 
       {/* Mobile Top Bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-native-black text-white flex items-center justify-between px-4 py-3 shadow-lg">
+      <div className="admin-mobilebar md:hidden fixed top-0 left-0 right-0 z-30 text-white flex items-center justify-between px-4 py-3 shadow-lg">
         <div className="flex items-center gap-2">
           <NickLogo size="sm" showName imageClassName="h-9 w-9" labelClassName="text-lg leading-none" />
         </div>
@@ -146,7 +180,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       )}
 
       {/* Mobile Drawer */}
-      <aside className={`md:hidden fixed top-0 left-0 h-screen w-72 bg-native-black text-native-sand flex flex-col shadow-2xl z-50 transition-transform duration-300 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`admin-sidebar md:hidden fixed top-0 left-0 h-screen w-72 text-native-sand flex flex-col shadow-2xl z-50 transition-transform duration-300 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="absolute top-4 right-4">
           <button
             title="Close menu"
@@ -160,9 +194,19 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-72 min-h-screen bg-[#f8f5f2] relative">
-        <div className="h-full pt-14 md:pt-0 p-5 md:p-10 overflow-y-auto">
-          <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <main ref={mainRef} className="admin-main flex-1 md:ml-72 min-h-screen relative">
+        <img className="admin-main__seal" src="/brand/pickle-nick-logo.jpg" alt="" aria-hidden="true" />
+        <div ref={topbarRef} className="admin-topbar">
+          <div>
+            <span className="admin-topbar__eyeline">Nick's workbench</span>
+            <strong>{sectionTitle}</strong>
+          </div>
+          <NavLink className="admin-topbar__store" to="/">
+            View live store <ExternalLink size={15} />
+          </NavLink>
+        </div>
+        <div className="admin-main__scroll h-full p-5 md:p-10 overflow-y-auto">
+          <div ref={contentRef} className="admin-content max-w-7xl mx-auto">
             {children}
           </div>
         </div>
