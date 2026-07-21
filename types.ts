@@ -197,5 +197,6 @@ export interface SiteContent {
   about: {
     heading: string;
     text: string;
+    heroImage?: string;
   };
 }

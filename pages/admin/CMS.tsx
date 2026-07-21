@@ -3,6 +3,7 @@ import { useStore } from '../../context/StoreContext';
 import { Save, Layout, Info, Phone, Link, Image as ImageIcon, Upload, Wand2, Loader2, Sparkles, User, Palette, X, Edit, Maximize2, Check, AlertCircle, HelpCircle } from 'lucide-react';
 import { SiteContent } from '../../types';
 import { generateSiteImage } from '../../services/aiService';
+import { ApiService } from '../../services/api';
 import { useAuth } from '@clerk/react';
 
 const HelpTip = ({ text }: { text: string }) => (
@@ -20,14 +21,22 @@ const ImageEditorModal = ({ label, value, onClose, onSave }: { label: string, va
     const [prompt, setPrompt] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setTempValue(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        setLoading(true);
+        try {
+            const token = await getToken();
+            if (!token) throw new Error('Your admin session has expired. Please sign in again.');
+            const url = await ApiService.uploadFile(file, 'site-content', token);
+            setTempValue(url);
+        } catch (error: any) {
+            console.error('Image upload failed', error);
+            alert(error.message || 'Image upload failed. Please try again.');
+        } finally {
+            setLoading(false);
+            e.target.value = '';
         }
     };
 
@@ -143,7 +152,13 @@ const ImageEditorModal = ({ label, value, onClose, onSave }: { label: string, va
 
                 <div className="p-6 border-t border-native-black/10 bg-white flex justify-end gap-4">
                     <button onClick={onClose} className="px-6 py-2 font-tribal uppercase font-bold text-native-earth hover:bg-native-sand/50 transition-colors">Cancel</button>
-                    <button onClick={() => onSave(tempValue)} className="px-8 py-2 bg-native-black text-white font-tribal uppercase tracking-widest hover:bg-native-clay transition-colors shadow-lg">Confirm Change</button>
+                    <button
+                        onClick={() => onSave(tempValue)}
+                        disabled={loading || !tempValue}
+                        className="px-8 py-2 bg-native-black text-white font-tribal uppercase tracking-widest hover:bg-native-clay transition-colors shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {loading ? 'Uploading...' : 'Confirm Change'}
+                    </button>
                 </div>
             </div>
         </div>
@@ -198,7 +213,9 @@ const CMS = () => {
         if (content) {
             setSaveStatus('saving');
             try {
-                await updateSiteContent(content);
+                const nextContent = { ...content, updatedAt: Date.now() };
+                await updateSiteContent(nextContent);
+                setContent(nextContent);
                 setSaveStatus('success');
                 // Reset status after 3 seconds
                 setTimeout(() => setSaveStatus('idle'), 3000);
@@ -233,7 +250,8 @@ const CMS = () => {
     if (!content) return <div>Loading Scrolls...</div>;
 
     const visuals = [
-        { label: "Founder (The Alchemist)", path: "home.founderImage", value: content.home.founderImage },
+        { label: "Our Story Hero Artwork", path: "about.heroImage", value: content.about.heroImage || '/brand/pickle-nick-warrior-flash.png' },
+        { label: "Our Story Feature Photo", path: "home.founderImage", value: content.home.founderImage || '/brand/pickle-nick-hand-bottles.jpg' },
         { label: "Gallery Banner (Gravel)", path: "home.galleryImage1", value: content.home.galleryImage1 },
         { label: "Gallery Detail (Rows)", path: "home.galleryImage2", value: content.home.galleryImage2 },
         { label: "Gallery Detail (Sauce)", path: "home.galleryImage3", value: content.home.galleryImage3 },

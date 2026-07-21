@@ -113,7 +113,10 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 
   return (
-    <div className="min-h-screen bg-[#f8f5f2] flex font-sans text-native-black">
+    <div
+      className="min-h-screen bg-[#f8f5f2] flex font-sans text-native-black"
+      style={{ colorScheme: 'light' }}
+    >
 
       {/* Desktop Sidebar */}
       <aside className="w-72 bg-native-black text-native-sand fixed h-screen hidden md:flex flex-col shadow-2xl z-20">
