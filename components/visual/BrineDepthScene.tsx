@@ -29,18 +29,29 @@ const fragmentShader = `
     vec2 uv = vUv;
     vec2 source = vec2(0.68 + uPointer.x * 0.025, 0.48 + uPointer.y * 0.018);
     vec2 point = (uv - source) * vec2(aspect, 1.0);
+    vec2 leftSource = vec2(0.16 + uPointer.x * 0.018, 0.57 + uPointer.y * 0.014);
+    vec2 leftPoint = (uv - leftSource) * vec2(aspect, 1.0);
 
     float firstWave = ripple(point, 54.0, 1.9);
     float secondWave = ripple(point + vec2(0.08, -0.03), 71.0, 2.35);
     float interference = max(0.0, firstWave * 0.58 + secondWave * 0.42);
     float focus = smoothstep(0.66, 0.12, length(point));
+    float leftWave = abs(
+      ripple(leftPoint, 38.0, 1.15) * 0.62 +
+      ripple(leftPoint + vec2(-0.06, 0.08), 52.0, 1.48) * 0.38
+    );
+    float leftFocus = smoothstep(0.78, 0.08, length(leftPoint));
+    float leftField = 1.0 - smoothstep(0.34, 0.66, uv.x);
     float horizon = smoothstep(0.2, 0.78, uv.y) * smoothstep(0.98, 0.5, uv.y);
     float glint = pow(max(0.0, sin((uv.x * 1.6 + uv.y) * 34.0 + uTime * 0.8)), 18.0);
+    float leftGlint = pow(max(0.0, sin((uv.x * 1.25 - uv.y) * 24.0 - uTime * 0.55)), 24.0);
 
     vec3 brass = vec3(0.93, 0.58, 0.22);
     vec3 glass = vec3(0.76, 0.93, 0.88);
     vec3 color = mix(brass, glass, glint * 0.6);
-    float alpha = (interference * 0.14 + glint * 0.055) * focus * horizon;
+    float jarAlpha = (interference * 0.14 + glint * 0.055) * focus * horizon;
+    float leftAlpha = (leftWave * 0.07 + leftGlint * 0.025) * leftFocus * leftField;
+    float alpha = jarAlpha + leftAlpha;
 
     gl_FragColor = vec4(color, alpha);
   }

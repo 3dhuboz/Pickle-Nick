@@ -484,6 +484,35 @@ select:focus-visible {
   background: linear-gradient(180deg, rgba(5, 4, 4, 0.08), transparent 54%, rgba(5, 4, 4, 0.72));
 }
 
+.home-hero__left-depth {
+  position: absolute;
+  z-index: -1;
+  inset: 0 42% 0 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 24% 56%, rgba(181, 108, 48, 0.22), transparent 46%),
+    url("/brand/pickle-nick-ink-texture.webp") center / 680px 680px repeat;
+  background-blend-mode: screen, normal;
+  mask-image: linear-gradient(90deg, #000 0%, #000 58%, transparent 100%);
+  opacity: 0.67;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 58%, transparent 100%);
+}
+
+.home-hero__left-mark {
+  position: absolute;
+  top: 15%;
+  left: clamp(-330px, -15vw, -180px);
+  width: clamp(560px, 47vw, 760px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: sepia(1) saturate(0.72) brightness(0.78) contrast(1.18) drop-shadow(0 34px 70px rgba(0, 0, 0, 0.5));
+  mix-blend-mode: screen;
+  object-fit: cover;
+  opacity: 0.14;
+  transform: rotate(-10deg);
+}
+
 .brine-depth-scene {
   position: absolute;
   z-index: -2;
@@ -2295,6 +2324,20 @@ select:focus-visible {
 
   .home-hero__scrim {
     background: linear-gradient(180deg, rgba(5, 4, 4, 0.2) 0%, rgba(5, 4, 4, 0.3) 34%, rgba(5, 4, 4, 0.84) 72%, rgba(5, 4, 4, 0.96) 100%);
+  }
+
+  .home-hero__left-depth {
+    inset: 0;
+    background:
+      radial-gradient(circle at 18% 58%, rgba(181, 108, 48, 0.12), transparent 42%),
+      url("/brand/pickle-nick-ink-texture.webp") center / 520px 520px repeat;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.24), #000 58%, transparent 100%);
+    opacity: 0.38;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.24), #000 58%, transparent 100%);
+  }
+
+  .home-hero__left-mark {
+    display: none;
   }
 
   .home-hero__seal {

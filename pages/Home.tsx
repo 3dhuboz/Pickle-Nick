@@ -30,6 +30,49 @@ const Home = () => {
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
 
   useEffect(() => {
+    let cancelled = false;
+    let motionContext: { revert: () => void } | undefined;
+    let revertMedia: (() => void) | undefined;
+
+    const initialiseHeroDepth = async () => {
+      const { gsap } = await import('gsap');
+      if (cancelled || !rootRef.current) return;
+
+      motionContext = gsap.context(() => {
+        const mediaContext = gsap.matchMedia();
+        revertMedia = () => mediaContext.revert();
+        mediaContext.add(
+          {
+            desktop: '(min-width: 761px)',
+            reduceMotion: '(prefers-reduced-motion: reduce)',
+          },
+          context => {
+            if (!context.conditions?.desktop || context.conditions.reduceMotion) return;
+
+            gsap.to('.home-hero__left-mark', {
+              xPercent: 4,
+              yPercent: -3,
+              rotation: -5,
+              duration: 12,
+              repeat: -1,
+              yoyo: true,
+              ease: 'sine.inOut',
+            });
+          },
+        );
+      }, rootRef);
+    };
+
+    void initialiseHeroDepth();
+
+    return () => {
+      cancelled = true;
+      revertMedia?.();
+      motionContext?.revert();
+    };
+  }, []);
+
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return undefined;
 
@@ -89,6 +132,9 @@ const Home = () => {
           <source src="/brand/pickle-nick-brine-hero.mp4" type="video/mp4" />
         </video>
         <div className="home-hero__scrim" aria-hidden="true" />
+        <div className="home-hero__left-depth" aria-hidden="true">
+          <img className="home-hero__left-mark" src={NICK_LOGO_SRC} alt="" />
+        </div>
         <Suspense fallback={null}><BrineDepthScene /></Suspense>
         <div className="home-hero__seal" data-reveal aria-hidden="true">
           <img src={NICK_LOGO_SRC} alt="" data-parallax-media />
