@@ -60,6 +60,7 @@ const BrineDepthScene = () => {
       renderer = new THREE.WebGLRenderer({
         alpha: true,
         antialias: false,
+        preserveDrawingBuffer: true,
         powerPreference: 'high-performance',
       });
     } catch {

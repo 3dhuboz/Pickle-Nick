@@ -18,14 +18,42 @@ const proofPoints = [
 const Home = () => {
   const { products, addToCart } = useStore();
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const timerRef = useRef<number | undefined>(undefined);
   const [addedId, setAddedId] = useState<string | null>(null);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const featuredProducts = products.filter(product => product.featured).slice(0, 4);
   const batch = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 4);
 
   usePageMotion(rootRef);
 
   useEffect(() => () => window.clearTimeout(timerRef.current), []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return undefined;
+
+    const startPlayback = () => {
+      if (document.hidden) return;
+      void video.play().catch(() => setVideoPlaying(false));
+    };
+    const handlePlaying = () => setVideoPlaying(true);
+    const handleWaiting = () => setVideoPlaying(false);
+    const handleVisibility = () => startPlayback();
+
+    video.addEventListener('canplay', startPlayback);
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('waiting', handleWaiting);
+    document.addEventListener('visibilitychange', handleVisibility);
+    startPlayback();
+
+    return () => {
+      video.removeEventListener('canplay', startPlayback);
+      video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('waiting', handleWaiting);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
 
   const handleQuickAdd = (productId: string) => {
     const product = products.find(item => item.id === productId);
@@ -39,14 +67,22 @@ const Home = () => {
   return (
     <div ref={rootRef} className="home-page">
       <section className="home-hero" aria-labelledby="home-title">
+        <img
+          className="home-hero__poster"
+          src="/brand/pickle-nick-brine-hero-source.png"
+          alt=""
+          aria-hidden="true"
+        />
         <video
-          className="home-hero__video"
+          ref={videoRef}
+          className={`home-hero__video${videoPlaying ? ' is-playing' : ''}`}
           autoPlay
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="auto"
           poster="/brand/pickle-nick-brine-hero-source.png"
+          disablePictureInPicture
           data-parallax-media
           aria-hidden="true"
         >
@@ -54,6 +90,9 @@ const Home = () => {
         </video>
         <div className="home-hero__scrim" aria-hidden="true" />
         <Suspense fallback={null}><BrineDepthScene /></Suspense>
+        <div className="home-hero__seal" data-reveal aria-hidden="true">
+          <img src={NICK_LOGO_SRC} alt="" data-parallax-media />
+        </div>
 
         <div className="page-width home-hero__inner">
           <div className="home-hero__content">
@@ -96,7 +135,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="dark-section">
+      <section className="dark-section dark-section--maker">
         <div className="page-width batch-layout">
           <div className="batch-layout__intro" data-scroll-reveal>
             <p className="eyeline">Fresh from the bench</p>

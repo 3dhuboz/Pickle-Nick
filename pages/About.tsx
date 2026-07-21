@@ -12,6 +12,13 @@ const method = [
   { icon: Flame, title: 'Taste', copy: 'Nick checks the batch before the label goes on.' },
 ];
 
+const flashStories = [
+  { src: '/brand/pickle-art-cucumbers.jpg', title: 'Clean crunch', copy: 'Cucumber flash for the jars that start crisp.' },
+  { src: '/brand/pickle-art-roast-jalapeno.jpg', title: 'Roast heat', copy: 'A charred jalapeno mark for a slower burn.' },
+  { src: '/brand/pickle-art-sweet-smokey.jpg', title: 'Smoke & fire', copy: 'Bold bottle art built to read from across the shelf.' },
+  { src: '/brand/pickle-art-onions.jpg', title: 'Sharp bite', copy: 'The ingredient becomes the badge, direct and unmistakable.' },
+];
+
 const About = () => {
   const { siteContent } = useStore();
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -19,7 +26,10 @@ const About = () => {
 
   return (
     <div ref={rootRef} className="page-shell content-page">
-      <header className="page-hero">
+      <header className="page-hero page-hero--story">
+        <div className="page-hero__flash" aria-hidden="true">
+          <img src="/brand/pickle-nick-warrior-flash.png" alt="" data-parallax-media />
+        </div>
         <div className="page-width page-hero__row">
           <div>
             <img className="page-hero__logo" src={NICK_LOGO_SRC} alt="Pickle Nick" data-reveal />
@@ -45,6 +55,31 @@ const About = () => {
               Nick's range is direct, a little unruly, and built with care. The tattoo-flash labels come from the same place as the recipes: bold choices, honest ingredients, and no interest in blending into the shelf.
             </p>
             <Link className="button button--line" to="/shop">See the range <ArrowRight size={16} /></Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="flash-story" aria-labelledby="flash-story-title">
+        <div className="page-width">
+          <div className="flash-story__head" data-scroll-reveal>
+            <div>
+              <p className="eyeline">Ink with a job</p>
+              <h2 id="flash-story-title" className="display">The flash is part of the flavour.</h2>
+            </div>
+            <p className="body-copy">
+              Nick's tattoo language is not wallpaper. Each mark identifies the ingredient, the heat, and the attitude of the batch before the lid comes off.
+            </p>
+          </div>
+          <div className="flash-story__rail">
+            {flashStories.map(item => (
+              <figure key={item.title} className="flash-story__item" data-scroll-reveal>
+                <img src={item.src} alt={`${item.title} Pickle Nick tattoo flash`} data-parallax-media />
+                <figcaption>
+                  <strong>{item.title}</strong>
+                  <span>{item.copy}</span>
+                </figcaption>
+              </figure>
+            ))}
           </div>
         </div>
       </section>
