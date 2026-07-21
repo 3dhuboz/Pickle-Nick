@@ -1,38 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SignIn, useUser } from '@clerk/react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import NickLogo from '../components/brand/NickLogo';
+import { NICK_LOGO_SRC } from '../components/brand/NickLogo';
 
 const Login = () => {
   const { user } = useUser();
   const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) navigate('/shop');
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen bg-[#120d0b] px-5 py-32 text-[#f5f0e6]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_18%,rgba(244,197,109,0.16),transparent_32%),linear-gradient(135deg,rgba(244,197,109,0.08)_1px,transparent_1px),#120d0b] bg-[auto,28px_28px,auto]" />
-      <div className="relative mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.95fr_0.85fr] lg:items-center">
-        <div>
-          <NickLogo size="lg" />
-          <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
-            Pantry Access
+    <div className="page-shell content-page">
+      <main className="page-width content-layout" style={{ paddingTop: 64 }}>
+        <section>
+          <img className="page-hero__logo" src={NICK_LOGO_SRC} alt="Pickle Nick" />
+          <h1 className="display" style={{ color: 'var(--cream)', fontSize: 58 }}>Welcome back.</h1>
+          <p className="body-copy" style={{ maxWidth: 500, marginTop: 22 }}>
+            Sign in to check orders, update your details, and get back to the current batch.
           </p>
-          <h1 className="mt-4 font-display text-[4.1rem] leading-[0.9] text-[#f4c56d] drop-shadow-[0_8px_26px_rgba(0,0,0,0.65)] sm:text-7xl">
-            Sign In
-          </h1>
-          <p className="mt-8 max-w-xl font-sans text-xl font-semibold leading-relaxed text-[#f5f0e6]/76">
-            Track your jars, keep the basket close, and come back to Nick's counter without losing the trail.
-          </p>
-        </div>
-
-        <div className="border border-[#f4c56d]/18 bg-[#0b0807]/88 p-6 shadow-[0_28px_90px_rgba(0,0,0,0.42)] md:p-9">
-          <div className="mb-7 text-center">
-            <NickLogo size="md" className="justify-center" showName labelClassName="text-2xl leading-none text-left" />
+          <div className="story-media" style={{ marginTop: 38, aspectRatio: '16 / 10' }}>
+            <img src="/brand/pickle-nick-hand-bottles.jpg" alt="Nick holding Pickle Nick hot sauces" />
           </div>
+        </section>
+
+        <section style={{ borderTop: '1px solid var(--line-dark)', borderBottom: '1px solid var(--line-dark)', paddingBlock: 28 }}>
           <SignIn
             routing="hash"
             signUpUrl="/login"
@@ -40,28 +34,20 @@ const Login = () => {
             appearance={{
               elements: {
                 rootBox: 'w-full',
-                card: 'shadow-none border-0 p-0 bg-transparent text-[#f5f0e6]',
-                headerTitle: 'hidden',
-                headerSubtitle: 'hidden',
-                socialButtonsBlockButton: 'w-full border border-[#f4c56d]/22 bg-transparent font-tribal uppercase tracking-[0.18em] font-bold py-4 px-6 text-[#f5f0e6] hover:bg-[#f4c56d] hover:text-[#120d0b] transition',
-                formFieldLabel: 'font-tribal uppercase tracking-[0.18em] text-[#f4c56d]/76 text-xs',
-                formFieldInput: 'border border-[#f4c56d]/18 bg-[#120d0b] text-[#f5f0e6] rounded-none',
-                formButtonPrimary: 'bg-[#bc4b35] hover:bg-[#a63d2b] font-tribal uppercase tracking-[0.2em] rounded-none text-sm',
-                footerActionLink: 'text-[#f4c56d]',
+                card: 'shadow-none border-0 p-0 bg-transparent text-[#f2e8d3]',
+                headerTitle: 'font-tribal text-[#fffaf0] text-3xl',
+                headerSubtitle: 'font-sans text-[#f2e8d3]/60',
+                socialButtonsBlockButton: 'w-full border border-[#f2e8d3]/20 bg-transparent font-sans font-semibold py-3.5 px-5 text-[#f2e8d3] hover:bg-[#f2e8d3]/5 transition rounded-full',
+                formFieldLabel: 'font-sans text-[#dcae54] text-xs font-bold',
+                formFieldInput: 'border-0 border-b border-[#f2e8d3]/30 bg-transparent text-[#f2e8d3] rounded-none px-0 focus:border-[#dcae54]',
+                formButtonPrimary: 'bg-[#c74d35] hover:bg-[#d55b40] font-sans font-bold rounded-full text-sm py-3.5',
+                footerActionLink: 'text-[#dcae54]',
               },
             }}
           />
-
-          <div className="mt-9 border-t border-[#f4c56d]/14 pt-7 text-center">
-            <button
-              onClick={() => navigate('/')}
-              className="mx-auto inline-flex items-center justify-center gap-2 font-tribal text-xs font-bold uppercase tracking-[0.24em] text-[#f4c56d]/72 transition hover:text-[#f4c56d]"
-            >
-              <ArrowLeft size={14} /> Return Home
-            </button>
-          </div>
-        </div>
-      </div>
+          <Link className="back-link" to="/" style={{ marginTop: 28, marginBottom: 0 }}><ArrowLeft size={15} /> Return home</Link>
+        </section>
+      </main>
     </div>
   );
 };

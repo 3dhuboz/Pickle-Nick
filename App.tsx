@@ -20,10 +20,8 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import AdminLayout from './components/layout/AdminLayout';
 
-// Icons
-import { Download } from 'lucide-react';
-
-const sealMark = '/brand/pickle-nick-logo.jpg';
+const logoMark = '/brand/pickle-nick-logo.jpg';
+const socialImage = '/brand/pickle-nick-brine-hero-source.png';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -34,8 +32,8 @@ const ScrollToTop = () => {
 };
 
 const PageFallback = () => (
-  <div className="min-h-screen bg-[#120d0b] flex items-center justify-center">
-    <div className="h-14 w-14 rounded-full border-4 border-native-clay/25 border-t-native-clay animate-spin" />
+  <div className="min-h-screen bg-[#0b0908] flex items-center justify-center">
+    <div className="h-12 w-12 rounded-full border-2 border-[#f2e8d3]/20 border-t-[#c74d35] animate-spin" />
   </div>
 );
 
@@ -53,30 +51,10 @@ const ProtectedCustomerRoute: React.FC<{ children: React.ReactNode }> = ({ child
 };
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { pathname } = useLocation();
-  const showWatermarks = pathname !== '/';
-
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-[#120d0b] text-native-sand">
-      {showWatermarks && (
-        <img
-          src={sealMark}
-          alt=""
-          className="pointer-events-none fixed bottom-10 left-8 z-[1] hidden w-48 rounded-full xl:block"
-          style={{ opacity: 0.08 }}
-        />
-      )}
-      {showWatermarks && (
-        <img
-          src={sealMark}
-          alt=""
-          className="pointer-events-none fixed right-8 top-28 z-[1] hidden w-40 rounded-full xl:block"
-          style={{ opacity: 0.055 }}
-        />
-      )}
-
+    <div className="site-shell flex min-h-screen flex-col">
       <Navbar />
-      <main className="relative z-10 min-w-0 flex-grow">
+      <main className="site-main flex-grow">
         {children}
       </main>
       <Footer />
@@ -94,8 +72,8 @@ const SeoManager = () => {
     const tagline = g.tagline || 'Made To Bite Back';
     const description = g.seoDescription || `${brand} makes small-batch pickles, hot sauce, and bold jars with Nick's mark.`;
     const siteUrl = (g.siteUrl || 'https://picklenick.au').replace(/\/$/, '');
-    const faviconUrl = sealMark;
-    const ogImage = `${siteUrl}${faviconUrl}`;
+    const faviconUrl = logoMark;
+    const ogImage = `${siteUrl}${socialImage}`;
 
     // Title
     document.title = `${brand} | ${tagline}`;
@@ -154,7 +132,7 @@ const SeoManager = () => {
       "name": brand,
       "description": description,
       "url": siteUrl,
-      "logo": ogImage,
+      "logo": `${siteUrl}${logoMark}`,
       "image": ogImage,
       "priceRange": "$$",
       "email": g.email || undefined,

@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertCircle,
+  ArrowRight,
   CheckCircle2,
-  ChevronRight,
   CreditCard,
   Loader2,
   Lock,
@@ -16,7 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
-import NickLogo from '../components/brand/NickLogo';
+import { NICK_LOGO_SRC } from '../components/brand/NickLogo';
 import { mountSquareCard, processPayment } from '../services/paymentService';
 import {
   calculateShippingCost,
@@ -40,7 +40,7 @@ const AU_STATES = [
 
 const validatePostcode = (postcode: string, state: string): string | null => {
   if (!/^\d{4}$/.test(postcode)) return 'Postcode must be exactly 4 digits.';
-  const p = parseInt(postcode, 10);
+  const numericPostcode = Number.parseInt(postcode, 10);
   const ranges: Record<string, [number, number][]> = {
     NSW: [[1000, 1999], [2000, 2599], [2619, 2899], [2921, 2999]],
     VIC: [[3000, 3999], [8000, 8999]],
@@ -51,21 +51,24 @@ const validatePostcode = (postcode: string, state: string): string | null => {
     NT: [[800, 899], [900, 999]],
     ACT: [[200, 299], [2600, 2618], [2900, 2920]],
   };
+
   if (state && ranges[state]) {
-    const valid = ranges[state].some(([low, high]) => p >= low && p <= high);
-    if (!valid) return `Postcode ${postcode} doesn't match ${state}. Please check.`;
+    const isValid = ranges[state].some(([low, high]) => numericPostcode >= low && numericPostcode <= high);
+    if (!isValid) return `Postcode ${postcode} doesn't match ${state}. Please check.`;
   }
+
   return null;
 };
 
 type CheckoutStep = 'cart' | 'shipping' | 'payment' | 'success';
 
-const fieldClass = (hasError?: boolean) =>
-  `w-full border px-5 py-4 font-sans text-base font-semibold outline-none transition ${
-    hasError
-      ? 'border-native-clay bg-native-clay/10 text-[#120d0b]'
-      : 'border-[#120d0b]/16 bg-[#120d0b]/5 text-[#120d0b] focus:border-native-clay focus:bg-white'
-  }`;
+const fieldClass = (hasError?: boolean) => `checkout-input ${hasError ? 'is-error' : ''}`;
+
+const checkoutSteps: Array<{ key: Exclude<CheckoutStep, 'success'>; label: string }> = [
+  { key: 'cart', label: 'Review' },
+  { key: 'shipping', label: 'Shipping' },
+  { key: 'payment', label: 'Payment' },
+];
 
 const Cart = () => {
   const { cart, removeFromCart, updateCartQuantity, placeOrder, settings, currentUser, products } = useStore();
@@ -82,19 +85,18 @@ const Cart = () => {
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [shippingMethod, setShippingMethod] = useState<'standard' | 'express'>('standard');
-
   const squareTokenizeRef = useRef<(() => Promise<string>) | null>(null);
   const squareDestroyRef = useRef<(() => void) | null>(null);
   const [squareReady, setSquareReady] = useState(false);
   const [squareError, setSquareError] = useState<string | null>(null);
 
-  const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const tax = settings.gstEnabled ? subtotal * (settings.gstRate / 100) : 0;
   const shippingConfig = cloneShippingConfig(settings.shippingConfig);
-  const defaultWeight = shippingConfig?.defaultWeightGrams || 500;
-  const totalWeightGrams = cart.reduce((acc, item) => {
-    const product = products.find(p => p.id === item.productId);
-    return acc + (product?.weight || defaultWeight) * item.quantity;
+  const defaultWeight = shippingConfig.defaultWeightGrams || 500;
+  const totalWeightGrams = cart.reduce((total, item) => {
+    const product = products.find(candidate => candidate.id === item.productId);
+    return total + (product?.weight || defaultWeight) * item.quantity;
   }, 0);
   const { label: shippingBandLabel } = getShippingTierDetails(shippingConfig, totalWeightGrams);
   const {
@@ -104,29 +106,24 @@ const Cart = () => {
     unlocked: freeShippingUnlocked,
   } = getFreeShippingProgress(shippingConfig, subtotal);
 
-  const calcShipping = useCallback((method: 'standard' | 'express'): number => {
-    return calculateShippingCost({
-      shippingConfig,
-      totalWeightGrams,
-      subtotal,
-      method,
-    });
-  }, [shippingConfig, subtotal, totalWeightGrams]);
+  const calculateForMethod = useCallback((method: 'standard' | 'express') => calculateShippingCost({
+    shippingConfig,
+    totalWeightGrams,
+    subtotal,
+    method,
+  }), [shippingConfig, subtotal, totalWeightGrams]);
 
-  const standardCost = calcShipping('standard');
-  const expressCost = calcShipping('express');
+  const standardCost = calculateForMethod('standard');
+  const expressCost = calculateForMethod('express');
   const shippingCost = shippingMethod === 'express' ? expressCost : standardCost;
   const total = subtotal + tax + shippingCost;
-  const summaryShippingLabel =
-    step === 'cart'
-      ? 'Est. standard shipping'
-      : shippingMethod === 'express'
-        ? 'Express shipping'
-        : 'Standard shipping';
+  const summaryShippingLabel = step === 'cart'
+    ? 'Estimated standard shipping'
+    : shippingMethod === 'express' ? 'Express shipping' : 'Standard shipping';
 
   useEffect(() => {
     if (!currentUser) return;
-    setFormData(prev => ({ ...prev, name: currentUser.name, email: currentUser.email }));
+    setFormData(value => ({ ...value, name: currentUser.name, email: currentUser.email }));
   }, [currentUser]);
 
   useEffect(() => {
@@ -148,8 +145,8 @@ const Cart = () => {
         squareDestroyRef.current = destroy;
         setSquareReady(true);
       })
-      .catch(err => {
-        if (!cancelled) setSquareError(err.message || 'Failed to load payment form');
+      .catch((mountError: Error) => {
+        if (!cancelled) setSquareError(mountError.message || 'Failed to load payment form');
       });
 
     return () => {
@@ -158,28 +155,29 @@ const Cart = () => {
     };
   }, [step, settings]);
 
+  const goToStep = (nextStep: CheckoutStep) => {
+    setError(null);
+    setStep(nextStep);
+    window.scrollTo(0, 0);
+  };
+
   const handleShippingSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const errors: Record<string, string> = {};
-
     if (!formData.name.trim()) errors.name = 'Name is required.';
     if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errors.email = 'Valid email is required.';
     if (!formData.address.trim() || formData.address.trim().length < 5) errors.address = 'Enter a valid street address.';
-    if (!formData.suburb.trim()) errors.suburb = 'Suburb/City is required.';
+    if (!formData.suburb.trim()) errors.suburb = 'Suburb or city is required.';
     if (!formData.state) errors.state = 'Please select a state.';
-
-    const postcodeErr = validatePostcode(formData.postcode, formData.state);
-    if (postcodeErr) errors.postcode = postcodeErr;
+    const postcodeError = validatePostcode(formData.postcode, formData.state);
+    if (postcodeError) errors.postcode = postcodeError;
 
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
       setError('Please correct the highlighted fields.');
       return;
     }
-
-    setError(null);
-    setStep('payment');
-    window.scrollTo(0, 0);
+    goToStep('payment');
   };
 
   const handlePaymentSubmit = async (event: React.FormEvent) => {
@@ -214,459 +212,217 @@ const Cart = () => {
         paymentMethod: 'square',
         createdAt: new Date().toISOString(),
       });
-      setStep('success');
-      window.scrollTo(0, 0);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred during payment.');
+      goToStep('success');
+    } catch (paymentError) {
+      setError(paymentError instanceof Error ? paymentError.message : 'An unexpected error occurred during payment.');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const goToStep = (nextStep: CheckoutStep) => {
-    setStep(nextStep);
-    window.scrollTo(0, 0);
-  };
-
   if (cart.length === 0 && step !== 'success') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#120d0b] px-5 py-32 text-[#f5f0e6]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_74%_18%,rgba(244,197,109,0.16),transparent_32%),linear-gradient(135deg,rgba(244,197,109,0.08)_1px,transparent_1px),#120d0b] bg-[auto,28px_28px,auto]" />
-        <div className="relative w-full max-w-xl border border-[#f4c56d]/18 bg-[#0b0807]/88 p-8 text-center shadow-[0_28px_90px_rgba(0,0,0,0.42)]">
-          <NickLogo size="lg" className="mb-7 justify-center" />
-          <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
-            Basket
-          </p>
-          <h1 className="mt-4 font-display text-6xl leading-none text-[#f4c56d]">Empty</h1>
-          <p className="mt-6 font-sans text-lg font-semibold text-[#f5f0e6]/68">
-            Your pantry is looking bare.
-          </p>
-          <Link
-            to="/shop"
-            className="mt-9 inline-flex w-full items-center justify-center border border-native-clay bg-native-clay px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-white transition hover:bg-[#a63d2b]"
-          >
-            Fill The Basket
-          </Link>
-        </div>
+      <div className="page-shell content-page">
+        <main className="page-width empty-state" style={{ marginTop: 72 }}>
+          <img className="page-hero__logo" src={NICK_LOGO_SRC} alt="Pickle Nick" />
+          <h1 className="display" style={{ fontSize: 52 }}>Your basket is empty.</h1>
+          <p className="body-copy">Pick a jar or bottle and it will show up here.</p>
+          <Link className="button button--primary" to="/shop">Shop the batch <ArrowRight size={16} /></Link>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#120d0b] text-[#f5f0e6]">
-      <section className="relative overflow-hidden px-5 pb-12 pt-32 lg:px-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_18%,rgba(244,197,109,0.16),transparent_32%),linear-gradient(135deg,rgba(244,197,109,0.08)_1px,transparent_1px),#120d0b] bg-[auto,28px_28px,auto]" />
-        <div className="relative mx-auto max-w-7xl border-b border-[#f4c56d]/18 pb-10">
-          <NickLogo size="md" className="mb-6" />
-          <p className="font-tribal text-sm font-bold uppercase tracking-[0.28em] text-native-clay">
-            Secure Counter
-          </p>
-          <h1 className="mt-4 font-display text-[4rem] leading-[0.9] text-[#f4c56d] drop-shadow-[0_8px_26px_rgba(0,0,0,0.65)] sm:text-7xl">
-            Checkout
-          </h1>
-
-          {step !== 'success' && (
-            <div className="mt-9 flex flex-wrap items-center gap-3 font-tribal text-xs font-bold uppercase tracking-[0.18em]">
-              {[
-                ['cart', '1', 'Review'],
-                ['shipping', '2', 'Shipping'],
-                ['payment', '3', 'Payment'],
-              ].map(([key, number, label]) => (
-                <React.Fragment key={key}>
-                  <span className={`inline-flex items-center gap-2 border px-4 py-3 transition ${
-                    step === key
-                      ? 'border-native-clay bg-native-clay text-white'
-                      : 'border-[#f4c56d]/22 text-[#f5f0e6]/48'
-                  }`}>
-                    <span>{number}</span>
-                    {label}
-                  </span>
-                  {key !== 'payment' && <span className="h-px w-7 bg-[#f4c56d]/18" />}
-                </React.Fragment>
-              ))}
+    <div className="page-shell checkout-page">
+      <header className="page-hero checkout-hero">
+        <div className="page-width">
+          <img className="page-hero__logo" src={NICK_LOGO_SRC} alt="Pickle Nick" />
+          <div className="checkout-hero__row">
+            <div>
+              <p className="eyeline">Secure checkout</p>
+              <h1 className="display">Your basket.</h1>
             </div>
-          )}
+            {step !== 'success' ? (
+              <ol className="checkout-steps" aria-label="Checkout progress">
+                {checkoutSteps.map((item, index) => (
+                  <li key={item.key} className={step === item.key ? 'is-active' : ''}>
+                    <span>{index + 1}</span>{item.label}
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+          </div>
         </div>
-      </section>
+      </header>
 
-      <section className="bg-[#f1dfb8] px-5 py-16 text-[#120d0b] lg:px-8">
-        <div className="mx-auto max-w-7xl">
+      <section className="checkout-area">
+        <div className="page-width">
           {step === 'success' ? (
-            <div className="mx-auto max-w-2xl border border-[#120d0b]/14 bg-[#120d0b] p-8 text-center text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)]">
-              <CheckCircle2 className="mx-auto text-[#f4c56d]" size={72} />
-              <h2 className="mt-8 font-display text-6xl leading-none text-[#f4c56d]">Order Confirmed</h2>
-              <p className="mt-6 font-sans text-lg font-semibold leading-relaxed text-[#f5f0e6]/72">
-                Thanks, {formData.name.split(' ')[0] || 'friend'}. Your confirmation has been sent to <strong>{formData.email}</strong>.
-              </p>
-              <Link
-                to="/shop"
-                className="mt-9 inline-flex items-center justify-center border border-[#f4c56d]/30 px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-[#f4c56d] transition hover:bg-[#f4c56d] hover:text-[#120d0b]"
-              >
-                Return to Shop
-              </Link>
+            <div className="checkout-success">
+              <CheckCircle2 size={48} color="var(--red)" />
+              <h2 className="display">Order confirmed.</h2>
+              <p>Thanks, {formData.name.split(' ')[0] || 'friend'}. A confirmation has been sent to <strong>{formData.email}</strong>.</p>
+              <Link className="button button--dark" to="/shop">Return to shop <ArrowRight size={16} /></Link>
             </div>
           ) : (
-            <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-              <div className="min-w-0">
-                {error && (
-                  <div className="mb-6 flex items-start gap-4 border border-native-clay/32 bg-native-clay/10 p-5 text-native-clay">
-                    <AlertCircle className="mt-0.5 shrink-0" size={22} />
-                    <div>
-                      <p className="font-tribal text-xs font-bold uppercase tracking-[0.22em]">Checkout Issue</p>
-                      <p className="mt-1 font-sans text-sm font-semibold">{error}</p>
-                    </div>
+            <div className="checkout-grid">
+              <div className="checkout-main">
+                {error ? (
+                  <div className="checkout-error" role="alert">
+                    <AlertCircle size={19} />
+                    <span>{error}</span>
                   </div>
-                )}
+                ) : null}
 
-                {step === 'cart' && (
-                  <div className="space-y-6">
-                    <div className="min-w-0 border border-[#120d0b]/14 bg-[#120d0b] p-6 text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)] md:p-8">
-                      <h2 className="border-b border-[#f4c56d]/14 pb-5 font-display text-4xl leading-none text-[#f4c56d]">
-                        Your Bounty
-                      </h2>
-                      <div className="mt-7 space-y-6">
-                        {cart.map(item => (
-                          <div key={item.productId} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 border-b border-[#f4c56d]/10 pb-5 last:border-0 last:pb-0 sm:gap-5">
-                            <div className="min-w-0">
-                              {(() => {
-                                const product = products.find(p => p.id === item.productId);
-                                const maxQty = Math.max(product?.stock || item.quantity, item.quantity);
-                                return (
-                                  <>
-                                    <h3 className="break-words font-display text-3xl leading-none text-[#f4c56d]">{item.name}</h3>
-                                    <div className="mt-3 flex flex-wrap items-center gap-3">
-                                      <div className="flex items-center rounded-full border border-[#f4c56d]/16 bg-[#f5ecda]/4">
-                                        <button
-                                          type="button"
-                                          onClick={() => updateCartQuantity(item.productId, item.quantity - 1)}
-                                          className="flex h-11 w-11 items-center justify-center rounded-full text-[#f5f0e6] transition hover:bg-[#f4c56d]/8"
-                                          aria-label={`Decrease quantity for ${item.name}`}
-                                        >
-                                          <Minus size={16} />
-                                        </button>
-                                        <span className="w-12 text-center font-sans text-sm font-semibold uppercase tracking-[0.18em] text-[#f5f0e6]">
-                                          {item.quantity}
-                                        </span>
-                                        <button
-                                          type="button"
-                                          onClick={() => updateCartQuantity(item.productId, Math.min(maxQty, item.quantity + 1))}
-                                          disabled={item.quantity >= maxQty}
-                                          className="flex h-11 w-11 items-center justify-center rounded-full text-[#f5f0e6] transition hover:bg-[#f4c56d]/8 disabled:cursor-not-allowed disabled:opacity-35"
-                                          aria-label={`Increase quantity for ${item.name}`}
-                                        >
-                                          <Plus size={16} />
-                                        </button>
-                                      </div>
-                                      <p className="font-sans text-sm font-semibold text-[#f5f0e6]/58">
-                                        ${item.price.toFixed(2)} each
-                                      </p>
-                                    </div>
-                                  </>
-                                );
-                              })()}
+                {step === 'cart' ? (
+                  <section className="checkout-panel">
+                    <div className="checkout-panel__head">
+                      <h2 className="display">Review the batch.</h2>
+                      <span>{cart.reduce((count, item) => count + item.quantity, 0)} item{cart.reduce((count, item) => count + item.quantity, 0) === 1 ? '' : 's'}</span>
+                    </div>
+                    <div className="checkout-items">
+                      {cart.map(item => {
+                        const product = products.find(candidate => candidate.id === item.productId);
+                        const maxQuantity = Math.max(product?.stock || item.quantity, item.quantity);
+                        return (
+                          <div key={item.productId} className="checkout-item">
+                            <div>
+                              <h3>{item.name}</h3>
+                              <p>${item.price.toFixed(2)} each</p>
                             </div>
-                            <p className="font-display text-xl text-[#f1dfb8] sm:text-2xl">${(item.quantity * item.price).toFixed(2)}</p>
-                            <button
-                              onClick={() => removeFromCart(item.productId)}
-                              className="border border-[#f4c56d]/16 p-2.5 text-[#f5f0e6]/45 transition hover:border-native-clay hover:text-native-clay sm:p-3"
-                              aria-label={`Remove ${item.name}`}
-                            >
-                              <Trash2 size={18} />
-                            </button>
+                            <div className="quantity-control quantity-control--light" aria-label={`Quantity for ${item.name}`}>
+                              <button type="button" onClick={() => updateCartQuantity(item.productId, item.quantity - 1)} aria-label={`Decrease quantity for ${item.name}`}><Minus size={15} /></button>
+                              <span>{item.quantity}</span>
+                              <button type="button" onClick={() => updateCartQuantity(item.productId, Math.min(maxQuantity, item.quantity + 1))} disabled={item.quantity >= maxQuantity} aria-label={`Increase quantity for ${item.name}`}><Plus size={15} /></button>
+                            </div>
+                            <strong>${(item.price * item.quantity).toFixed(2)}</strong>
+                            <button type="button" className="checkout-remove" onClick={() => removeFromCart(item.productId)} aria-label={`Remove ${item.name}`}><Trash2 size={17} /></button>
                           </div>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
-
-                    <div className="flex justify-end">
-                      <button
-                        onClick={() => goToStep('shipping')}
-                        className="inline-flex items-center justify-center gap-3 border border-native-clay bg-native-clay px-8 py-5 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-white transition hover:-translate-y-1 hover:bg-[#a63d2b]"
-                      >
-                        Proceed <ChevronRight size={18} />
-                      </button>
+                    <div className="checkout-actions checkout-actions--end">
+                      <button type="button" className="button button--dark" onClick={() => goToStep('shipping')}>Continue to shipping <ArrowRight size={16} /></button>
                     </div>
-                  </div>
-                )}
+                  </section>
+                ) : null}
 
-                {step === 'shipping' && (
-                  <form onSubmit={handleShippingSubmit} className="border border-[#120d0b]/14 bg-[#f7e7c0] p-6 shadow-[0_26px_70px_rgba(18,13,11,0.18)] md:p-8">
-                    <h2 className="flex items-center gap-3 font-display text-4xl leading-none text-[#120d0b]">
-                      <Truck className="text-native-clay" size={30} /> Shipping Destination
-                    </h2>
-
-                    <div className="mt-8 grid gap-5 md:grid-cols-2">
-                      <div className="md:col-span-2">
-                        <label className="mb-2 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">Recipient Name</label>
-                        <input
-                          required
-                          value={formData.name}
-                          onChange={event => {
-                            setFormData({ ...formData, name: event.target.value });
-                            setFieldErrors(prev => ({ ...prev, name: '' }));
-                          }}
-                          className={fieldClass(!!fieldErrors.name)}
-                          placeholder="Full Name"
-                        />
-                        {fieldErrors.name && <p className="mt-2 text-sm font-semibold text-native-clay">{fieldErrors.name}</p>}
+                {step === 'shipping' ? (
+                  <form className="checkout-panel" onSubmit={handleShippingSubmit}>
+                    <div className="checkout-panel__head">
+                      <h2 className="display">Where is it going?</h2>
+                      <Truck size={22} color="var(--red)" />
+                    </div>
+                    <div className="checkout-fields">
+                      <div className="field checkout-field checkout-field--wide">
+                        <label htmlFor="shipping-name">Recipient name</label>
+                        <input id="shipping-name" required value={formData.name} onChange={event => { setFormData(value => ({ ...value, name: event.target.value })); setFieldErrors(value => ({ ...value, name: '' })); }} className={fieldClass(Boolean(fieldErrors.name))} autoComplete="name" />
+                        {fieldErrors.name ? <small>{fieldErrors.name}</small> : null}
                       </div>
-
-                      <div className="md:col-span-2">
-                        <label className="mb-2 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">Email Address</label>
-                        <input
-                          required
-                          type="email"
-                          value={formData.email}
-                          onChange={event => {
-                            setFormData({ ...formData, email: event.target.value });
-                            setFieldErrors(prev => ({ ...prev, email: '' }));
-                          }}
-                          className={fieldClass(!!fieldErrors.email)}
-                          placeholder="updates@example.com"
-                        />
-                        {fieldErrors.email && <p className="mt-2 text-sm font-semibold text-native-clay">{fieldErrors.email}</p>}
+                      <div className="field checkout-field checkout-field--wide">
+                        <label htmlFor="shipping-email">Email address</label>
+                        <input id="shipping-email" type="email" required value={formData.email} onChange={event => { setFormData(value => ({ ...value, email: event.target.value })); setFieldErrors(value => ({ ...value, email: '' })); }} className={fieldClass(Boolean(fieldErrors.email))} autoComplete="email" />
+                        {fieldErrors.email ? <small>{fieldErrors.email}</small> : null}
                       </div>
-
-                      <div className="md:col-span-2">
-                        <label className="mb-2 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">Street Address</label>
-                        <input
-                          required
-                          value={formData.address}
-                          onChange={event => {
-                            setFormData({ ...formData, address: event.target.value });
-                            setFieldErrors(prev => ({ ...prev, address: '' }));
-                          }}
-                          className={fieldClass(!!fieldErrors.address)}
-                          placeholder="42 Brine Boulevard, Unit 3"
-                        />
-                        {fieldErrors.address && <p className="mt-2 text-sm font-semibold text-native-clay">{fieldErrors.address}</p>}
+                      <div className="field checkout-field checkout-field--wide">
+                        <label htmlFor="shipping-address">Street address</label>
+                        <input id="shipping-address" required value={formData.address} onChange={event => { setFormData(value => ({ ...value, address: event.target.value })); setFieldErrors(value => ({ ...value, address: '' })); }} className={fieldClass(Boolean(fieldErrors.address))} autoComplete="street-address" />
+                        {fieldErrors.address ? <small>{fieldErrors.address}</small> : null}
                       </div>
-
-                      <div>
-                        <label className="mb-2 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">Suburb / City</label>
-                        <input
-                          required
-                          value={formData.suburb}
-                          onChange={event => {
-                            setFormData({ ...formData, suburb: event.target.value });
-                            setFieldErrors(prev => ({ ...prev, suburb: '' }));
-                          }}
-                          className={fieldClass(!!fieldErrors.suburb)}
-                          placeholder="Sydney"
-                        />
-                        {fieldErrors.suburb && <p className="mt-2 text-sm font-semibold text-native-clay">{fieldErrors.suburb}</p>}
+                      <div className="field checkout-field">
+                        <label htmlFor="shipping-suburb">Suburb or city</label>
+                        <input id="shipping-suburb" required value={formData.suburb} onChange={event => { setFormData(value => ({ ...value, suburb: event.target.value })); setFieldErrors(value => ({ ...value, suburb: '' })); }} className={fieldClass(Boolean(fieldErrors.suburb))} autoComplete="address-level2" />
+                        {fieldErrors.suburb ? <small>{fieldErrors.suburb}</small> : null}
                       </div>
-
-                      <div>
-                        <label className="mb-2 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">State / Territory</label>
-                        <select
-                          required
-                          value={formData.state}
-                          onChange={event => {
-                            setFormData({ ...formData, state: event.target.value });
-                            setFieldErrors(prev => ({ ...prev, state: '', postcode: '' }));
-                          }}
-                          className={fieldClass(!!fieldErrors.state)}
-                        >
+                      <div className="field checkout-field">
+                        <label htmlFor="shipping-state">State or territory</label>
+                        <select id="shipping-state" required value={formData.state} onChange={event => { setFormData(value => ({ ...value, state: event.target.value })); setFieldErrors(value => ({ ...value, state: '', postcode: '' })); }} className={fieldClass(Boolean(fieldErrors.state))} autoComplete="address-level1">
                           {AU_STATES.map(state => <option key={state.value} value={state.value}>{state.label}</option>)}
                         </select>
-                        {fieldErrors.state && <p className="mt-2 text-sm font-semibold text-native-clay">{fieldErrors.state}</p>}
+                        {fieldErrors.state ? <small>{fieldErrors.state}</small> : null}
                       </div>
-
-                      <div>
-                        <label className="mb-2 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">Postcode</label>
-                        <input
-                          required
-                          inputMode="numeric"
-                          maxLength={4}
-                          value={formData.postcode}
-                          onChange={event => {
-                            const value = event.target.value.replace(/\D/g, '').slice(0, 4);
-                            setFormData({ ...formData, postcode: value });
-                            setFieldErrors(prev => ({ ...prev, postcode: '' }));
-                          }}
-                          className={fieldClass(!!fieldErrors.postcode)}
-                          placeholder="2000"
-                        />
-                        {fieldErrors.postcode && <p className="mt-2 text-sm font-semibold text-native-clay">{fieldErrors.postcode}</p>}
+                      <div className="field checkout-field">
+                        <label htmlFor="shipping-postcode">Postcode</label>
+                        <input id="shipping-postcode" required inputMode="numeric" maxLength={4} value={formData.postcode} onChange={event => { const postcode = event.target.value.replace(/\D/g, '').slice(0, 4); setFormData(value => ({ ...value, postcode })); setFieldErrors(value => ({ ...value, postcode: '' })); }} className={fieldClass(Boolean(fieldErrors.postcode))} autoComplete="postal-code" />
+                        {fieldErrors.postcode ? <small>{fieldErrors.postcode}</small> : null}
                       </div>
                     </div>
 
-                    <div className="mt-8">
-                      <label className="mb-3 block font-tribal text-xs font-bold uppercase tracking-[0.22em] text-native-clay">Delivery Speed</label>
-                      <div className="grid gap-4 md:grid-cols-2">
+                    <div className="checkout-delivery">
+                      <p className="checkout-label">Delivery speed</p>
+                      <div className="checkout-methods">
                         {[
                           { method: 'standard' as const, icon: Package, title: 'Standard', days: '3-7 business days', cost: standardCost },
                           { method: 'express' as const, icon: Zap, title: 'Express', days: '1-3 business days', cost: expressCost },
                         ].map(option => (
-                          <button
-                            key={option.method}
-                            type="button"
-                            onClick={() => setShippingMethod(option.method)}
-                            className={`border p-5 text-left transition ${
-                              shippingMethod === option.method
-                                ? 'border-native-clay bg-native-clay/10'
-                                : 'border-[#120d0b]/14 bg-white/42 hover:border-native-clay/55'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <option.icon className="text-native-clay" size={22} />
-                              <span className="font-display text-2xl leading-none text-[#120d0b]">{option.title}</span>
-                            </div>
-                            <p className="mt-3 font-sans text-sm font-semibold text-[#3d2a21]/72">
-                              {option.days} via {shippingConfig?.carrierName || 'Australia Post'}
-                            </p>
-                            <p className="mt-4 font-display text-3xl leading-none text-native-clay">
-                              {option.cost === 0 ? 'FREE' : `$${option.cost.toFixed(2)}`}
-                            </p>
-                            {option.method === 'standard' && (
-                              <p className="mt-2 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[#3d2a21]/55">
-                                {subtotal >= freeShippingThreshold
-                                  ? `Free over $${freeShippingThreshold.toFixed(0)} unlocked`
-                                  : `$${amountToFreeShipping.toFixed(2)} to free standard`}
-                              </p>
-                            )}
+                          <button key={option.method} type="button" className={`checkout-method ${shippingMethod === option.method ? 'is-active' : ''}`} onClick={() => setShippingMethod(option.method)} aria-pressed={shippingMethod === option.method}>
+                            <option.icon size={20} />
+                            <span><strong>{option.title}</strong><small>{option.days} via {shippingConfig.carrierName}</small></span>
+                            <b>{option.cost === 0 ? 'Free' : `$${option.cost.toFixed(2)}`}</b>
                           </button>
                         ))}
                       </div>
-                      <div className="mt-4 space-y-1 text-center font-sans text-sm font-semibold text-[#3d2a21]/60">
-                        <p>Order weight: {(totalWeightGrams / 1000).toFixed(2)} kg</p>
-                        {shippingBandLabel && (
-                          <p>
-                            Shipping band: {shippingBandLabel}
-                            {subtotal < freeShippingThreshold && ` • Free standard over $${freeShippingThreshold.toFixed(0)}`}
-                          </p>
-                        )}
-                      </div>
+                      <p className="checkout-caption">Order weight: {formatWeightLabel(totalWeightGrams)}{shippingBandLabel ? ` · ${shippingBandLabel}` : ''}</p>
                     </div>
 
-                    <div className="mt-10 flex items-center justify-between border-t border-[#120d0b]/14 pt-7">
-                      <button type="button" onClick={() => goToStep('cart')} className="font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#120d0b]/62 transition hover:text-[#120d0b]">
-                        Back
-                      </button>
-                      <button type="submit" className="border border-native-clay bg-native-clay px-8 py-4 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-white transition hover:bg-[#a63d2b]">
-                        Continue to Pay
+                    <div className="checkout-actions">
+                      <button type="button" className="button button--dark" onClick={() => goToStep('cart')}>Back</button>
+                      <button type="submit" className="button button--primary">Continue to payment <ArrowRight size={16} /></button>
+                    </div>
+                  </form>
+                ) : null}
+
+                {step === 'payment' ? (
+                  <form className="checkout-panel" onSubmit={handlePaymentSubmit}>
+                    <div className="checkout-panel__head">
+                      <h2 className="display">Payment.</h2>
+                      <CreditCard size={23} color="var(--red)" />
+                    </div>
+                    <div className="checkout-security"><span><Lock size={15} /> SSL encrypted</span><span><ShieldCheck size={15} /> Secure gateway</span></div>
+                    <div className="checkout-payment">
+                      <div className="checkout-payment__head"><span>Credit or debit card</span><span>Square</span></div>
+                      {squareError ? (
+                        <div className="checkout-error"><AlertCircle size={17} /> {squareError}</div>
+                      ) : (
+                        <div className="checkout-square">
+                          {!squareReady ? <div className="checkout-square__loading"><Loader2 className="animate-spin" size={22} /> Loading secure form</div> : null}
+                          <div id="square-card-container" className="min-h-[88px]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="checkout-actions">
+                      <button type="button" className="button button--dark" onClick={() => goToStep('shipping')} disabled={isProcessing}>Back</button>
+                      <button type="submit" className="button button--primary" disabled={isProcessing || !squareReady || Boolean(squareError)}>
+                        {isProcessing ? <><Loader2 className="animate-spin" size={17} /> Processing</> : !squareReady && !squareError ? <><Loader2 className="animate-spin" size={17} /> Loading</> : `Pay $${total.toFixed(2)}`}
                       </button>
                     </div>
                   </form>
-                )}
-
-                {step === 'payment' && (
-                  <div>
-                    <div className="mb-6 flex flex-wrap justify-center gap-4 font-tribal text-xs font-bold uppercase tracking-[0.18em] text-[#120d0b]/52">
-                      <span className="inline-flex items-center gap-2"><Lock size={15} /> SSL Encrypted</span>
-                      <span className="inline-flex items-center gap-2"><ShieldCheck size={15} /> Secure Gateway</span>
-                    </div>
-
-                    <form onSubmit={handlePaymentSubmit} className="border border-[#120d0b]/14 bg-[#f7e7c0] p-6 shadow-[0_26px_70px_rgba(18,13,11,0.18)] md:p-8">
-                      <h2 className="flex items-center gap-3 font-display text-4xl leading-none text-[#120d0b]">
-                        <CreditCard className="text-native-clay" size={30} /> Payment Method
-                      </h2>
-
-                      <div className="mt-8 border border-[#120d0b]/14 bg-white/42 p-6">
-                        <div className="mb-5 flex justify-between gap-4 font-tribal text-xs font-bold uppercase tracking-[0.18em] text-[#120d0b]/58">
-                          <span>Credit / Debit Card</span>
-                          <span>Square</span>
-                        </div>
-                        {squareError ? (
-                          <div className="flex items-center gap-3 border border-native-clay/32 bg-native-clay/10 p-4 font-sans text-sm font-semibold text-native-clay">
-                            <AlertCircle size={17} /> {squareError}
-                          </div>
-                        ) : (
-                          <div className="relative min-h-[88px]">
-                            {!squareReady && (
-                              <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#f7e7c0]/80">
-                                <Loader2 className="animate-spin text-native-clay" size={22} />
-                              </div>
-                            )}
-                            <div id="square-card-container" className="min-h-[88px]" />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mt-10 flex items-center justify-between border-t border-[#120d0b]/14 pt-7">
-                        <button type="button" onClick={() => goToStep('shipping')} disabled={isProcessing} className="font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#120d0b]/62 transition hover:text-[#120d0b]">
-                          Back
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={isProcessing || !squareReady || !!squareError}
-                          className="inline-flex items-center justify-center gap-3 border border-native-clay bg-native-clay px-8 py-4 font-tribal text-sm font-bold uppercase tracking-[0.22em] text-white transition hover:bg-[#a63d2b] disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {isProcessing ? (
-                            <><Loader2 className="animate-spin" size={18} /> Processing</>
-                          ) : !squareReady && !squareError ? (
-                            <><Loader2 className="animate-spin" size={18} /> Loading</>
-                          ) : (
-                            <>Pay ${total.toFixed(2)}</>
-                          )}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
+                ) : null}
               </div>
 
-              <aside className="min-w-0 lg:sticky lg:top-28 lg:self-start">
-                <div className="min-w-0 border border-[#120d0b]/14 bg-[#120d0b] p-6 text-[#f5f0e6] shadow-[0_26px_70px_rgba(18,13,11,0.22)] md:p-8">
-                  <h2 className="border-b border-[#f4c56d]/14 pb-5 font-display text-4xl leading-none text-[#f4c56d]">
-                    Summary
-                  </h2>
-
-                  <div className="mt-6 max-h-64 space-y-4 overflow-y-auto pr-2">
-                    {cart.map(item => (
-                      <div key={item.productId} className="flex justify-between gap-4 font-sans text-sm font-semibold text-[#f5f0e6]/70">
-                        <span>{item.quantity} x {item.name}</span>
-                        <span>${(item.price * item.quantity).toFixed(2)}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-7 rounded-[1.75rem] border border-[#f4c56d]/12 bg-[#f5ecda]/[0.03] p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-tribal text-[11px] font-bold uppercase tracking-[0.2em] text-[#f4c56d]">
-                          Free Standard
-                        </p>
-                        <p className="mt-2 font-sans text-sm font-semibold text-[#f5f0e6]/72">
-                          {freeShippingUnlocked
-                            ? `Unlocked over $${freeShippingThreshold.toFixed(0)}`
-                            : `$${amountToFreeShipping.toFixed(2)} to go`}
-                        </p>
-                      </div>
-                      <div className="text-right font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[#f5f0e6]/52">
-                        <p>{formatWeightLabel(totalWeightGrams)}</p>
-                        {shippingBandLabel && <p className="mt-2">{shippingBandLabel} band</p>}
-                      </div>
-                    </div>
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#f5ecda]/10">
-                      <div
-                        className="h-full rounded-full bg-[linear-gradient(90deg,#9f3b2e_0%,#d37a55_48%,#f4c56d_100%)] transition-[width] duration-300"
-                        style={{ width: `${freeShippingProgressPercent}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-7 space-y-3 border-t border-[#f4c56d]/14 pt-6 font-sans text-sm font-semibold text-[#f5f0e6]/62">
-                    <div className="flex justify-between"><span>Subtotal</span><span>${subtotal.toFixed(2)}</span></div>
-                    {settings.gstEnabled && <div className="flex justify-between"><span>GST {settings.gstRate}%</span><span>${tax.toFixed(2)}</span></div>}
-                    <div className="flex justify-between">
-                      <span>{summaryShippingLabel}</span>
-                      <span>{shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-7 flex items-end justify-between border-t border-dashed border-[#f4c56d]/20 pt-6">
-                    <span className="font-tribal text-xs font-bold uppercase tracking-[0.22em] text-[#f5f0e6]/56">Total</span>
-                    <span className="font-display text-5xl leading-none text-[#f4c56d]">${total.toFixed(2)}</span>
-                  </div>
-
-                  {step === 'payment' && (
-                    <div className="mt-7 border border-[#f4c56d]/14 p-4 text-center font-sans text-sm font-semibold text-[#f5f0e6]/64">
-                      Shipping to {formData.suburb} {formData.state} {formData.postcode}
-                    </div>
-                  )}
+              <aside className="checkout-summary">
+                <h2 className="display">Summary.</h2>
+                <div className="checkout-summary__items">
+                  {cart.map(item => (
+                    <div key={item.productId}><span>{item.quantity} x {item.name}</span><strong>${(item.price * item.quantity).toFixed(2)}</strong></div>
+                  ))}
                 </div>
+
+                <div className="checkout-progress">
+                  <div><span>Free standard shipping</span><strong>{freeShippingUnlocked ? 'Unlocked' : `$${amountToFreeShipping.toFixed(2)} to go`}</strong></div>
+                  <div className="checkout-progress__track"><span style={{ width: `${freeShippingProgressPercent}%` }} /></div>
+                  <small>{formatWeightLabel(totalWeightGrams)}{shippingBandLabel ? ` · ${shippingBandLabel}` : ''}</small>
+                </div>
+
+                <div className="checkout-totals">
+                  <div><span>Subtotal</span><strong>${subtotal.toFixed(2)}</strong></div>
+                  {settings.gstEnabled ? <div><span>GST {settings.gstRate}%</span><strong>${tax.toFixed(2)}</strong></div> : null}
+                  <div><span>{summaryShippingLabel}</span><strong>{shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}</strong></div>
+                  <div className="checkout-total"><span>Total</span><strong>${total.toFixed(2)}</strong></div>
+                </div>
+
+                {step === 'payment' ? <p className="checkout-destination">Shipping to {formData.suburb} {formData.state} {formData.postcode}</p> : null}
               </aside>
             </div>
           )}

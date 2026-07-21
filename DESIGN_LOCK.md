@@ -1,32 +1,32 @@
 # Pickle Nick Design Lock
 
-Accepted direction: American tribal / warrior tattoo pickle brand, with Nick's seal and product labels as the anchor. This is not India-the-country styling.
+Accepted direction: a contemporary American traditional tattoo shop with restrained tribal linework, built around Nick's real logo, real products, and real process imagery. This is not India-the-country styling, costume styling, or an illustrated warrior theme.
 
 ## Must Keep
-- The homepage hero must use `public/brand/pickle-nick-warrior-tattoo-hero-v2.png`, not the old India-country mock or earlier animal/skull-heavy explorations.
-- Public product cards and product detail media should use `public/brand/pickle-nick-product-card-backdrop.png` when live product imagery drifts away from Nick-branded jars.
-- Full-bleed dark hero with an ink-black/tattoo-wall feel.
-- No bulky rounded white top header or cream app-shell frame.
-- Small edge navigation with warm brass/parchment text.
-- "Pickle Nick" as the main first impression, supported by "Bold. Brined. Brilliant."
-- Nick-branded pickle jars and sauce bottles as the hero object.
+- The homepage hero uses the real process-based brine pour at `public/brand/pickle-nick-brine-hero.mp4`, with `public/brand/pickle-nick-brine-hero-source.png` as its poster and fallback.
+- Product cards resolve to Nick's supplied product and tattoo artwork. Never place a generated Pickle Nick logo or invented label over product photography.
+- Full-bleed dark hero with real hands, brine, glass, tattoo ink, and food texture as the dominant visual material.
+- No bulky white header, cream app-shell frame, or fake vintage poster boxes.
+- Navigation remains compact, rounded, and quiet so the product process owns the first screen.
+- "Made to bite back." is the primary promise; Pickle Nick's real mark is visible in the nav and hero.
+- The hero object is a real jar being filled, supported by Nick's actual Roast Habanero bottle.
 - All public logo, favicon, social image, email header, nav, footer, admin shell, paper stamp, and product-card logo usage must resolve to Nick's real logo at `public/brand/pickle-nick-logo.jpg`.
-- Visual language: American tribal tattoo geometry, warrior badge/seal motifs, old leather, brass, chilli red, turmeric gold, deep pickle green, parchment labels, dark indigo/black.
+- Visual language: American traditional tattoo flash, measured tribal linework, black ink, aged paper, chilli red, mustard gold, pickle green, and warm off-white.
 - Real CTAs: "Shop the Batch" and "Talk to Nick"; do not promise made-to-order jars.
-- Hero CTAs should feel like printed jar-label plaques: clipped sides, brass linework, red/ink variants, and subtle hover motion.
+- Hero CTAs are rounded controls with crisp one-pixel outlines, warm solid fills, and subtle physical hover motion.
 - The first viewport parchment must read as torn paper from the initial mock, not a flat beige footer bar.
 - Parchment surfaces should use a shared fibrous paper material with stains, deckled edge shadow, and subtle grain across the hero strip and downstream paper panels.
 - The accepted homepage composition is now the compact mock rhythm: dark product hero, torn proof-paper strip, then the dark "Shop The Batch" product rail visible immediately underneath.
-- Decorative paper-side artwork should be Nick seal/logo watermarks, not skull, animal, country-India, or random stock-style motifs.
-- Three.js depth should be subtle atmosphere over the approved mock, not a recreated jar scene.
-- GSAP motion should reveal hierarchy and add physical depth without hiding content.
+- Decorative marks use Nick's actual logo and supplied tattoo artwork, never generated brand seals.
+- Three.js depth remains a subtle transparent caustic/ripple atmosphere, not a recreated product scene.
+- GSAP motion reveals hierarchy, adds restrained parallax, and cleans itself up on route changes.
 - First viewport should show a hint of the parchment next section: "Made to bite back".
 
 ## Must Avoid
 - Generic artisan cream/beige layout.
 - Western/cowboy typography.
-- Skull-led, animal-led, or creature-led product art unless Nick explicitly asks for it.
-- Sacred/regalia/caricature cues, careless generic "tribe" wording, or culturally specific sacred symbols.
+- Skull-led composition or unrelated creature imagery unless it is part of Nick's supplied product artwork.
+- Sacred regalia, caricature, costume cues, careless generic "tribe" wording, or culturally specific sacred symbols.
 - Country-India cues unless explicitly requested: achar naming, jali/rangoli geometry, palace/temple line art, curry-house styling, or South Asian market decor.
 - Random icons, mountains, feathers, floating pills, or decorative blobs.
 - Header-heavy layout that steals the brand moment.
@@ -34,9 +34,9 @@ Accepted direction: American tribal / warrior tattoo pickle brand, with Nick's s
 - Mobile hero that loses the dark/tattoo concept.
 
 ## Lead QA Questions
-- Does the first screen look like the accepted concept within three seconds?
-- Are the jars and brand mark the strongest visual object?
-- Is the nav small and atmospheric rather than a large component?
+- Does the first screen immediately read as a premium Pickle Nick product experience?
+- Are the real brine process and real brand mark the strongest visual objects?
+- Is the nav compact and legible rather than a dominant component?
 - Do the palette, typography, and section transition feel like one system?
 - Would a design reviewer call any visible element generic, unrelated, or inherited from the old layout?
-- Would a design reviewer read the page as warrior/tattoo Pickle Nick rather than India-the-country?
+- Would a design reviewer read the page as contemporary American tattoo-shop Pickle Nick rather than country India, cowboy, or costume styling?

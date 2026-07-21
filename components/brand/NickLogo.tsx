@@ -11,13 +11,7 @@ type NickLogoProps = {
   size?: 'sm' | 'md' | 'lg';
 };
 
-const sizeClasses = {
-  sm: 'h-10 w-10',
-  md: 'h-14 w-14',
-  lg: 'h-20 w-20',
-};
-
-const NICK_LOGO_SRC = '/brand/pickle-nick-logo.jpg';
+export const NICK_LOGO_SRC = '/brand/pickle-nick-logo.jpg';
 
 const NickLogo = ({
   className = '',
@@ -30,34 +24,26 @@ const NickLogo = ({
 }: NickLogoProps) => {
   const content = (
     <>
-      <span className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#f4c56d]/35 bg-[#f1dfb8] p-1 shadow-[0_0_32px_rgba(244,197,109,0.18)] ${sizeClasses[size]} ${imageClassName}`}>
-        <img src={NICK_LOGO_SRC} alt="Pickle Nick Logo" className="h-full w-full rounded-full object-cover sepia-[.12]" />
+      <span className={`nick-logo__mark ${imageClassName}`}>
+        <img src={NICK_LOGO_SRC} alt="Pickle Nick" />
       </span>
-      {showName && (
+      {showName ? (
         <span className={labelClassName}>
-          <span className="block font-display text-[#f4c56d]">Pickle Nick</span>
-          {subtitle && (
-            <span className="mt-1 block font-tribal text-[10px] font-bold uppercase tracking-[0.24em] text-native-clay">
-              {subtitle}
-            </span>
-          )}
+          <span className="nick-logo__name">Pickle Nick</span>
+          {subtitle ? <span className="nick-logo__subtitle">{subtitle}</span> : null}
         </span>
-      )}
+      ) : null}
     </>
   );
 
-  if (to) {
-    return (
-      <Link to={to} className={`inline-flex items-center gap-3 ${className}`}>
-        {content}
-      </Link>
-    );
-  }
+  const classes = `nick-logo nick-logo--${size} ${className}`;
 
-  return (
-    <div className={`inline-flex items-center gap-3 ${className}`}>
+  return to ? (
+    <Link to={to} className={classes} aria-label="Pickle Nick home">
       {content}
-    </div>
+    </Link>
+  ) : (
+    <div className={classes}>{content}</div>
   );
 };
 

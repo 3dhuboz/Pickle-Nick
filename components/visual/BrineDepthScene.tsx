@@ -1,188 +1,159 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-const overlayVertexShader = `
+const vertexShader = `
   varying vec2 vUv;
 
   void main() {
     vUv = uv;
-    gl_Position = vec4(position.xy, 0.0, 1.0);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
-const overlayFragmentShader = `
-  varying vec2 vUv;
+const fragmentShader = `
+  precision highp float;
+
   uniform float uTime;
+  uniform vec2 uResolution;
   uniform vec2 uPointer;
+  varying vec2 vUv;
 
-  float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-  }
-
-  float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-
-    return mix(
-      mix(hash(i + vec2(0.0, 0.0)), hash(i + vec2(1.0, 0.0)), u.x),
-      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
-      u.y
-    );
-  }
-
-  float fbm(vec2 p) {
-    float value = 0.0;
-    float amplitude = 0.5;
-    for (int i = 0; i < 5; i++) {
-      value += amplitude * noise(p);
-      p *= 2.02;
-      amplitude *= 0.48;
-    }
-    return value;
+  float ripple(vec2 point, float frequency, float speed) {
+    float distanceFromSource = length(point);
+    float wave = sin(distanceFromSource * frequency - uTime * speed);
+    return wave * exp(-distanceFromSource * 3.8);
   }
 
   void main() {
-    vec2 p = vUv;
-    vec2 drift = vec2(uTime * -0.025 + uPointer.x * 0.035, uTime * 0.038 + uPointer.y * 0.025);
+    float aspect = uResolution.x / max(uResolution.y, 1.0);
+    vec2 uv = vUv;
+    vec2 source = vec2(0.68 + uPointer.x * 0.025, 0.48 + uPointer.y * 0.018);
+    vec2 point = (uv - source) * vec2(aspect, 1.0);
 
-    float smoke = fbm(vec2(p.x * 3.5, p.y * 2.25) + drift);
-    float rightMask = smoothstep(0.18, 0.78, p.x) * smoothstep(0.02, 0.72, p.y);
-    float upperMask = smoothstep(0.98, 0.34, p.y);
-    float shrineGlow = smoothstep(0.42, 0.92, 1.0 - distance(p, vec2(0.72, 0.42)) * 1.42);
+    float firstWave = ripple(point, 54.0, 1.9);
+    float secondWave = ripple(point + vec2(0.08, -0.03), 71.0, 2.35);
+    float interference = max(0.0, firstWave * 0.58 + secondWave * 0.42);
+    float focus = smoothstep(0.66, 0.12, length(point));
+    float horizon = smoothstep(0.2, 0.78, uv.y) * smoothstep(0.98, 0.5, uv.y);
+    float glint = pow(max(0.0, sin((uv.x * 1.6 + uv.y) * 34.0 + uTime * 0.8)), 18.0);
 
-    float smokeAlpha = smoothstep(0.48, 0.88, smoke) * 0.095 * rightMask * upperMask;
-    float glowAlpha = shrineGlow * (0.045 + sin(uTime * 0.7) * 0.012);
-    vec3 brass = vec3(0.96, 0.72, 0.34);
-    vec3 chilli = vec3(0.78, 0.22, 0.14);
-    vec3 color = mix(chilli, brass, p.y * 0.72 + smoke * 0.28);
+    vec3 brass = vec3(0.93, 0.58, 0.22);
+    vec3 glass = vec3(0.76, 0.93, 0.88);
+    vec3 color = mix(brass, glass, glint * 0.6);
+    float alpha = (interference * 0.14 + glint * 0.055) * focus * horizon;
 
-    gl_FragColor = vec4(color, smokeAlpha + glowAlpha);
+    gl_FragColor = vec4(color, alpha);
   }
 `;
 
 const BrineDepthScene = () => {
-  const mountRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const mount = mountRef.current;
-    if (!mount) return;
+    const container = containerRef.current;
+    if (!container) return;
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: 'high-performance',
-    });
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let renderer: THREE.WebGLRenderer;
 
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.setClearColor(0x000000, 0);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
-    mount.appendChild(renderer.domElement);
-
-    const shaderMaterial = new THREE.ShaderMaterial({
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      uniforms: {
-        uTime: { value: 0 },
-        uPointer: { value: new THREE.Vector2(0, 0) },
-      },
-      vertexShader: overlayVertexShader,
-      fragmentShader: overlayFragmentShader,
-    });
-
-    const plane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), shaderMaterial);
-    scene.add(plane);
-
-    const particleCount = 140;
-    const positions = new Float32Array(particleCount * 3);
-    const velocities = new Float32Array(particleCount);
-    for (let i = 0; i < particleCount; i += 1) {
-      const x = THREE.MathUtils.lerp(-0.35, 1.05, Math.random());
-      const y = THREE.MathUtils.lerp(-1.05, 0.92, Math.random());
-      positions[i * 3] = x;
-      positions[i * 3 + 1] = y;
-      positions[i * 3 + 2] = 0;
-      velocities[i] = THREE.MathUtils.lerp(0.018, 0.052, Math.random());
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: false,
+        powerPreference: 'high-performance',
+      });
+    } catch {
+      return;
     }
 
-    const particleGeometry = new THREE.BufferGeometry();
-    particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const particleMaterial = new THREE.PointsMaterial({
-      color: '#f4c56d',
-      size: 0.009,
-      transparent: true,
-      opacity: 0.34,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    });
-    const particles = new THREE.Points(particleGeometry, particleMaterial);
-    scene.add(particles);
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    container.appendChild(renderer.domElement);
 
-    const pointer = shaderMaterial.uniforms.uPointer.value as THREE.Vector2;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const startedAt = performance.now();
-    let frame = 0;
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+    camera.position.z = 1;
+    const uniforms = {
+      uTime: { value: 0 },
+      uResolution: { value: new THREE.Vector2(1, 1) },
+      uPointer: { value: new THREE.Vector2(0, 0) },
+    };
+    const material = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const plane = new THREE.Mesh(geometry, material);
+    scene.add(plane);
 
     const resize = () => {
-      const width = Math.max(1, mount.clientWidth);
-      const height = Math.max(1, mount.clientHeight);
-      renderer.setSize(width, height, false);
-      renderer.render(scene, camera);
-    };
-
-    const onPointerMove = (event: PointerEvent) => {
-      pointer.x = (event.clientX / Math.max(1, window.innerWidth) - 0.5) * 2;
-      pointer.y = (event.clientY / Math.max(1, window.innerHeight) - 0.5) * -2;
-    };
-
-    const render = () => {
-      const elapsed = (performance.now() - startedAt) / 1000;
-      shaderMaterial.uniforms.uTime.value = elapsed;
-
-      const positionAttribute = particleGeometry.getAttribute('position') as THREE.BufferAttribute;
-      for (let i = 0; i < particleCount; i += 1) {
-        const index = i * 3;
-        positions[index + 1] += velocities[i] * 0.004;
-        positions[index] += Math.sin(elapsed * 0.22 + i) * 0.00045;
-        if (positions[index + 1] > 1.08) {
-          positions[index + 1] = -1.08;
-          positions[index] = THREE.MathUtils.lerp(-0.35, 1.05, Math.random());
-        }
-      }
-      positionAttribute.needsUpdate = true;
-
-      renderer.render(scene, camera);
-      frame = requestAnimationFrame(render);
+      const { width, height } = container.getBoundingClientRect();
+      renderer.setSize(Math.max(width, 1), Math.max(height, 1), false);
+      uniforms.uResolution.value.set(Math.max(width, 1), Math.max(height, 1));
     };
 
     const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(mount);
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    resizeObserver.observe(container);
     resize();
 
-    if (reducedMotion) {
+    const handlePointerMove = (event: PointerEvent) => {
+      uniforms.uPointer.value.set(
+        (event.clientX / window.innerWidth - 0.5) * 2,
+        (event.clientY / window.innerHeight - 0.5) * -2,
+      );
+    };
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+
+    const startedAt = performance.now();
+    let frameId = 0;
+
+    const render = () => {
+      uniforms.uTime.value = (performance.now() - startedAt) / 1000;
       renderer.render(scene, camera);
+    };
+
+    const tick = () => {
+      render();
+      frameId = requestAnimationFrame(tick);
+    };
+
+    const handleVisibility = () => {
+      if (reduceMotion) return;
+      if (document.hidden) {
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+      } else if (!frameId) {
+        frameId = requestAnimationFrame(tick);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    if (reduceMotion) {
+      render();
     } else {
-      frame = requestAnimationFrame(render);
+      frameId = requestAnimationFrame(tick);
     }
 
     return () => {
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(frameId);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pointermove', handlePointerMove);
       resizeObserver.disconnect();
-      window.removeEventListener('pointermove', onPointerMove);
-      particleGeometry.dispose();
-      particleMaterial.dispose();
-      shaderMaterial.dispose();
-      plane.geometry.dispose();
+      geometry.dispose();
+      material.dispose();
       renderer.dispose();
       renderer.domElement.remove();
     };
   }, []);
 
-  return <div ref={mountRef} className="absolute inset-0 pointer-events-none" aria-hidden="true" />;
+  return <div ref={containerRef} className="brine-depth-scene" aria-hidden="true" />;
 };
 
 export default BrineDepthScene;
