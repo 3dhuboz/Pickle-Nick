@@ -21,7 +21,7 @@ import Footer from './components/layout/Footer';
 import AdminLayout from './components/layout/AdminLayout';
 
 const logoMark = '/brand/pickle-nick-logo.jpg';
-const socialImage = '/brand/pickle-nick-brine-pour-settle.jpg';
+const socialImage = '/brand/pickle-nick-brine-pour-splash.jpg';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
