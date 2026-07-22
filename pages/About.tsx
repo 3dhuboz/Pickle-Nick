@@ -22,15 +22,15 @@ const flashStories = [
 const About = () => {
   const { siteContent } = useStore();
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const storyHeroImage = siteContent?.about.heroImage || '/brand/pickle-nick-warrior-flash.png';
+  const storyHeroImage = siteContent?.about.heroImage || '/brand/pickle-nick-hand-bottles.jpg';
   const storyFeatureImage = siteContent?.home.founderImage || '/brand/pickle-nick-hand-bottles.jpg';
   usePageMotion(rootRef);
 
   return (
     <div ref={rootRef} className="page-shell content-page">
       <header className="page-hero page-hero--story">
-        <div className="page-hero__flash" aria-hidden="true">
-          <img src={storyHeroImage} alt="" data-parallax-media />
+        <div className="page-hero__flash">
+          <img src={storyHeroImage} alt="Nick holding two Pickle Nick hot sauces" data-parallax-media />
         </div>
         <div className="page-width page-hero__row">
           <div>

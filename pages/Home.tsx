@@ -112,7 +112,7 @@ const Home = () => {
       <section className="home-hero" aria-labelledby="home-title">
         <img
           className="home-hero__poster"
-          src="/brand/pickle-nick-brine-hero-real-pickles.jpg"
+          src="/brand/pickle-nick-brine-fill-forward.jpg"
           alt=""
           aria-hidden="true"
         />
@@ -124,12 +124,12 @@ const Home = () => {
           loop
           playsInline
           preload="auto"
-          poster="/brand/pickle-nick-brine-hero-real-pickles.jpg"
+          poster="/brand/pickle-nick-brine-fill-forward.jpg"
           disablePictureInPicture
           data-parallax-media
           aria-hidden="true"
         >
-          <source src="/brand/pickle-nick-brine-hero-real-pickles.mp4" type="video/mp4" />
+          <source src="/brand/pickle-nick-brine-fill-forward.mp4" type="video/mp4" />
         </video>
         <div className="home-hero__scrim" aria-hidden="true" />
         <div className="home-hero__left-depth" aria-hidden="true">

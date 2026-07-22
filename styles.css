@@ -1053,22 +1053,23 @@ select:focus-visible {
 .page-hero__flash {
   position: absolute;
   z-index: 0;
-  top: -28px;
-  right: -1vw;
-  width: min(54vw, 760px);
-  height: calc(100% + 56px);
-  opacity: 0.72;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.8) 22%, #000 44%, #000 100%);
-  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.8) 22%, #000 44%, #000 100%);
+  top: 0;
+  right: 0;
+  width: min(58vw, 920px);
+  height: 100%;
+  overflow: hidden;
+  opacity: 0.92;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.78) 24%, #000 48%, #000 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.78) 24%, #000 48%, #000 100%);
   pointer-events: none;
 }
 
 .page-hero__flash img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: grayscale(1) contrast(1.35) brightness(1.28);
-  mix-blend-mode: screen;
+  object-fit: cover;
+  object-position: center 54%;
+  filter: saturate(0.82) contrast(1.08) brightness(0.72);
 }
 
 .page-hero--story .body-copy {
@@ -2319,7 +2320,7 @@ select:focus-visible {
 
   .home-hero__video,
   .home-hero__poster {
-    object-position: 68% center;
+    object-position: 73% center;
   }
 
   .home-hero__scrim {
@@ -2497,10 +2498,17 @@ select:focus-visible {
   }
 
   .page-hero__flash {
-    top: 8px;
-    right: -8vw;
-    width: 86vw;
-    opacity: 0.54;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 54%;
+    opacity: 0.68;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.82) 58%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.82) 58%, transparent 100%);
+  }
+
+  .page-hero__flash img {
+    object-position: center 58%;
   }
 
   .flash-story {

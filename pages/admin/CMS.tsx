@@ -250,7 +250,7 @@ const CMS = () => {
     if (!content) return <div>Loading Scrolls...</div>;
 
     const visuals = [
-        { label: "Our Story Hero Artwork", path: "about.heroImage", value: content.about.heroImage || '/brand/pickle-nick-warrior-flash.png' },
+        { label: "Our Story Hero Photo", path: "about.heroImage", value: content.about.heroImage || '/brand/pickle-nick-hand-bottles.jpg' },
         { label: "Our Story Feature Photo", path: "home.founderImage", value: content.home.founderImage || '/brand/pickle-nick-hand-bottles.jpg' },
         { label: "Gallery Banner (Gravel)", path: "home.galleryImage1", value: content.home.galleryImage1 },
         { label: "Gallery Detail (Rows)", path: "home.galleryImage2", value: content.home.galleryImage2 },
