@@ -1,0 +1,539 @@
+{
+  "verifiedAtUtc": "2026-11-01T23:20:37.371156+00:00",
+  "request": "Improve the supplied product pictures and upload them to their corresponding products.",
+  "live": "https://picklenick.au/#/shop",
+  "deployment": "https://61f83301.pickle-nick.pages.dev",
+  "preview": "https://f4ff6d9f.pickle-nick.pages.dev",
+  "releaseCommit": "17c72c9ad27ef4601fc0a817556db66fa7b348d2",
+  "implementationCommit": "1fdfd78",
+  "sourceEdits": "assets/edited-product-photos-20261102/editing-brief.json",
+  "media": {
+    "studioPhotos": 4,
+    "preservedArtworkIdentities": 8,
+    "higherQualityKitchenLineup": true,
+    "studioWebpTotalBytes": 642908
+  },
+  "prePublication": {
+    "unitTestsPassed": 18,
+    "typescript": "passed",
+    "productionBuild": "passed",
+    "runner": "Shared machine safety gate",
+    "buildArtifactFiles": 80,
+    "artifactHashMismatches": 0,
+    "previewCatalogueLoadedAndRevealed": 9,
+    "previewGalleries": 4,
+    "previewMobileWidth": 390,
+    "previewMobileOverflow": false,
+    "previewHeroWraps": 3
+  },
+  "publishedAssets": {
+    "pass": true,
+    "url": "https://picklenick.au/#/shop",
+    "assets": [
+      {
+        "path": "brand/products/bourbon-glaze-studio-v2.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 155182,
+        "sha256": "5250fcec9823ab1fdc808c2aba0d5d5b9dab99d832cd2784184906a1991ecceb",
+        "pass": true
+      },
+      {
+        "path": "brand/products/red-onions-label.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 180362,
+        "sha256": "15d714aea8739cc3db87c6b3acadeae9be9d1a97f3d7aba9ed3706606e68d78f",
+        "pass": true
+      },
+      {
+        "path": "brand/products/carrots-label.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 178642,
+        "sha256": "74a1155aa0266d96d04877880f06b1c41abdef244ac3f33e83c3169d61d925b5",
+        "pass": true
+      },
+      {
+        "path": "brand/products/cauliflower-label.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 194900,
+        "sha256": "8bec2f1acf0f77030ed011fe6e12e288a44a1433b349ce5d551ce4c59829e06f",
+        "pass": true
+      },
+      {
+        "path": "brand/products/cucumbers-label.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 192750,
+        "sha256": "86da189f32a65f6f87d575c9aaff71cc39cae60908cfde7e4ddbfa649ad7c707",
+        "pass": true
+      },
+      {
+        "path": "brand/products/roast-habanero-studio-v2.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 162558,
+        "sha256": "cfa09966a2ca29d7155079c74332a597e77b8787c581ff59450508079ca4c7bb",
+        "pass": true
+      },
+      {
+        "path": "brand/products/roast-jalapeno-studio-v2.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 162800,
+        "sha256": "4d9a68a38089e381f434e2f36ce2d9ee9970babfbe40472caae04f81e690da13",
+        "pass": true
+      },
+      {
+        "path": "brand/products/sweet-smokey-studio-v2.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 162368,
+        "sha256": "cfdf1be812a6dff800964c2cf8d90555b7892520964a00a6d72bd446b713a0fc",
+        "pass": true
+      },
+      {
+        "path": "brand/products/kitchen-lineup-v2.webp",
+        "status": 200,
+        "type": "image/webp",
+        "bytes": 397038,
+        "sha256": "b38a6b5c52184d0a32760b185ee810c17298e4120dfea51998f2f9ec5cdc07f7",
+        "pass": true
+      },
+      {
+        "path": "assets/index-BB3nawh0.js",
+        "status": 200,
+        "type": "application/javascript",
+        "bytes": 425327,
+        "sha256": "2495ed1f4d7b7db83734aef92ecac37553289dbe61e0fc96bd73c110e7b21f08",
+        "pass": true
+      }
+    ]
+  },
+  "database": {
+    "pass": true,
+    "rowsCompared": 9,
+    "imageFieldsChanged": 8,
+    "otherFieldsChanged": 0,
+    "cowboyCandyUnchanged": true,
+    "updateAttempts": 1,
+    "changes": [
+      {
+        "id": "prod_bourbon_glaze",
+        "fields": [
+          "image"
+        ]
+      },
+      {
+        "id": "prod_burger_onions",
+        "fields": [
+          "image"
+        ]
+      },
+      {
+        "id": "prod_carrot",
+        "fields": [
+          "image"
+        ]
+      },
+      {
+        "id": "prod_cauliflower",
+        "fields": [
+          "image"
+        ]
+      },
+      {
+        "id": "prod_cucumbers",
+        "fields": [
+          "image"
+        ]
+      },
+      {
+        "id": "prod_roast_habanero",
+        "fields": [
+          "image"
+        ]
+      },
+      {
+        "id": "prod_roast_jalapeno",
+        "fields": [
+          "image"
+        ]
+      },
+      {
+        "id": "prod_sweet_smokey",
+        "fields": [
+          "image"
+        ]
+      }
+    ]
+  },
+  "publicApi": {
+    "pass": true,
+    "status": 200,
+    "count": 9,
+    "products": [
+      {
+        "id": "prod_bourbon_glaze",
+        "image": "https://picklenick.au/brand/products/bourbon-glaze-studio-v2.webp",
+        "expected": "https://picklenick.au/brand/products/bourbon-glaze-studio-v2.webp"
+      },
+      {
+        "id": "prod_burger_onions",
+        "image": "https://picklenick.au/brand/products/red-onions-label.webp",
+        "expected": "https://picklenick.au/brand/products/red-onions-label.webp"
+      },
+      {
+        "id": "prod_carrot",
+        "image": "https://picklenick.au/brand/products/carrots-label.webp",
+        "expected": "https://picklenick.au/brand/products/carrots-label.webp"
+      },
+      {
+        "id": "prod_cauliflower",
+        "image": "https://picklenick.au/brand/products/cauliflower-label.webp",
+        "expected": "https://picklenick.au/brand/products/cauliflower-label.webp"
+      },
+      {
+        "id": "prod_cucumbers",
+        "image": "https://picklenick.au/brand/products/cucumbers-label.webp",
+        "expected": "https://picklenick.au/brand/products/cucumbers-label.webp"
+      },
+      {
+        "id": "prod_roast_habanero",
+        "image": "https://picklenick.au/brand/products/roast-habanero-studio-v2.webp",
+        "expected": "https://picklenick.au/brand/products/roast-habanero-studio-v2.webp"
+      },
+      {
+        "id": "prod_roast_jalapeno",
+        "image": "https://picklenick.au/brand/products/roast-jalapeno-studio-v2.webp",
+        "expected": "https://picklenick.au/brand/products/roast-jalapeno-studio-v2.webp"
+      },
+      {
+        "id": "prod_sweet_smokey",
+        "image": "https://picklenick.au/brand/products/sweet-smokey-studio-v2.webp",
+        "expected": "https://picklenick.au/brand/products/sweet-smokey-studio-v2.webp"
+      }
+    ]
+  },
+  "browser": {
+    "live": "https://picklenick.au",
+    "catalogue": {
+      "pass": true,
+      "cards": [
+        {
+          "id": "prod_roast_habanero",
+          "path": "/brand/products/roast-habanero-studio-v2.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_bourbon_glaze",
+          "path": "/brand/products/bourbon-glaze-studio-v2.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_sweet_smokey",
+          "path": "/brand/products/sweet-smokey-studio-v2.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_roast_jalapeno",
+          "path": "/brand/products/roast-jalapeno-studio-v2.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_carrot",
+          "path": "/brand/products/carrots-label.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_cowboy_candy",
+          "path": "/api/r2/file/client-images/244f9670-d605-46ec-be98-801392503d74.jpg",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_cauliflower",
+          "path": "/brand/products/cauliflower-label.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_burger_onions",
+          "path": "/brand/products/red-onions-label.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_cucumbers",
+          "path": "/brand/products/cucumbers-label.webp",
+          "loaded": true,
+          "revealed": true
+        }
+      ],
+      "failures": [],
+      "missing": [],
+      "url": "https://picklenick.au/#/shop"
+    },
+    "galleries": [
+      {
+        "id": "prod_roast_habanero",
+        "primary": {
+          "src": "/brand/products/roast-habanero-studio-v2.webp",
+          "count": 3
+        },
+        "src": "/brand/products/roast-habanero-label.webp",
+        "loaded": true,
+        "count": 3,
+        "art": true
+      },
+      {
+        "id": "prod_bourbon_glaze",
+        "primary": {
+          "src": "/brand/products/bourbon-glaze-studio-v2.webp",
+          "count": 2
+        },
+        "src": "/brand/products/bourbon-glaze-label.webp",
+        "loaded": true,
+        "count": 2,
+        "art": true
+      },
+      {
+        "id": "prod_sweet_smokey",
+        "primary": {
+          "src": "/brand/products/sweet-smokey-studio-v2.webp",
+          "count": 2
+        },
+        "src": "/brand/products/sweet-smokey-label.webp",
+        "loaded": true,
+        "count": 2,
+        "art": true
+      },
+      {
+        "id": "prod_roast_jalapeno",
+        "primary": {
+          "src": "/brand/products/roast-jalapeno-studio-v2.webp",
+          "count": 3
+        },
+        "src": "/brand/products/roast-jalapeno-label.webp",
+        "loaded": true,
+        "count": 3,
+        "art": true
+      }
+    ],
+    "mobile": {
+      "buttons": [
+        {
+          "height": 72,
+          "width": 64
+        },
+        {
+          "height": 72,
+          "width": 64
+        },
+        {
+          "height": 72,
+          "width": 64
+        }
+      ],
+      "overflow": false,
+      "width": 390
+    },
+    "hero": {
+      "pass": true,
+      "wraps": 4,
+      "visiblePlaySamples": 105,
+      "duration": 4.041667,
+      "error": null,
+      "visibility": "visible",
+      "url": "https://picklenick.au/",
+      "samples": [
+        {
+          "at": 1936,
+          "time": 0.8375,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 3006,
+          "time": 2.282,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 4090,
+          "time": 3.7461,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 5153,
+          "time": 0.5056,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 6232,
+          "time": 1.9621,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 7318,
+          "time": 3.4278,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 8407,
+          "time": 0.2238,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 9491,
+          "time": 1.6869,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 10578,
+          "time": 3.1543,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 11666,
+          "time": 4.041667,
+          "paused": true,
+          "ended": true,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 12754,
+          "time": 1.417,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 13845,
+          "time": 2.8894,
+          "paused": false,
+          "ended": false,
+          "rate": 1.35,
+          "opacity": "1"
+        },
+        {
+          "at": 14930,
+          "time": 4.041667,
+          "paused": true,
+          "ended": true,
+          "rate": 1.35,
+          "opacity": "1"
+        }
+      ]
+    },
+    "finalCatalogue": {
+      "pass": true,
+      "cards": [
+        {
+          "id": "prod_roast_habanero",
+          "path": "/brand/products/roast-habanero-studio-v2.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_bourbon_glaze",
+          "path": "/brand/products/bourbon-glaze-studio-v2.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_sweet_smokey",
+          "path": "/brand/products/sweet-smokey-studio-v2.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_roast_jalapeno",
+          "path": "/brand/products/roast-jalapeno-studio-v2.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_carrot",
+          "path": "/brand/products/carrots-label.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_cowboy_candy",
+          "path": "/api/r2/file/client-images/244f9670-d605-46ec-be98-801392503d74.jpg",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_cauliflower",
+          "path": "/brand/products/cauliflower-label.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_burger_onions",
+          "path": "/brand/products/red-onions-label.webp",
+          "loaded": true,
+          "revealed": true
+        },
+        {
+          "id": "prod_cucumbers",
+          "path": "/brand/products/cucumbers-label.webp",
+          "loaded": true,
+          "revealed": true
+        }
+      ],
+      "failures": [],
+      "missing": [],
+      "url": "https://picklenick.au/#/shop"
+    }
+  },
+  "rollback": "ops/product-media-20261102/rollback-images.sql",
+  "screenshots": [
+    "studio-shop-live-20261102.png",
+    "studio-mobile-live-20261102.png"
+  ],
+  "evidenceCache": "F:/CodexWork/_cache/codex-state/chat-recovery-20261101",
+  "constraints": {
+    "nonImageCatalogueFieldsPreserved": true,
+    "cowboyCandyPreservedWithoutSuppliedReplacement": true,
+    "databaseMutationSubmittedOnce": true,
+    "temporaryViewportAndFocusEmulationRestored": true,
+    "credentialsIncluded": false
+  }
+}

@@ -8,5 +8,7 @@
 - [x] Complete and inspect four built-in image edits; encode WebP derivatives, preserve edited PNGs and replace the kitchen lineup with the supplied higher-quality source.
 - [x] Prepare the new approved relative/absolute URL mapping, real-data SQL tests, eight-row precondition and guarded inverse SQL. Confirm production precondition is eight with zero writes.
 - [x] Run all eighteen tests, TypeScript and the production build through the existing shared-runner queue. Deploy the built output to a task-branch preview and check the actual catalogue, gallery controls and mobile layout.
-- [ ] Publish exactly the checked build. Verify asset URLs, capture a fresh catalogue snapshot, submit the guarded image-only statement once and prove eight changed images with every other field preserved.
-- [ ] Repeat focused live checks, save the measured receipt, push and finish the standard cold backup to the approved container.
+- [x] Publish exactly the checked build. Verify asset URLs, capture a fresh catalogue snapshot, submit the guarded image-only statement once and prove eight changed images with every other field preserved.
+- [x] Repeat focused live checks, save the measured receipt, push and finish the standard cold backup to the approved container.
+
+Production deployment: `61f83301.pickle-nick.pages.dev`. Ten public files matched the checked build by SHA-256 before the single D1 update. The update changed eight image fields; comparison of all nine complete product records found zero other field changes. Live browser checks passed for nine visible loaded images, four working artwork galleries, 390px mobile layout and four hero wraps. Measured receipt: `docs/verification/2026-11-02-polished-product-photos.json`. The standard save publishes this verification record to the approved backup container after the earlier release save already completed.
