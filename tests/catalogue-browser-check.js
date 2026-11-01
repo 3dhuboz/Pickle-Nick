@@ -1,9 +1,9 @@
 (async () => {
   const expected = {
-    prod_roast_habanero: '/brand/products/roast-habanero-photo.webp',
-    prod_bourbon_glaze: '/brand/products/bourbon-glaze-photo.webp',
-    prod_sweet_smokey: '/brand/products/sweet-smokey-photo.webp',
-    prod_roast_jalapeno: '/brand/products/roast-jalapeno-photo.webp',
+    prod_roast_habanero: '/brand/products/roast-habanero-studio-v2.webp',
+    prod_bourbon_glaze: '/brand/products/bourbon-glaze-studio-v2.webp',
+    prod_sweet_smokey: '/brand/products/sweet-smokey-studio-v2.webp',
+    prod_roast_jalapeno: '/brand/products/roast-jalapeno-studio-v2.webp',
     prod_carrot: '/brand/products/carrots-label.webp',
     prod_cauliflower: '/brand/products/cauliflower-label.webp',
     prod_burger_onions: '/brand/products/red-onions-label.webp',

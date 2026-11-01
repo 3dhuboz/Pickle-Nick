@@ -80,53 +80,57 @@
     ]
   },
   {
-    "sourceUpload": "codex-clipboard-029c31c5-7b87-4215-963e-ac8f0a485d96.jpg",
-    "sourceSha256": "d32ede474f1b01291d637d6f4840730d8f7ea3ba4b0b118c6e718d3a05a42ca8",
-    "output": "public/brand/products/roast-habanero-photo.webp",
-    "outputSha256": "63cb313428147a289963c9570cbc8ebc54064b41052cd8593304173982dcea4f",
+    "source": "assets/edited-product-photos-20261102/roast-habanero-studio.png",
+    "sourceSha256": "a496376de00ad584077983275fb1046efdcc8701f29c84cd6b2b3f930bda2174",
+    "output": "public/brand/products/roast-habanero-studio-v2.webp",
+    "outputSha256": "cfa09966a2ca29d7155079c74332a597e77b8787c581ff59450508079ca4c7bb",
     "dimensions": [
-      1350,
-      1800
-    ]
+      1122,
+      1402
+    ],
+    "method": "image_gen photographic retouch; WebP encoding only afterward"
   },
   {
-    "sourceUpload": "codex-clipboard-3a149dd3-8cf3-4126-989a-83e940d3dabb.jpg",
-    "sourceSha256": "9feca4ed1d827de498679e2cfad6bb398b9e67707e8957d1a13e8ad212827bbd",
-    "output": "public/brand/products/roast-jalapeno-photo.webp",
-    "outputSha256": "3f442d90ec650a211b04de237d1ce1488b226fe28bba12fedcd2973064ad8ac2",
+    "source": "assets/edited-product-photos-20261102/roast-jalapeno-studio.png",
+    "sourceSha256": "be1ffcefe30c416d3c08a9e39f3820797237f5585466db7ce259358428cf8d40",
+    "output": "public/brand/products/roast-jalapeno-studio-v2.webp",
+    "outputSha256": "4d9a68a38089e381f434e2f36ce2d9ee9970babfbe40472caae04f81e690da13",
     "dimensions": [
-      1350,
-      1800
-    ]
+      1122,
+      1402
+    ],
+    "method": "image_gen photographic retouch; WebP encoding only afterward"
   },
   {
-    "sourceUpload": "codex-clipboard-ae0d2420-be8d-4126-88bc-e71b737a49a4.jpg",
-    "sourceSha256": "c55470f6deadfdd415a3701db5de59e40d0063f38acde5ea57064334dce9b2ea",
-    "output": "public/brand/products/sweet-smokey-photo.webp",
-    "outputSha256": "ef6da14a00907d669ce1c7a1881e6695fe4d6fd0aedde8a1f6ad075e479486c3",
+    "source": "assets/edited-product-photos-20261102/sweet-smokey-studio.png",
+    "sourceSha256": "8be6a9c5e4993353f9e98d06ad58d698fba71adf8ffa26a4f78ecb62d87278bf",
+    "output": "public/brand/products/sweet-smokey-studio-v2.webp",
+    "outputSha256": "cfdf1be812a6dff800964c2cf8d90555b7892520964a00a6d72bd446b713a0fc",
     "dimensions": [
-      1350,
-      1800
-    ]
+      1122,
+      1402
+    ],
+    "method": "image_gen photographic retouch; WebP encoding only afterward"
   },
   {
-    "sourceUpload": "codex-clipboard-f42b7999-b32b-4de8-8975-df0d6de4a2da.jpg",
-    "sourceSha256": "d9f773a4b487db903051f71242df9b1ba30887a453e2b90d7efa918943ec8c14",
-    "output": "public/brand/products/bourbon-glaze-photo.webp",
-    "outputSha256": "4d1e1ed49982581dedd31a9465a339752ab1bf849f0edfdcdd3dc3f91679dca4",
+    "source": "assets/edited-product-photos-20261102/bourbon-glaze-studio.png",
+    "sourceSha256": "f1f29ac395dfc2a6e0afabf780170ed02230952a0f619113d96ebd12e9bf3b74",
+    "output": "public/brand/products/bourbon-glaze-studio-v2.webp",
+    "outputSha256": "5250fcec9823ab1fdc808c2aba0d5d5b9dab99d832cd2784184906a1991ecceb",
     "dimensions": [
-      1350,
-      1800
-    ]
+      1122,
+      1402
+    ],
+    "method": "image_gen photographic retouch; WebP encoding only afterward"
   },
   {
-    "sourceUpload": "codex-clipboard-041b40cb-e239-4f27-abd9-7870805ff21f.jpg",
-    "sourceSha256": "188f457a603cc53c78d0a48ae2d6415645ddc0cd36dfcf181c924e6c817ff295",
-    "output": "public/brand/products/kitchen-lineup.webp",
-    "outputSha256": "a52f82d17e993bc22d289dda5f8369a7cd42fd073ab6ce6edaefe86edbfbc2d5",
+    "source": "assets/product-photo-inputs-20261102/05976f0e-bc50-48a8-a85f-ccab5ef4b55f.jpg",
+    "sourceSha256": "3511cc29c9dfc9b07379b479d6f9d8018b05b2f88d7059034350280ea2ba3ffe",
+    "output": "public/brand/products/kitchen-lineup-v2.webp",
+    "outputSha256": "b38a6b5c52184d0a32760b185ee810c17298e4120dfea51998f2f9ec5cdc07f7",
     "dimensions": [
-      1800,
-      1350
+      2048,
+      1536
     ]
   },
   {

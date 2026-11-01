@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "test": "node --test tests/product-media.test.mjs",
+    "test": "node --disable-warning=ExperimentalWarning --test tests/product-media.test.mjs tests/product-image-update.test.mjs",
     "verify": "npm run test && npm run lint && npm run build",
     "dev": "vite",
     "build": "vite build",

@@ -1,0 +1,61 @@
+{
+  "tool": "built-in image_gen",
+  "mode": "photo edit",
+  "date": "2026-11-02",
+  "lumina": "Checked first; signed out and no funded balance visible. No Lumina submission or ModelArk API use.",
+  "commonBrief": "One complete real bottle, upright centered in a 4:5 frame on a warm pale parchment studio background with a soft contact shadow. Preserve actual sauce colour, black cap, original wrap label typography and artwork, correct flavour and volume; no props, new claims, extra logos or watermark. Use the full original lineup and close-up for authentic geometry and the supplied artwork for identity. Match Habanero lighting/framing across the set.",
+  "products": [
+    {
+      "product": "roast-habanero",
+      "volumeMl": 250,
+      "source": "assets/edited-product-photos-20261102/roast-habanero-studio.png",
+      "output": "public/brand/products/roast-habanero-studio-v2.webp",
+      "constraintsChecked": [
+        "flavour spelling",
+        "volume text",
+        "complete cap/base",
+        "natural sauce colour",
+        "brand artwork and words"
+      ]
+    },
+    {
+      "product": "roast-jalapeno",
+      "volumeMl": 250,
+      "source": "assets/edited-product-photos-20261102/roast-jalapeno-studio.png",
+      "output": "public/brand/products/roast-jalapeno-studio-v2.webp",
+      "constraintsChecked": [
+        "flavour spelling",
+        "volume text",
+        "complete cap/base",
+        "natural sauce colour",
+        "brand artwork and words"
+      ]
+    },
+    {
+      "product": "bourbon-glaze",
+      "volumeMl": 300,
+      "source": "assets/edited-product-photos-20261102/bourbon-glaze-studio.png",
+      "output": "public/brand/products/bourbon-glaze-studio-v2.webp",
+      "constraintsChecked": [
+        "flavour spelling",
+        "volume text",
+        "complete cap/base",
+        "natural sauce colour",
+        "brand artwork and words"
+      ]
+    },
+    {
+      "product": "sweet-smokey",
+      "volumeMl": 300,
+      "source": "assets/edited-product-photos-20261102/sweet-smokey-studio.png",
+      "output": "public/brand/products/sweet-smokey-studio-v2.webp",
+      "constraintsChecked": [
+        "flavour spelling",
+        "volume text",
+        "complete cap/base",
+        "natural sauce colour",
+        "brand artwork and words"
+      ]
+    }
+  ]
+}

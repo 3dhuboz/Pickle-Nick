@@ -224,7 +224,7 @@ const Home = () => {
             <Link className="button button--line" to="/shop">Find your heat <ArrowRight size={16} /></Link>
           </div>
           <div className="story-media" data-scroll-reveal>
-            <img src="/brand/products/kitchen-lineup.webp" alt="Nick's Sweet and Smokey, Roast Habanero, Roast Jalapeño and Bourbon Glaze bottles on the kitchen bench" loading="lazy" decoding="async" data-parallax-media />
+            <img src="/brand/products/kitchen-lineup-v2.webp" alt="Nick's Sweet and Smokey, Roast Habanero, Roast Jalapeño and Bourbon Glaze bottles on the kitchen bench" loading="lazy" decoding="async" data-parallax-media />
             <img className="story-media__logo" src={NICK_LOGO_SRC} alt="" aria-hidden="true" />
           </div>
         </div>

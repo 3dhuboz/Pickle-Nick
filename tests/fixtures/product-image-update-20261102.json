@@ -1,0 +1,114 @@
+{
+  "source": "Read-only production D1 survey, 2 November 2026",
+  "createSql": "CREATE TABLE products (\r\n  id          TEXT PRIMARY KEY,\r\n  name        TEXT NOT NULL,\r\n  description TEXT NOT NULL DEFAULT '',\r\n  price       REAL NOT NULL,\r\n  stock       INTEGER NOT NULL DEFAULT 0,\r\n  image       TEXT NOT NULL DEFAULT '',\r\n  category    TEXT NOT NULL DEFAULT '',\r\n  featured    INTEGER NOT NULL DEFAULT 0,\r\n  weight      INTEGER,\r\n  updated_at  INTEGER NOT NULL\r\n)",
+  "products": [
+    {
+      "id": "prod_bourbon_glaze",
+      "name": "Bourbon Glaze",
+      "description": "Smooth bourbon warmth, the sweetness of honey, the umami of soy, a touch of star anise.\nGlaze your pork belly, brush your ribs,\nor charred wings for that sticky finish.\n300ml",
+      "price": 20,
+      "stock": 30,
+      "image": "https://picklenick.au/api/r2/file/client-images/30fdb2bf-c21c-4297-89bb-f5765f23a3ea.jpg",
+      "category": "Hot Sauces",
+      "featured": 1,
+      "weight": 250,
+      "updated_at": 1793351427024
+    },
+    {
+      "id": "prod_burger_onions",
+      "name": "Burger Onions",
+      "description": "Sweet pickled onions sliced thick for burgers and sandwiches. A backyard BBQ essential.",
+      "price": 10,
+      "stock": 0,
+      "image": "https://picklenick.au/api/r2/file/client-images/df2b8a84-cd79-47db-b4a1-2f476289e587.jpg",
+      "category": "Pickles",
+      "featured": 0,
+      "weight": 400,
+      "updated_at": 1784841053509
+    },
+    {
+      "id": "prod_carrot",
+      "name": "Carrot",
+      "description": "Pickled carrots with a satisfying crunch. Tangy, sweet, and perfect as a side or snack.",
+      "price": 10,
+      "stock": 0,
+      "image": "https://picklenick.au/api/r2/file/client-images/1277677b-6b66-4984-a35a-052b5560e3f4.jpg",
+      "category": "Pickles",
+      "featured": 0,
+      "weight": 400,
+      "updated_at": 1784877948518
+    },
+    {
+      "id": "prod_cauliflower",
+      "name": "Cauliflower",
+      "description": "Pickled cauliflower florets with a zesty brine. Unexpected and delicious.",
+      "price": 10,
+      "stock": 0,
+      "image": "https://picklenick.au/api/r2/file/client-images/24945307-4890-4e00-9310-f66cee13965d.jpg",
+      "category": "Pickles",
+      "featured": 0,
+      "weight": 400,
+      "updated_at": 1784841065438
+    },
+    {
+      "id": "prod_cowboy_candy",
+      "name": "Cowboy Candy",
+      "description": "Sweet and spicy candied jalape\u00f1os. The legendary condiment that goes on absolutely everything.",
+      "price": 10,
+      "stock": 0,
+      "image": "https://picklenick.au/api/r2/file/client-images/244f9670-d605-46ec-be98-801392503d74.jpg",
+      "category": "Pickles",
+      "featured": 1,
+      "weight": 400,
+      "updated_at": 1784841076830
+    },
+    {
+      "id": "prod_cucumbers",
+      "name": "Cucumbers",
+      "description": "Classic pickled cucumbers. Crunchy, tangy, and utterly addictive straight from the jar.",
+      "price": 10,
+      "stock": 0,
+      "image": "https://picklenick.au/api/r2/file/client-images/f6b182ca-0930-4d88-ae18-ff1936e5b23e.jpg",
+      "category": "Pickles",
+      "featured": 1,
+      "weight": 450,
+      "updated_at": 1784841036718
+    },
+    {
+      "id": "prod_roast_habanero",
+      "name": "Roast Habanero ",
+      "description": "Starts with a punch, finishes with flavour.\nMade to accompany your food and not drown it out.\nAdd to smoked meats or anything that needs a kick.\n250ml ",
+      "price": 20,
+      "stock": 30,
+      "image": "https://picklenick.au/api/r2/file/client-images/cb377e4e-f8e0-4c53-8b3a-51f41db7166d.jpg",
+      "category": "Hot Sauces",
+      "featured": 1,
+      "weight": 250,
+      "updated_at": 1793351469545
+    },
+    {
+      "id": "prod_roast_jalapeno",
+      "name": "Roast Jalape\u00f1o",
+      "description": "Fire-roasted and with a fresh, fruity bite and just a hint of sweetness.\nKiller on burgers, tacos, or as a salsa upgrade for your next BBQ feast.\n250ml",
+      "price": 20,
+      "stock": 10,
+      "image": "https://picklenick.au/api/r2/file/client-images/278a4c73-f615-44d9-b974-6213e87ff240.jpg",
+      "category": "Hot Sauces",
+      "featured": 1,
+      "weight": 250,
+      "updated_at": 1793351405654
+    },
+    {
+      "id": "prod_sweet_smokey",
+      "name": "Sweet & Smokey",
+      "description": "Built for the pit, this is the everything sauce!\nSmoky chipotle, a touch of sweet, and just enough heat.\nPerfect on brisket, pulled pork, eggs, you name it!\n300ml",
+      "price": 20,
+      "stock": 30,
+      "image": "https://picklenick.au/api/r2/file/client-images/d3173781-0963-4956-b2a7-684e4b8b26a8.jpg",
+      "category": "Hot Sauces",
+      "featured": 1,
+      "weight": 250,
+      "updated_at": 1793351417763
+    }
+  ]
+}

@@ -5,10 +5,10 @@ import { resolveProductMedia, getProductGallery } from '../lib/productMedia.ts';
 
 const products = JSON.parse(readFileSync(new URL('./fixtures/catalogue-media.json', import.meta.url), 'utf8'));
 const expected = {
-  prod_roast_habanero: 'roast-habanero-photo',
-  prod_bourbon_glaze: 'bourbon-glaze-photo',
-  prod_sweet_smokey: 'sweet-smokey-photo',
-  prod_roast_jalapeno: 'roast-jalapeno-photo',
+  prod_roast_habanero: 'roast-habanero-studio-v2',
+  prod_bourbon_glaze: 'bourbon-glaze-studio-v2',
+  prod_sweet_smokey: 'sweet-smokey-studio-v2',
+  prod_roast_jalapeno: 'roast-jalapeno-studio-v2',
   prod_carrot: 'carrots-label',
   prod_cauliflower: 'cauliflower-label',
   prod_burger_onions: 'red-onions-label',
@@ -26,6 +26,26 @@ test('later administrator uploads take priority over the recorded replacements',
   for (const product of products) {
     const uploaded = { ...product, image: 'https://picklenick.au/api/r2/file/client-images/later-upload.webp' };
     assert.equal(resolveProductMedia(uploaded).src, uploaded.image);
+  }
+});
+
+test('approved relative and absolute stored images retain their media type', () => {
+  for (const product of products.filter(p => expected[p.id])) {
+    const path = `/brand/products/${expected[product.id]}.webp`;
+    for (const image of [path, `https://picklenick.au${path}`]) {
+      const media = resolveProductMedia({ ...product, image });
+      assert.equal(media.src, path);
+      assert.equal(media.art, product.category === 'Pickles');
+    }
+  }
+});
+
+test('stored approved images do not duplicate the primary gallery image', () => {
+  for (const product of products.filter(p => expected[p.id])) {
+    const path = `/brand/products/${expected[product.id]}.webp`;
+    const gallery = getProductGallery({ ...product, image: `https://picklenick.au${path}` });
+    assert.equal(gallery.filter(media => media.src.replace('https://picklenick.au', '') === path).length, 1);
+    assert.equal(gallery[0].src, path);
   }
 });
 
