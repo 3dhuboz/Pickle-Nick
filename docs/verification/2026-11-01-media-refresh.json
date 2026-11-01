@@ -1,0 +1,71 @@
+{
+  "checkedAtUtc": "2026-11-01T12:40:28.604164+00:00",
+  "sourceCommit": "0be1e65",
+  "branch": "main",
+  "githubPushed": true,
+  "preview": "https://3acd52fd.pickle-nick.pages.dev/",
+  "unitTests": {
+    "passed": 13,
+    "failed": 0
+  },
+  "typescript": "passed",
+  "build": "passed",
+  "unchangedBuiltFiles": 75,
+  "heroPreview": {
+    "passed": true,
+    "firstRunWraps": 4,
+    "prepublishRunWraps": 3,
+    "rate": 1.35,
+    "mediaErrors": 0
+  },
+  "cataloguePreview": {
+    "products": 9,
+    "imagesLoaded": 9,
+    "replacements": 8,
+    "cowboyCandyPreserved": true
+  },
+  "detailGalleries": {
+    "saucesChecked": 4,
+    "artworkSelectionPassed": true
+  },
+  "homepageImages": {
+    "loaded": 10,
+    "failed": 0
+  },
+  "mobile": {
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "thumbnailControlsUsable": true
+  },
+  "reducedMotion": {
+    "paused": true,
+    "time": 0,
+    "videoOpacity": 0,
+    "posterLoaded": true,
+    "resumedWhenDisabled": true
+  },
+  "backgroundVisibility": {
+    "actualHiddenObserved": true,
+    "videoPausedWhenHidden": true
+  },
+  "basket": {
+    "addedProduct": "prod_roast_habanero",
+    "subtotal": 20,
+    "removedAfterCheck": true,
+    "orderPlaced": false
+  },
+  "production": {
+    "url": "https://picklenick.au/",
+    "deployment": "https://e9bcb26a.pickle-nick.pages.dev/",
+    "heroWrapsIn13_5Seconds": 4,
+    "visiblePlaySamples": 104,
+    "mediaErrors": 0,
+    "catalogueImagesLoaded": 9,
+    "catalogueReplacementFailures": 0,
+    "backgroundPauseAndResumePassed": true,
+    "entryModule": "/assets/index-BUSIyVoa.js",
+    "entryModuleSha256": "c5ef99fb9fc77b3a5981a8fc6bed291cf557b35f079469d8e35072980b3659f3",
+    "matchesVerifiedBuild": true
+  },
+  "coldSave": "See global codex-save receipt; cold publication may be queued."
+}
