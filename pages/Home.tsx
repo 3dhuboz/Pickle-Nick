@@ -5,6 +5,7 @@ import { useStore } from '../context/StoreContext';
 import BrandedProductImage from '../components/brand/BrandedProductImage';
 import { NICK_LOGO_SRC } from '../components/brand/NickLogo';
 import { usePageMotion } from '../hooks/usePageMotion';
+import { useHeroPlayback } from '../hooks/useHeroPlayback';
 
 const BrineDepthScene = lazy(() => import('../components/visual/BrineDepthScene'));
 
@@ -21,7 +22,7 @@ const Home = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const timerRef = useRef<number | undefined>(undefined);
   const [addedId, setAddedId] = useState<string | null>(null);
-  const [videoPlaying, setVideoPlaying] = useState(false);
+  const videoPlaying = useHeroPlayback(videoRef);
   const featuredProducts = products.filter(product => product.featured).slice(0, 4);
   const batch = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 4);
 
@@ -72,32 +73,6 @@ const Home = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return undefined;
-
-    const startPlayback = () => {
-      if (document.hidden) return;
-      void video.play().catch(() => setVideoPlaying(false));
-    };
-    const handlePlaying = () => setVideoPlaying(true);
-    const handleWaiting = () => setVideoPlaying(false);
-    const handleVisibility = () => startPlayback();
-
-    video.addEventListener('canplay', startPlayback);
-    video.addEventListener('playing', handlePlaying);
-    video.addEventListener('waiting', handleWaiting);
-    document.addEventListener('visibilitychange', handleVisibility);
-    startPlayback();
-
-    return () => {
-      video.removeEventListener('canplay', startPlayback);
-      video.removeEventListener('playing', handlePlaying);
-      video.removeEventListener('waiting', handleWaiting);
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, []);
-
   const handleQuickAdd = (productId: string) => {
     const product = products.find(item => item.id === productId);
     if (!product || product.stock <= 0) return;
@@ -119,7 +94,6 @@ const Home = () => {
         <video
           ref={videoRef}
           className={`home-hero__video${videoPlaying ? ' is-playing' : ''}`}
-          autoPlay
           muted
           playsInline
           preload="auto"
@@ -225,7 +199,7 @@ const Home = () => {
       <section className="light-section">
         <div className="page-width story-split">
           <div className="story-media" data-scroll-reveal>
-            <img src="/brand/pickle-nick-onions-prep.jpg" alt="Fresh onions being prepared for a Pickle Nick batch" data-parallax-media />
+            <img src="/brand/products/fresh-habaneros.webp" alt="A fresh batch of bright red habaneros ready for Nick's hot sauce" loading="lazy" decoding="async" data-parallax-media />
             <img className="story-media__logo" src={NICK_LOGO_SRC} alt="" aria-hidden="true" />
           </div>
           <div className="story-copy" data-scroll-reveal>
@@ -250,14 +224,38 @@ const Home = () => {
             <Link className="button button--line" to="/shop">Find your heat <ArrowRight size={16} /></Link>
           </div>
           <div className="story-media" data-scroll-reveal>
-            <img src="/brand/pickle-nick-hand-bottles.jpg" alt="Nick holding two Pickle Nick hot sauces" data-parallax-media />
+            <img src="/brand/products/kitchen-lineup.webp" alt="Nick's Sweet and Smokey, Roast Habanero, Roast Jalapeño and Bourbon Glaze bottles on the kitchen bench" loading="lazy" decoding="async" data-parallax-media />
             <img className="story-media__logo" src={NICK_LOGO_SRC} alt="" aria-hidden="true" />
           </div>
         </div>
       </section>
 
+      <section className="light-section" aria-labelledby="batch-gallery-title">
+        <div className="page-width">
+          <div className="section-head" data-scroll-reveal>
+            <div>
+              <p className="eyeline" style={{ color: 'var(--red)' }}>Straight from Nick</p>
+              <h2 id="batch-gallery-title" className="display">The batch, out in the wild.</h2>
+            </div>
+            <Link className="section-link" to="/shop">Find your bottle <ArrowRight size={16} /></Link>
+          </div>
+          <div className="batch-gallery">
+            {[
+              { src: 'firepit-lineup', alt: 'Four Pickle Nick hot sauces lined up around the firepit', caption: 'Made for the next cook-up.' },
+              { src: 'firepit-lineup-close', alt: 'A closer look at the artwork on Nick’s hot sauce bottles beside the firepit', caption: 'The real bottles. The real labels.' },
+              { src: 'grill-lineup', alt: 'Sweet and Smokey, Bourbon Glaze, Roast Jalapeño and Roast Habanero on the grill', caption: 'Pick your flavour. Bring the bite.' },
+            ].map(image => (
+              <figure key={image.src} data-scroll-reveal>
+                <img src={`/brand/products/${image.src}.webp`} alt={image.alt} loading="lazy" decoding="async" width="1800" height={image.src === 'grill-lineup' ? 1556 : 1350} />
+                <figcaption>{image.caption}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="signature-banner">
-        <img src="/brand/pickle-nick-firepit-lineup.jpg" alt="Pickle Nick hot sauce lineup beside the fire" data-parallax-media />
+        <img src="/brand/products/table-lineup.webp" alt="Nick's four hot sauce flavours on the serving bench" loading="lazy" decoding="async" data-parallax-media />
         <div className="page-width signature-banner__inner">
           <div className="signature-banner__copy" data-scroll-reveal>
             <p className="eyeline">Pick a bottle</p>

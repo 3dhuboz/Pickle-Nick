@@ -1,0 +1,192 @@
+[
+  {
+    "source": "assets/source-labels/bourbon-glaze.png",
+    "sourceSha256": "b737620f66cb7a8e33c3088e9217ae97cb400928ad5fb384bbb695708dae6a3d",
+    "output": "public/brand/products/bourbon-glaze-label.webp",
+    "outputSha256": "626b2f5aeb6f8feecaac8c06965704dd2577d0f75280d79db63ef85cdbd5c9e6",
+    "dimensions": [
+      620,
+      680
+    ]
+  },
+  {
+    "source": "assets/source-labels/carrots.png",
+    "sourceSha256": "cf6af7981346e67e8eff908ecf80191cf8b5491437d8107535146cb17a444392",
+    "output": "public/brand/products/carrots-label.webp",
+    "outputSha256": "74a1155aa0266d96d04877880f06b1c41abdef244ac3f33e83c3169d61d925b5",
+    "dimensions": [
+      960,
+      645
+    ]
+  },
+  {
+    "source": "assets/source-labels/cauliflower.png",
+    "sourceSha256": "ec5657263ffc5f6c901462250e1a3eada6de64c013bcbb76dfc2d95e74b902ea",
+    "output": "public/brand/products/cauliflower-label.webp",
+    "outputSha256": "8bec2f1acf0f77030ed011fe6e12e288a44a1433b349ce5d551ce4c59829e06f",
+    "dimensions": [
+      980,
+      645
+    ]
+  },
+  {
+    "source": "assets/source-labels/cucumbers.png",
+    "sourceSha256": "4655f8103f8f7fec229efbecce86cf7f7dc6ec00771385833d726ac93f63d8aa",
+    "output": "public/brand/products/cucumbers-label.webp",
+    "outputSha256": "86da189f32a65f6f87d575c9aaff71cc39cae60908cfde7e4ddbfa649ad7c707",
+    "dimensions": [
+      980,
+      645
+    ]
+  },
+  {
+    "source": "assets/source-labels/roast-jalapeno.png",
+    "sourceSha256": "eb9baf96cc71b8ad44e23ac1a30060f00f7e6589de09aa025e8ba581b10f72fc",
+    "output": "public/brand/products/roast-jalapeno-label.webp",
+    "outputSha256": "18b522e66a66c1244dced95900abf325904b8975afcfdf4f1007b1733a4a995d",
+    "dimensions": [
+      750,
+      700
+    ]
+  },
+  {
+    "source": "assets/source-labels/red-onions.png",
+    "sourceSha256": "265dd1f7673dde7c4672c1643409d315a41dc15ebfa1c6e2e4f26cb454b84c03",
+    "output": "public/brand/products/red-onions-label.webp",
+    "outputSha256": "15d714aea8739cc3db87c6b3acadeae9be9d1a97f3d7aba9ed3706606e68d78f",
+    "dimensions": [
+      980,
+      645
+    ]
+  },
+  {
+    "source": "assets/source-labels/roast-habanero.png",
+    "sourceSha256": "325cc264157cd7f5a33a3805bc2bfe6547309b0b6b0c1d0f34089516964dc3d6",
+    "output": "public/brand/products/roast-habanero-label.webp",
+    "outputSha256": "710f47ace59fcdff9df142f8769c03b53ec7b7c085190f8ab61c495efe91b4df",
+    "dimensions": [
+      1024,
+      1024
+    ]
+  },
+  {
+    "source": "assets/source-labels/sweet-smokey.png",
+    "sourceSha256": "7b7ec1f1551c763b8197cdefc4a3e71903fec5ee54514bad7cb98338d459724e",
+    "output": "public/brand/products/sweet-smokey-label.webp",
+    "outputSha256": "d5e854a3483d643dce3e8671f999c3dbcc518642c06d60e0cff089212c42bca0",
+    "dimensions": [
+      650,
+      690
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-029c31c5-7b87-4215-963e-ac8f0a485d96.jpg",
+    "sourceSha256": "d32ede474f1b01291d637d6f4840730d8f7ea3ba4b0b118c6e718d3a05a42ca8",
+    "output": "public/brand/products/roast-habanero-photo.webp",
+    "outputSha256": "63cb313428147a289963c9570cbc8ebc54064b41052cd8593304173982dcea4f",
+    "dimensions": [
+      1350,
+      1800
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-3a149dd3-8cf3-4126-989a-83e940d3dabb.jpg",
+    "sourceSha256": "9feca4ed1d827de498679e2cfad6bb398b9e67707e8957d1a13e8ad212827bbd",
+    "output": "public/brand/products/roast-jalapeno-photo.webp",
+    "outputSha256": "3f442d90ec650a211b04de237d1ce1488b226fe28bba12fedcd2973064ad8ac2",
+    "dimensions": [
+      1350,
+      1800
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-ae0d2420-be8d-4126-88bc-e71b737a49a4.jpg",
+    "sourceSha256": "c55470f6deadfdd415a3701db5de59e40d0063f38acde5ea57064334dce9b2ea",
+    "output": "public/brand/products/sweet-smokey-photo.webp",
+    "outputSha256": "ef6da14a00907d669ce1c7a1881e6695fe4d6fd0aedde8a1f6ad075e479486c3",
+    "dimensions": [
+      1350,
+      1800
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-f42b7999-b32b-4de8-8975-df0d6de4a2da.jpg",
+    "sourceSha256": "d9f773a4b487db903051f71242df9b1ba30887a453e2b90d7efa918943ec8c14",
+    "output": "public/brand/products/bourbon-glaze-photo.webp",
+    "outputSha256": "4d1e1ed49982581dedd31a9465a339752ab1bf849f0edfdcdd3dc3f91679dca4",
+    "dimensions": [
+      1350,
+      1800
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-041b40cb-e239-4f27-abd9-7870805ff21f.jpg",
+    "sourceSha256": "188f457a603cc53c78d0a48ae2d6415645ddc0cd36dfcf181c924e6c817ff295",
+    "output": "public/brand/products/kitchen-lineup.webp",
+    "outputSha256": "a52f82d17e993bc22d289dda5f8369a7cd42fd073ab6ce6edaefe86edbfbc2d5",
+    "dimensions": [
+      1800,
+      1350
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-14e45fcc-e6a0-4765-bba0-1dcd144d9d91.jpg",
+    "sourceSha256": "9fd843785832c4c65fcf8b5e795bbbbc3b524ec497394f35aaab57537b8c6b99",
+    "output": "public/brand/products/table-lineup.webp",
+    "outputSha256": "24eafd41b836c03d657d99142e3d7e1bd5cc78fb35dd8488e7115aed731b94b9",
+    "dimensions": [
+      1800,
+      1350
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-78968bf4-0d3d-4d7c-aa68-ee55134fe31f.jpg",
+    "sourceSha256": "0378fbc342b525009434fe8c2039812c146b9fea1ac13f5603cb70b46b84c0ee",
+    "output": "public/brand/products/firepit-lineup.webp",
+    "outputSha256": "3874e01921d4386fa401d1eebf469611e9a7139d634cd28253089b1ece409e54",
+    "dimensions": [
+      1800,
+      1350
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-c11bbe8c-5014-404c-9f63-2a62dfa45fc5.jpg",
+    "sourceSha256": "68b9e647c899d6acafed359f3db918566afcf785e744d77535debbc82744d216",
+    "output": "public/brand/products/firepit-lineup-close.webp",
+    "outputSha256": "fe62d9bb2006f8f951e173c0e4621e75408a956ba7f597a5ff554cc4d9d9ff2e",
+    "dimensions": [
+      1800,
+      1350
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-e2f02530-1727-496f-8212-be96668a3f50.jpg",
+    "sourceSha256": "606b2db2445b0e64858cb4ff370f724756f2d7e686869668ba212b3d21445333",
+    "output": "public/brand/products/grill-lineup.webp",
+    "outputSha256": "a95b9f27dd81f4c3c0a2d444d64cd30eb1825e9299ec1cf1400ef8b9728c4a40",
+    "dimensions": [
+      1800,
+      1556
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-2c8e274c-1a76-4dcd-a2e2-fc97fdfc1904.jpg",
+    "sourceSha256": "32574fe0a5a9aee5df1aa5a6597be532e202c078f94015e6eed478edddd608f3",
+    "output": "public/brand/products/fresh-habaneros.webp",
+    "outputSha256": "d8b8151a6cad1a6375acb370a84483683d69e63e583b1a624cb56e5cd1c41d7f",
+    "dimensions": [
+      1012,
+      1800
+    ]
+  },
+  {
+    "sourceUpload": "codex-clipboard-c4be1d12-475d-43fc-86a8-b219f9b3db49.jpg",
+    "sourceSha256": "9918ae2847cca78fef06cf98d71e26719927270fb32b16b8689a663ca56df2b3",
+    "output": "public/brand/products/fresh-jalapenos.webp",
+    "outputSha256": "63a216380df099b961b2df8498f168c095a18d90786160d712900999f576ff5b",
+    "dimensions": [
+      1350,
+      1800
+    ]
+  }
+]
