@@ -31,3 +31,5 @@ The main stored `products.image` field must point at the corresponding approved 
 D1 rejects `sqlite_version()` with error 7500; use the real `sqlite_master` table definition for the staging copy instead. A failed read caused the local Wrangler process to terminate with a native libuv error. Use the documented D1 HTTP query endpoint for the remaining bounded survey and guarded image-only statement; do not repeat a failed mutation. The helper records a write fingerprint before submission and refuses a second submission under the same receipt.
 
 The temporary helper must resolve the same active credential location as the installed Wrangler: an existing user `.wrangler` directory takes priority over the older XDG configuration. Never print credentials or copy them into the project. API reference: https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/.
+
+Catalogue screenshot checks must wait until each card finishes its reveal animation (computed opacity at least 0.99). Image decoding alone does not prove that the card is visibly ready; `tests/catalogue-browser-check.js` now enforces both conditions.
